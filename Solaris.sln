@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Solaris", "Solaris\Solaris.vcxproj", "{716BC2C1-8242-4B6A-A0BD-ED8A93278418}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj", "{90EF4037-B073-4FA4-96BF-1F12A744A1B8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ErdiRKN76", "ErdiRKN76\ErdiRKN76.vcxproj", "{1DA61423-6F2D-448E-B8A7-A08666025B59}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{716BC2C1-8242-4B6A-A0BD-ED8A93278418}.Debug|Win32.ActiveCfg = Debug|Win32
+		{716BC2C1-8242-4B6A-A0BD-ED8A93278418}.Debug|Win32.Build.0 = Debug|Win32
+		{716BC2C1-8242-4B6A-A0BD-ED8A93278418}.Release|Win32.ActiveCfg = Release|Win32
+		{716BC2C1-8242-4B6A-A0BD-ED8A93278418}.Release|Win32.Build.0 = Release|Win32
+		{90EF4037-B073-4FA4-96BF-1F12A744A1B8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{90EF4037-B073-4FA4-96BF-1F12A744A1B8}.Debug|Win32.Build.0 = Debug|Win32
+		{90EF4037-B073-4FA4-96BF-1F12A744A1B8}.Release|Win32.ActiveCfg = Release|Win32
+		{90EF4037-B073-4FA4-96BF-1F12A744A1B8}.Release|Win32.Build.0 = Release|Win32
+		{1DA61423-6F2D-448E-B8A7-A08666025B59}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1DA61423-6F2D-448E-B8A7-A08666025B59}.Release|Win32.ActiveCfg = Release|Win32
+		{1DA61423-6F2D-448E-B8A7-A08666025B59}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

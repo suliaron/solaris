@@ -1,0 +1,57 @@
+﻿<Simulation name="Test gas drag" description="The system consists of the Sun and a planetesimal. The system is enbeded in a nebula described by the Nebula tag. I test the effect of the gas on the motion of the planetesimal.">
+  <Settings enableDistinctStartTimes="False">
+    <Output>
+      <Phases>Phases.dat</Phases>
+      <TwoBodyAffair>TwoBodyAffair.dat</TwoBodyAffair>
+      <Log>Log.txt</Log>
+    </Output>
+    <Integrator xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="RungeKutta78">
+      <Accuracy value="-10" />
+    </Integrator>
+    <TimeLine length="5000" output="10" unit="year" />
+    <Ejection value='15' unit='au' />
+    <HitCentrum value='0.2' unit='au' />
+  </Settings>
+  <Nebula name="MMSN" description="Accepted values representing a 3 times more massive MMSN model">
+    <MassFactor>3</MassFactor>
+    <GasToDustRatio>160</GasToDustRatio>
+    <SnowLine>2.7</SnowLine>
+    <SolidsComponent>
+      <IceCondensationFactor>3.2</IceCondensationFactor>
+      <SolidsDensityFunction index="-1.5">
+        <SurfaceDensity value="7" unit="gcm2" />
+      </SolidsDensityFunction>
+    </SolidsComponent>
+    <GasComponent alpha="2.0e-3">
+      <Eta c="0.0019" index="0.5" />
+      <ScaleHeight c="0.045" index="1.25" />
+      <Tau c="0.66666666666" index="2" />
+      <GasDensityFunction index="-2.75">
+        <VolumeDensity value="2.8e-9" unit="gcm3" />
+      </GasDensityFunction>
+    </GasComponent>
+  </Nebula>
+  <BodyGroupList>
+    <BodyGroup>
+      <Items>
+        <Body type="centralbody" name="Sun" guid="30ab873c-e8cb-43f4-867c-5250672feadd">
+          <Phase>
+            <Position x="0" y="0" z="0" unit="au" />
+            <Velocity x="0" y="0" z="0" unit="auday" />
+          </Phase>
+          <Characteristics>
+            <Mass value="1" unit="solar" />
+          </Characteristics>
+        </Body>
+        <Body type="planetesimal" name="Aba" guid="A6940E66-B466-4BFF-A097-D44CFBE76C4C">
+          <OrbitalElement a="1" e="0" incl="0" peri="0" node="0" M="0" distanceUnit="au" angleUnit="degree" />
+          <Characteristics>
+            <Mass value="4e4" unit="kilogram" />
+            <VolumeDensity value="1" unit="gcm3"/>
+          </Characteristics>
+          <DragCoefficient stokes="1" />
+        </Body>
+      </Items>
+    </BodyGroup>
+  </BodyGroupList>  
+</Simulation>

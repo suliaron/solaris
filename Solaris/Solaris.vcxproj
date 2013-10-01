@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Acceleration.h" />
+    <ClInclude Include="BinaryFileAdapter.h" />
+    <ClInclude Include="Body.h" />
+    <ClInclude Include="BodyData.h" />
+    <ClInclude Include="BodyGroup.h" />
+    <ClInclude Include="BodyGroupList.h" />
+    <ClInclude Include="Calculate.h" />
+    <ClInclude Include="Characteristics.h" />
+    <ClInclude Include="Component.h" />
+    <ClInclude Include="Constants.h" />
+    <ClInclude Include="DateTime.h" />
+    <ClInclude Include="DormandPrince.h" />
+    <ClInclude Include="DragCoefficient.h" />
+    <ClInclude Include="Ephemeris.h" />
+    <ClInclude Include="Error.h" />
+    <ClInclude Include="Event.h" />
+    <ClInclude Include="EventCondition.h" />
+    <ClInclude Include="FargoParameters.h" />
+    <ClInclude Include="GasComponent.h" />
+    <ClInclude Include="GasDecreaseType.h" />
+    <ClInclude Include="Integrator.h" />
+    <ClInclude Include="IntegratorType.h" />
+    <ClInclude Include="NBodies.h" />
+    <ClInclude Include="Nebula.h" />
+    <ClInclude Include="OrbitalElement.h" />
+    <ClInclude Include="Output.h" />
+    <ClInclude Include="Phase.h" />
+    <ClInclude Include="PowerLaw.h" />
+    <ClInclude Include="RungeKutta4.h" />
+    <ClInclude Include="RungeKutta56.h" />
+    <ClInclude Include="RungeKuttaFehlberg78.h" />
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="Simulation.h" />
+    <ClInclude Include="Simulator.h" />
+    <ClInclude Include="SolidsComponent.h" />
+    <ClInclude Include="TimeLine.h" />
+    <ClInclude Include="tinystr.h" />
+    <ClInclude Include="tinyxml.h" />
+    <ClInclude Include="Tokenizer.h" />
+    <ClInclude Include="Tools.h" />
+    <ClInclude Include="TwoBodyAffair.h" />
+    <ClInclude Include="Units.h" />
+    <ClInclude Include="Validator.h" />
+    <ClInclude Include="Vector.h" />
+    <ClInclude Include="XmlFileAdapter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Acceleration.cpp" />
+    <ClCompile Include="BinaryFileAdapter.cpp" />
+    <ClCompile Include="Body.cpp" />
+    <ClCompile Include="BodyData.cpp" />
+    <ClCompile Include="BodyGroup.cpp" />
+    <ClCompile Include="BodyGroupList.cpp" />
+    <ClCompile Include="Calculate.cpp" />
+    <ClCompile Include="Characteristics.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="DateTime.cpp" />
+    <ClCompile Include="DormandPrince.cpp" />
+    <ClCompile Include="DragCoefficient.cpp" />
+    <ClCompile Include="Ephemeris.cpp" />
+    <ClCompile Include="Error.cpp" />
+    <ClCompile Include="Event.cpp" />
+    <ClCompile Include="EventCondition.cpp" />
+    <ClCompile Include="FargoParameters.cpp" />
+    <ClCompile Include="GasComponent.cpp" />
+    <ClCompile Include="Integrator.cpp" />
+    <ClCompile Include="NBodies.cpp" />
+    <ClCompile Include="Nebula.cpp" />
+    <ClCompile Include="OrbitalElement.cpp" />
+    <ClCompile Include="Output.cpp" />
+    <ClCompile Include="Phase.cpp" />
+    <ClCompile Include="PowerLaw.cpp" />
+    <ClCompile Include="RungeKutta4.cpp" />
+    <ClCompile Include="RungeKuttaFehlberg78.cpp" />
+    <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="Simulation.cpp" />
+    <ClCompile Include="Simulator.cpp" />
+    <ClCompile Include="Solaris.cpp" />
+    <ClCompile Include="SolidsComponent.cpp" />
+    <ClCompile Include="TimeLine.cpp" />
+    <ClCompile Include="tinystr.cpp" />
+    <ClCompile Include="tinyxml.cpp" />
+    <ClCompile Include="tinyxmlerror.cpp" />
+    <ClCompile Include="tinyxmlparser.cpp" />
+    <ClCompile Include="Tokenizer.cpp" />
+    <ClCompile Include="Tools.cpp" />
+    <ClCompile Include="TwoBodyAffair.cpp" />
+    <ClCompile Include="Units.cpp" />
+    <ClCompile Include="Validator.cpp" />
+    <ClCompile Include="Vector.cpp" />
+    <ClCompile Include="XmlFileAdapter.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{716BC2C1-8242-4B6A-A0BD-ED8A93278418}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Solaris</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

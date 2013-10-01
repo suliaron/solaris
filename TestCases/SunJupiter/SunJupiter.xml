@@ -1,0 +1,35 @@
+﻿<Simulation name="Test Kepler-problem" description="The system consists of the Sun and Jupiter">
+  <Settings enableDistinctStartTimes="False">
+    <Output>
+      <Phases>Phases.dat</Phases>
+      <Properties>Properties.dat</Properties>
+      <TwoBodyAffair>TwoBodyAffair.dat</TwoBodyAffair>
+      <Log>Log.txt</Log>
+    </Output>
+    <Integrator xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="RungeKutta78">
+      <Accuracy value="-10" />
+    </Integrator>
+    <TimeLine length="1e4" output="10" unit="year" />
+  </Settings>
+  <BodyGroupList>
+    <BodyGroup>
+      <Items>
+        <Body type="centralbody" name="Sun" guid="30ab873c-e8cb-43f4-867c-5250672feadd">
+          <Phase>
+            <Position x="0" y="0" z="0" unit="au" />
+            <Velocity x="0" y="0" z="0" unit="auday" />
+          </Phase>
+          <Characteristics>
+            <Mass value="1" unit="solar" />
+          </Characteristics>
+        </Body>
+        <Body type="giantplanet" name="Jupiter" guid="fb840a37-f09f-467a-85dc-105fd574f3bb">
+          <OrbitalElement a="5.20336301" e="0.04839266" incl="1.3053" peri="274.1977" node="100.55615" M="19.65053" distanceUnit="au" angleUnit="degree" />
+          <Characteristics>
+            <Mass value="1" unit="jupiter" />
+          </Characteristics>
+        </Body>
+      </Items>
+    </BodyGroup>
+  </BodyGroupList>
+</Simulation>

@@ -1,0 +1,64 @@
+﻿<Simulation name="Test the outter Solar System" description="Integrate the outter giant pla ">
+  <Settings enableDistinctStartTimes="false">
+    <Output>
+      <Phases>Phases.dat</Phases>
+      <TwoBodyAffair>TwoBodyAffair.dat</TwoBodyAffair>
+      <Log>Log.txt</Log>
+    </Output>
+    <Integrator xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="RungeKutta78">
+      <Accuracy value="-10" />
+    </Integrator>
+    <TimeLine length="1e6" output="1e3" unit="year" />
+  </Settings>
+  <BodyGroupList>
+    <BodyGroup description="Massive bodies" epoch="JD2456000.5" referenceFrame="ICRF/J2000.0" guid="2c85cce1-6379-4d8d-be99-35ec19f281ef">
+      <Items>
+        <Body type="centralbody" name="Sun" guid="30ab873c-e8cb-43f4-867c-5250672feadd">
+          <Phase>
+            <Position x="0" y="0" z="0" />
+            <Velocity x="0" y="0" z="0" />
+          </Phase>
+          <Characteristics>
+            <Mass value="1" unit="solar" />
+          </Characteristics>
+        </Body>
+        <Body type="giantplanet" name="Jupiter" guid="fb840a37-f09f-467a-85dc-105fd574f3bb">
+          <Phase>
+            <Position x="3.364689470779530" y="3.678528443993129" z="-0.09057086777376251" />
+            <Velocity x="-0.005663771197716962" y="0.005457852135842800" z="0.0001041335115143061" />
+          </Phase>
+          <Characteristics>
+            <Mass value="0.00095479194" unit="solar" />
+          </Characteristics>
+        </Body>
+        <Body type="giantplanet" name="Saturn" guid="9699657A-19D0-495F-8F21-DFB76CED0F12">
+          <Phase>
+            <Position x="-8.798455506771383" y="-4.092686186984991" z="0.4214622985699928" />
+            <Velocity x="0.002046132255856174" y="-0.005067025935146905" z="0.000006822115603808578" />
+          </Phase>
+          <Characteristics>
+            <Mass value="0.0002858860" unit="solar" />
+          </Characteristics>
+        </Body>
+        <Body type="giantplanet" name="Uranus" guid="C957A321-F028-42B6-A955-12BBE4C9B6A2">
+          <Phase>
+            <Position x="20.01671953974775" y="1.479917827387067" z="-0.2537900136778755" />
+            <Velocity x="-0.0003232995831186623" y="0.003743014622103497" z="0.00001803315501814200" />
+          </Phase>
+          <Characteristics>
+            <Mass value="0.00004366244" unit="solar" />
+          </Characteristics>
+        </Body>
+        <Body type="giantplanet" name="Neptune" guid="94F96705-D315-4DB9-9C33-CC18243B0113">
+          <Phase>
+            <Position x="26.12903586518881" y="-14.73734452492479" z="-0.2985661579138185" />
+            <Velocity x="0.001516320174130368" y="0.002756530737278375" z="-0.00009139649215736651" />
+          </Phase>
+          <Characteristics>
+            <Mass value="0.00005151389" unit="solar" />
+          </Characteristics>
+        </Body>
+      </Items>
+    </BodyGroup>
+  </BodyGroupList>
+</Simulation>

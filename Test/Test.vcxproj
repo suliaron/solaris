@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{90EF4037-B073-4FA4-96BF-1F12A744A1B8}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Test</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Solaris\Acceleration.h" />
+    <ClInclude Include="..\Solaris\BinaryFileAdapter.h" />
+    <ClInclude Include="..\Solaris\Body.h" />
+    <ClInclude Include="..\Solaris\BodyData.h" />
+    <ClInclude Include="..\Solaris\BodyGroup.h" />
+    <ClInclude Include="..\Solaris\BodyGroupList.h" />
+    <ClInclude Include="..\Solaris\Calculate.h" />
+    <ClInclude Include="..\Solaris\Characteristics.h" />
+    <ClInclude Include="..\Solaris\Component.h" />
+    <ClInclude Include="..\Solaris\Constants.h" />
+    <ClInclude Include="..\Solaris\DateTime.h" />
+    <ClInclude Include="..\Solaris\DormandPrince.h" />
+    <ClInclude Include="..\Solaris\DragCoefficient.h" />
+    <ClInclude Include="..\Solaris\Ephemeris.h" />
+    <ClInclude Include="..\Solaris\Error.h" />
+    <ClInclude Include="..\Solaris\Event.h" />
+    <ClInclude Include="..\Solaris\EventCondition.h" />
+    <ClInclude Include="..\Solaris\GasComponent.h" />
+    <ClInclude Include="..\Solaris\GasDecreaseType.h" />
+    <ClInclude Include="..\Solaris\Integrator.h" />
+    <ClInclude Include="..\Solaris\IntegratorType.h" />
+    <ClInclude Include="..\Solaris\NBodies.h" />
+    <ClInclude Include="..\Solaris\Nebula.h" />
+    <ClInclude Include="..\Solaris\OrbitalElement.h" />
+    <ClInclude Include="..\Solaris\Output.h" />
+    <ClInclude Include="..\Solaris\Phase.h" />
+    <ClInclude Include="..\Solaris\PowerLaw.h" />
+    <ClInclude Include="..\Solaris\RungeKutta4.h" />
+    <ClInclude Include="..\Solaris\RungeKutta56.h" />
+    <ClInclude Include="..\Solaris\RungeKuttaFehlberg78.h" />
+    <ClInclude Include="..\Solaris\Settings.h" />
+    <ClInclude Include="..\Solaris\Simulation.h" />
+    <ClInclude Include="..\Solaris\Simulator.h" />
+    <ClInclude Include="..\Solaris\SolidsComponent.h" />
+    <ClInclude Include="..\Solaris\TimeLine.h" />
+    <ClInclude Include="..\Solaris\tinystr.h" />
+    <ClInclude Include="..\Solaris\tinyxml.h" />
+    <ClInclude Include="..\Solaris\Tools.h" />
+    <ClInclude Include="..\Solaris\TwoBodyAffair.h" />
+    <ClInclude Include="..\Solaris\Units.h" />
+    <ClInclude Include="..\Solaris\Validator.h" />
+    <ClInclude Include="..\Solaris\Vector.h" />
+    <ClInclude Include="..\Solaris\XmlFileAdapter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Solaris\Acceleration.cpp" />
+    <ClCompile Include="..\Solaris\BinaryFileAdapter.cpp" />
+    <ClCompile Include="..\Solaris\Body.cpp" />
+    <ClCompile Include="..\Solaris\BodyData.cpp" />
+    <ClCompile Include="..\Solaris\BodyGroup.cpp" />
+    <ClCompile Include="..\Solaris\BodyGroupList.cpp" />
+    <ClCompile Include="..\Solaris\Calculate.cpp" />
+    <ClCompile Include="..\Solaris\Characteristics.cpp" />
+    <ClCompile Include="..\Solaris\Component.cpp" />
+    <ClCompile Include="..\Solaris\DateTime.cpp" />
+    <ClCompile Include="..\Solaris\DormandPrince.cpp" />
+    <ClCompile Include="..\Solaris\DragCoefficient.cpp" />
+    <ClCompile Include="..\Solaris\Ephemeris.cpp" />
+    <ClCompile Include="..\Solaris\Error.cpp" />
+    <ClCompile Include="..\Solaris\Event.cpp" />
+    <ClCompile Include="..\Solaris\EventCondition.cpp" />
+    <ClCompile Include="..\Solaris\GasComponent.cpp" />
+    <ClCompile Include="..\Solaris\Integrator.cpp" />
+    <ClCompile Include="..\Solaris\NBodies.cpp" />
+    <ClCompile Include="..\Solaris\Nebula.cpp" />
+    <ClCompile Include="..\Solaris\OrbitalElement.cpp" />
+    <ClCompile Include="..\Solaris\Output.cpp" />
+    <ClCompile Include="..\Solaris\Phase.cpp" />
+    <ClCompile Include="..\Solaris\PowerLaw.cpp" />
+    <ClCompile Include="..\Solaris\RungeKutta4.cpp" />
+    <ClCompile Include="..\Solaris\RungeKuttaFehlberg78.cpp" />
+    <ClCompile Include="..\Solaris\Settings.cpp" />
+    <ClCompile Include="..\Solaris\Simulation.cpp" />
+    <ClCompile Include="..\Solaris\Simulator.cpp" />
+    <ClCompile Include="..\Solaris\SolidsComponent.cpp" />
+    <ClCompile Include="..\Solaris\TimeLine.cpp" />
+    <ClCompile Include="..\Solaris\tinystr.cpp" />
+    <ClCompile Include="..\Solaris\tinyxml.cpp" />
+    <ClCompile Include="..\Solaris\tinyxmlerror.cpp" />
+    <ClCompile Include="..\Solaris\tinyxmlparser.cpp" />
+    <ClCompile Include="..\Solaris\Tools.cpp" />
+    <ClCompile Include="..\Solaris\TwoBodyAffair.cpp" />
+    <ClCompile Include="..\Solaris\Units.cpp" />
+    <ClCompile Include="..\Solaris\Validator.cpp" />
+    <ClCompile Include="..\Solaris\Vector.cpp" />
+    <ClCompile Include="..\Solaris\XmlFileAdapter.cpp" />
+    <ClCompile Include="Test.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
