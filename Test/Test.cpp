@@ -568,6 +568,39 @@ bool TestBodyGroupList()
         }
     }
 
+    // Test FirstEpoch() and LastEpoch()
+    {
+        BodyGroupList bodyGroupList;
+
+        int result = bodyGroupList.FirstEpoch(value);
+        if (result != -1)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+        BodyGroup bg0;
+        bg0.epoch = "19900101";
+        BodyGroup bg1;
+        bg1.epoch = "19910101";
+        BodyGroup bg2;
+        bg2.epoch = "19920101";
+        BodyGroup bg3;
+        bg3.epoch = "19930101";
+
+        bodyGroupList.items.push_back(bg0);
+        bodyGroupList.items.push_back(bg1);
+        bodyGroupList.items.push_back(bg2);
+        bodyGroupList.items.push_back(bg3);
+
+        result = bodyGroupList.FirstEpoch(value);
+        if (result != 0 && value != 2447892.5)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+    }
+
     return failed;
 }
 
