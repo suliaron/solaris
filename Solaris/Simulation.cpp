@@ -52,8 +52,9 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 		//int result = this->CalculateStartTime(start);
 
         // If the length attribute in the TimeLine tag is positive (forward integration) than
-        // the start time is the first epoch, 
-        int result = this->settings->timeLine->Forward() ? this->bodyGroupList.LastEpoch(start) : this->bodyGroupList.FirstEpoch(start);
+        // the start time is the last epoch, 
+        //int result = this->settings->timeLine->Forward() ? this->bodyGroupList.GetEpoch(start, Last) : this->bodyGroupList.GetEpoch(start, First);
+        int result = this->bodyGroupList.GetEpoch(start, this->settings->timeLine->Forward() ? Last : First);
 
 		// No epochs were defined for the BodyGroups
 		if (     result == -1)

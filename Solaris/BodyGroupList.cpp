@@ -9,6 +9,8 @@ BodyGroupList::BodyGroupList()
 	nOfDistinctStartTimes = 0;
 }
 
+/// Depending on the value of the FL the epoch parameter will receive the first or last epoch defined in the Body Groups.
+/// If none of the Body Groups contain epoch it returns -1.
 int BodyGroupList::GetEpoch(double &epoch, FL fl)
 {
 	std::list<double> distinctEpochs;
@@ -20,39 +22,6 @@ int BodyGroupList::GetEpoch(double &epoch, FL fl)
         if (fl == Last) {
             distinctEpochs.reverse();
         }
-        epoch = distinctEpochs.front();
-        return 0;
-    }
-    else {
-        return -1;
-    }
-}
-
-int BodyGroupList::FirstEpoch(double &epoch)
-{
-	std::list<double> distinctEpochs;
-    if (DistinctEpochs(distinctEpochs) == 1) {
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
-    }
-    if (distinctEpochs.size() > 0) {
-        epoch = distinctEpochs.front();
-        return 0;
-    }
-    else {
-        return -1;
-    }
-}
-
-int BodyGroupList::LastEpoch(double &epoch)
-{
-	std::list<double> distinctEpochs;
-    if (DistinctEpochs(distinctEpochs) == 1) {
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
-    }
-	distinctEpochs.reverse();
-    if (distinctEpochs.size() > 0) {
         epoch = distinctEpochs.front();
         return 0;
     }
@@ -162,7 +131,10 @@ int BodyGroupList::DistinctReferenceFrame(std::list<std::string> &referenceFrame
 	return 0;
 }
 
-
+/// <summary>
+/// Returns a sorted list (increasing) of the distinct julian dates (epochs) of the BodyGroups.
+/// </summary>
+/// <returns>List of epochs in increasing or decreasing order</returns>
 int BodyGroupList::DistinctEpochs(std::list<double> &epochs)
 {
 	for (std::list<BodyGroup>::iterator it = items.begin(); it != items.end(); it++) {
@@ -184,9 +156,8 @@ int BodyGroupList::DistinctEpochs(std::list<double> &epochs)
 
 /// <summary>
 /// Returns a List of the distinct julian dates (epochs) of the BodyGroups and sort 
-/// the list into increasing or decreasing order depending on the increasing
-/// parameter. If none of the BodyGroups has epoch -1 is returned. If an error
-/// encountered 1 is returned.
+/// the list into increasing or decreasing order depending on the value of the increasing
+/// parameter.
 /// </summary>
 /// <param name="increasing">The order in which the epochs will be sorted</param>
 /// <returns>List of epochs in increasing or decreasing order</returns>
