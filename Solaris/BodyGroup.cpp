@@ -116,7 +116,7 @@ void BodyGroup::FindBy(BodyType type, std::list<Body *> &result)
 	}
 }
 
-int BodyGroup::CalculateStartTime(double tau)
+int BodyGroup::SetStartTime(double startTimeOfMainSimulation)
 {
     // The Epoch property is defined
     if (!epoch.empty())
@@ -125,19 +125,14 @@ int BodyGroup::CalculateStartTime(double tau)
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
-        // The offset property is defined
-        if (offset != 0.0) {
-            this->startTime += offset;
-        }
     }
-    // The Epoch property is undefined
     else
     {
-        this->startTime = tau;
-        // The offset property is defined
-        if (offset != 0.0) {
-            this->startTime += offset;
-        }
+        this->startTime = startTimeOfMainSimulation;
+    }
+    // The offset property is defined
+    if (offset != 0.0) {
+        this->startTime += offset;
     }
 	
 	return 0;

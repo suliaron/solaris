@@ -15,7 +15,7 @@ public:
 	BodyGroupList();
 
 	int		GetEpoch(double &firstEpoch, FL fl);
-	int		CalculateStartTime(double startTimeOfTheSimulation);
+	int		SetStartTime(double startTimeOfTheSimulation);
 	double	GetStartTime(FL fl);
 	double	FirstStartTime();
 	double	LastStartTime();

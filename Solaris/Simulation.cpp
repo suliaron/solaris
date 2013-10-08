@@ -77,7 +77,7 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 	//	return 1;
 	//}
 	
-	if (bodyGroupList.CalculateStartTime(this->settings->timeLine->start) == 1) {
+	if (bodyGroupList.SetStartTime(this->settings->timeLine->start) == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}

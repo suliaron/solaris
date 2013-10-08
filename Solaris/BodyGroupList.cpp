@@ -30,11 +30,11 @@ int BodyGroupList::GetEpoch(double &epoch, FL fl)
     }
 }
 
-// Compute the start time of each BodyGroup: at the StartTime they became part of the integration
-int BodyGroupList::CalculateStartTime(double startTimeOfTheSimulation)
+// Set the start time of each BodyGroup: at the StartTime they became part of the integration
+int BodyGroupList::SetStartTime(double startTimeOfTheSimulation)
 {	
 	for (std::list<BodyGroup>::iterator it = this->items.begin(); it != this->items.end(); it++) {
-		if (it->CalculateStartTime(startTimeOfTheSimulation) == 1) {
+		if (it->SetStartTime(startTimeOfTheSimulation) == 1) {
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}

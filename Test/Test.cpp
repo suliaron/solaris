@@ -587,6 +587,93 @@ bool TestBodyGroupList()
         }
     }
 
+    // Test DistinctStartTimes()
+    {
+        BodyGroupList bodyGroupList;
+
+        std::list<double> epochs;
+        bool increasing = true;
+
+        int result = bodyGroupList.DistinctEpochs(epochs, increasing);
+        if (result != 0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+        BodyGroup bg0;
+        bg0.epoch = "19900101";
+        BodyGroup bg1;
+        bg1.epoch = "19910101";
+        BodyGroup bg2;
+        bg2.epoch = "19930101";
+        BodyGroup bg3;
+        bg3.epoch = "19930101";
+
+        bodyGroupList.items.push_back(bg0);
+        bodyGroupList.items.push_back(bg1);
+        bodyGroupList.items.push_back(bg2);
+        bodyGroupList.items.push_back(bg3);
+
+        result = bodyGroupList.DistinctEpochs(epochs, increasing);
+        if (result != 0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+        if (epochs.size() != 3)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+    }
+
+	// Test GetStartTime()
+    {
+        BodyGroupList bodyGroupList;
+
+		int result = bodyGroupList.FirstStartTime();
+        if (result != -1)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+        
+        result = bodyGroupList.GetEpoch(value, Last);
+        if (result != -1)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+        BodyGroup bg0;
+        bg0.epoch = "19900101";
+        BodyGroup bg1;
+        bg1.epoch = "19910101";
+        BodyGroup bg2;
+        bg2.epoch = "19920101";
+        BodyGroup bg3;
+        bg3.epoch = "19930101";
+
+        bodyGroupList.items.push_back(bg0);
+        bodyGroupList.items.push_back(bg1);
+        bodyGroupList.items.push_back(bg2);
+        bodyGroupList.items.push_back(bg3);
+
+        result = bodyGroupList.GetEpoch(value, First);
+        if (result != 0 && value != 2447892.5)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+        result = bodyGroupList.GetEpoch(value, Last);
+        if (result != 0 && value != 2448999.5)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+    }
     return failed;
 }
 

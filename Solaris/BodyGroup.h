@@ -24,7 +24,7 @@ public:
 
 	int		ToBodyList(std::list<Body *> &result);
 
-	int		CalculateStartTime(double tau);
+	int		SetStartTime(double startTimeOfMainSimulation);
 	bool	ContainsMassiveBody();
 
 	// This is needed for the std::list<BodyGroup> remove() method
