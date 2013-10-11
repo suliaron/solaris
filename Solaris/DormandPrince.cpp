@@ -134,9 +134,9 @@ int DormandPrince::Driver(BodyData *bodyData, Acceleration *acceleration, TimeLi
 
 	// NOTE: Kikapcsolom a GasDrag erők kiszámítását, gyorsítva ezzel az integrálást.
 	// Készíteni összehasonlításokat, és értékelni az eredményeket, abbol a szempontbol, hogy így mennyire pontos az integralas.
-	acceleration->evaluateGasDrag			= false;
-	acceleration->evaluateTypeIMigration	= false;
-	acceleration->evaluateTypeIIMigration	= false;
+	//acceleration->evaluateGasDrag			= false;
+	//acceleration->evaluateTypeIMigration	= false;
+	//acceleration->evaluateTypeIIMigration	= false;
 
 	int		iter = 0;
 	double	errorMax = 0.0;

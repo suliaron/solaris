@@ -47,7 +47,6 @@ public:
 	bool inserted;
 
 private:
-	std::string _errMsg;
 	// id of the bodyGroup instance
 	int			_id;
 

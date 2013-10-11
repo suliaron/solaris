@@ -240,12 +240,12 @@ int Simulation::CheckBodyGroupList()
 int Simulation::CheckStartTimes()
 {
 	// If distinct start times for massive bodies was not enabled than massive bodies must have the same start time
-	int total = 0;
-	if (bodyGroupList.CountDistinctStartTimesForMassiveBodies(total) == 1) {
+	int count = 0;
+	if (bodyGroupList.DistinctStartTimesOfMassiveBodies(count) == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
-	if (!settings->enableDistinctStartTimes && total > 1)
+	if (!settings->enableDistinctStartTimes && count > 1)
     {
 		binary->Log("More than 1 BodyGroups contain massive bodies with different epochs!", true);
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);

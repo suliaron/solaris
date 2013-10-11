@@ -15,10 +15,13 @@ public:
 	BodyGroupList();
 
 	int		GetEpoch(double &firstEpoch, FL fl);
-	int		SetStartTime(double startTimeOfTheSimulation);
+	int		DistinctEpochs(std::list<double> &epochs);
+	int		DistinctEpochs(std::list<double> &epochs, bool increasing);
+
 	double	GetStartTime(FL fl);
-	double	FirstStartTime();
-	double	LastStartTime();
+	int		SetStartTime(double startTimeOfMainIntegrationPhase);
+	void	DistinctStartTimes(std::list<double> &startTimes, bool increasing);
+	int		DistinctStartTimesOfMassiveBodies(int &count);
 
 	int		CountBy(BodyType type);
 
@@ -28,10 +31,6 @@ public:
 	bool	GetBodyGroupWithMassiveBodies(std::list<BodyGroup>::iterator &it);
 
 	int		DistinctReferenceFrame(std::list<std::string> &referenceFrames);
-	int		DistinctEpochs(std::list<double> &epochs);
-	int		DistinctEpochs(std::list<double> &epochs, bool increasing);
-	void	DistinctStartTimes(std::list<double> &startTimes, bool increasing);
-	int		CountDistinctStartTimesForMassiveBodies(int &total);
 
 	// This is needed for the sort method of the list object
 	static bool CompareStartTime(BodyGroup bg1, BodyGroup bg2);

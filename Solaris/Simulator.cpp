@@ -395,7 +395,7 @@ int Simulator::MainIntegration()
 	}
 
 	_simulation->settings->timeLine->hDid = 0.0;
-	_simulation->settings->timeLine->hNext = _simulation->settings->timeLine->Forward() ? ShortestPeriod() / 50.0 : -ShortestPeriod() / 50.0;
+	_simulation->settings->timeLine->hNext = _simulation->settings->timeLine->Forward() ? ShortestPeriod() / 50000.0 : -ShortestPeriod() / 50000.0;
 	if (fabs(_simulation->settings->timeLine->hNext) > fabs(_simulation->settings->timeLine->length)) {
 		_simulation->settings->timeLine->hNext = _simulation->settings->timeLine->length;
 	}

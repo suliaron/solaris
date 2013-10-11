@@ -107,6 +107,8 @@ int BodyGroup::CountBy(double mass)
     return result;
 }
 
+/// Iterates over the Bodies and compares its type with the specified type.
+/// In case of equality the reference of the Body is added to the result.
 void BodyGroup::FindBy(BodyType type, std::list<Body *> &result)
 {
 	for (std::list<Body>::iterator it = items.begin(); it != items.end(); it++) {
@@ -139,8 +141,8 @@ int BodyGroup::SetStartTime(double startTimeOfMainSimulation)
 }
 
 /// <summary>
-/// Returns true if the BodyGroup contains at least one body with mass. The
-/// central body is not considered.
+/// Returns true if the BodyGroup contains at least one body with mass.
+/// The central body is ignored.
 /// </summary>
 bool BodyGroup::ContainsMassiveBody()
 {

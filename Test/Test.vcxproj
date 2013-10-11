@@ -49,7 +49,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;TEST_DUSTPARTICLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -91,6 +91,7 @@
     <ClInclude Include="..\Solaris\Error.h" />
     <ClInclude Include="..\Solaris\Event.h" />
     <ClInclude Include="..\Solaris\EventCondition.h" />
+    <ClInclude Include="..\Solaris\FargoParameters.h" />
     <ClInclude Include="..\Solaris\GasComponent.h" />
     <ClInclude Include="..\Solaris\GasDecreaseType.h" />
     <ClInclude Include="..\Solaris\Integrator.h" />
@@ -111,6 +112,7 @@
     <ClInclude Include="..\Solaris\TimeLine.h" />
     <ClInclude Include="..\Solaris\tinystr.h" />
     <ClInclude Include="..\Solaris\tinyxml.h" />
+    <ClInclude Include="..\Solaris\Tokenizer.h" />
     <ClInclude Include="..\Solaris\Tools.h" />
     <ClInclude Include="..\Solaris\TwoBodyAffair.h" />
     <ClInclude Include="..\Solaris\Units.h" />
@@ -135,6 +137,7 @@
     <ClCompile Include="..\Solaris\Error.cpp" />
     <ClCompile Include="..\Solaris\Event.cpp" />
     <ClCompile Include="..\Solaris\EventCondition.cpp" />
+    <ClCompile Include="..\Solaris\FargoParameters.cpp" />
     <ClCompile Include="..\Solaris\GasComponent.cpp" />
     <ClCompile Include="..\Solaris\Integrator.cpp" />
     <ClCompile Include="..\Solaris\NBodies.cpp" />
@@ -154,6 +157,7 @@
     <ClCompile Include="..\Solaris\tinyxml.cpp" />
     <ClCompile Include="..\Solaris\tinyxmlerror.cpp" />
     <ClCompile Include="..\Solaris\tinyxmlparser.cpp" />
+    <ClCompile Include="..\Solaris\Tokenizer.cpp" />
     <ClCompile Include="..\Solaris\Tools.cpp" />
     <ClCompile Include="..\Solaris\TwoBodyAffair.cpp" />
     <ClCompile Include="..\Solaris\Units.cpp" />

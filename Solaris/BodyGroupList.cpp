@@ -30,11 +30,12 @@ int BodyGroupList::GetEpoch(double &epoch, FL fl)
     }
 }
 
-// Set the start time of each BodyGroup: at the StartTime they became part of the integration
-int BodyGroupList::SetStartTime(double startTimeOfTheSimulation)
+/// Iterates over the BodyGroups of the list and calls on each item the SetStartTime() method to
+/// set the start time of the BodyGroup. At the StartTime they became part of the integration.
+int BodyGroupList::SetStartTime(double startTimeOfMainIntegrationPhase)
 {	
 	for (std::list<BodyGroup>::iterator it = this->items.begin(); it != this->items.end(); it++) {
-		if (it->SetStartTime(startTimeOfTheSimulation) == 1) {
+		if (it->SetStartTime(startTimeOfMainIntegrationPhase) == 1) {
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
@@ -43,6 +44,7 @@ int BodyGroupList::SetStartTime(double startTimeOfTheSimulation)
 	return 0;
 }
 
+/// Depending on the value of the FL it returns the first or last start time contained in the BodyGroupList.
 double BodyGroupList::GetStartTime(FL fl)
 {
 	std::list<double> distinctStartTimes;
@@ -50,39 +52,19 @@ double BodyGroupList::GetStartTime(FL fl)
 	return distinctStartTimes.front();
 }
 
-/// <summary>
-/// Returns the first StartTime defined in the BodyGroups.
-/// </summary>
-double BodyGroupList::FirstStartTime()
-{
-	std::list<double> distinctStartTimes;
-	// The start times of the BodyGroups will be stored in the distinctStartTimes list in increasing order
-	DistinctStartTimes(distinctStartTimes, true);
-	return distinctStartTimes.front();
-}
-
-/// <summary>
-/// Returns the last StartTime defined in the BodyGroups.
-/// </summary>
-double BodyGroupList::LastStartTime()
-{
-	std::list<double> distinctStartTimes;
-	// The start times of the BodyGroups will be stored in the distinctStartTimes list in decreasing order
-	DistinctStartTimes(distinctStartTimes, false);
-	return distinctStartTimes.front();
-}
-
+/// Iterates over the BodyGroups of the list and calls on each item the CountBy() method to
+/// count the bodies with the specified type. The aggregated count is returned.
 int BodyGroupList::CountBy(BodyType type)
 {
 	int	result = 0;
-	std::list<BodyGroup>::iterator bodyGroupIterator;
-	
-	for (bodyGroupIterator = this->items.begin(); bodyGroupIterator != this->items.end(); bodyGroupIterator++) {
-		result += bodyGroupIterator->CountBy(type);
+	for (std::list<BodyGroup>::iterator it = this->items.begin(); it != this->items.end(); it++) {
+		result += it->CountBy(type);
 	}
 	return result;
 }
 
+/// Iterates over the BodyGroups of the list and compares its starting time with the startTime parameter.
+/// If they are equal, the reference of that BodyGroup is added to the result.
 void BodyGroupList::FindBy(double startTime, std::list<BodyGroup *> &result)
 {
 	for (std::list<BodyGroup>::iterator it = items.begin(); it != items.end(); it++) {
@@ -92,6 +74,8 @@ void BodyGroupList::FindBy(double startTime, std::list<BodyGroup *> &result)
 	}
 }
 
+/// Iterates over the BodyGroups of the list and calls on each item the FindBy() method to
+/// find the bodies with the specified type. The reference of each such Body is added to the result.
 void BodyGroupList::FindBy(BodyType type, std::list<Body *> &result)
 {
 	for (std::list<BodyGroup>::iterator it = items.begin(); it != items.end(); it++) {
@@ -118,11 +102,9 @@ bool BodyGroupList::GetBodyGroupWithMassiveBodies(std::list<BodyGroup>::iterator
 
 int BodyGroupList::DistinctReferenceFrame(std::list<std::string> &referenceFrames)
 {
-	std::list<BodyGroup>::iterator bodyGroupIterator;
-	
-	for (bodyGroupIterator = this->items.begin(); bodyGroupIterator != this->items.end(); bodyGroupIterator++) {
-		if (!bodyGroupIterator->referenceFrame.empty()) {
-			referenceFrames.push_back(bodyGroupIterator->referenceFrame);
+	for (std::list<BodyGroup>::iterator it = this->items.begin(); it != this->items.end(); it++) {
+		if (!it->referenceFrame.empty()) {
+			referenceFrames.push_back(it->referenceFrame);
 		}
 	}
 	referenceFrames.sort();
@@ -182,20 +164,20 @@ void BodyGroupList::DistinctStartTimes(std::list<double> &startTimes, bool incre
     // Sort the start times in increasing order
     startTimes.sort();
 	startTimes.unique();
-    if (!increasing)
-    {
+    if (!increasing) {
         startTimes.reverse();
     }
 
 	if (nOfDistinctStartTimes == 0) nOfDistinctStartTimes = startTimes.size();
 }
 
-int BodyGroupList::CountDistinctStartTimesForMassiveBodies(int &total)
+int BodyGroupList::DistinctStartTimesOfMassiveBodies(int &count)
 {
 	std::list<double> startTimes;
 	DistinctStartTimes(startTimes, true);
 
 	std::list<BodyGroup *> list;
+	count = 0;
 	for (std::list<double>::iterator it = startTimes.begin(); it != startTimes.end(); it++) {
 		FindBy(*it, list);
 		if (list.size() == 0)
@@ -214,7 +196,7 @@ int BodyGroupList::CountDistinctStartTimesForMassiveBodies(int &total)
             partial -= (*bgIt)->CountBy(CentralBody);
 		}
 		list.clear();
-		total += partial > 0 ? 1 : 0;
+		count += partial > 0 ? 1 : 0;
 	}
 
 	return 0;

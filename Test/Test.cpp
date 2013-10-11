@@ -2,17 +2,52 @@
 #include <iostream>
 #include <fstream>
 
+#include "../Solaris/Acceleration.h"
+#include "../Solaris/BinaryFileAdapter.h"
 #include "../Solaris/Body.h"
 #include "../Solaris/BodyData.h"
 #include "../Solaris/BodyGroup.h"
 #include "../Solaris/BodyGroupList.h"
 #include "../Solaris/Calculate.h"
+#include "../Solaris/Characteristics.h"
+#include "../Solaris/Component.h"
 #include "../Solaris/Constants.h"
+#include "../Solaris/DateTime.h"
+#include "../Solaris/DormandPrince.h"
+#include "../Solaris/DragCoefficient.h"
+#include "../Solaris/Ephemeris.h"
 #include "../Solaris/Error.h"
+#include "../Solaris/Event.h"
+#include "../Solaris/EventCondition.h"
+#include "../Solaris/FargoParameters.h"
 #include "../Solaris/GasComponent.h"
+#include "../Solaris/GasDecreaseType.h"
+#include "../Solaris/Integrator.h"
+#include "../Solaris/IntegratorType.h"
 #include "../Solaris/NBodies.h"
+#include "../Solaris/Nebula.h"
+#include "../Solaris/OrbitalElement.h"
+#include "../Solaris/Output.h"
+#include "../Solaris/Phase.h"
 #include "../Solaris/PowerLaw.h"
+#include "../Solaris/RungeKutta4.h"
+#include "../Solaris/RungeKutta56.h"
+#include "../Solaris/RungeKuttaFehlberg78.h"
+#include "../Solaris/Settings.h"
+#include "../Solaris/Simulation.h"
+#include "../Solaris/Simulator.h"
+#include "../Solaris/SolidsComponent.h"
+#include "../Solaris/TimeLine.h"
+#include "../Solaris/tinystr.h"
+#include "../Solaris/tinyxml.h"
+#include "../Solaris/Tokenizer.h"
+#include "../Solaris/Tools.h"
+#include "../Solaris/TwoBodyAffair.h"
+#include "../Solaris/Units.h"
+#include "../Solaris/Validator.h"
 #include "../Solaris/Vector.h"
+#include "../Solaris/XmlFileAdapter.h"
+
 
 #define SQR(a)		((a)*(a))
 #define CUBE(a)		((a)*(a)*(a))
@@ -25,8 +60,9 @@
 //#define TEST_CONSTANTS
 //#define TEST_TYPEI_MIGRATION_TIME
 //#define TEST_MEAN_FREE_PATH
+//#define TEST_BODYGROUPLIST
 
-#define TEST_FIRST_EPOCH
+#define TEST_DUSTPARTICLE
 
 bool TestConstants()
 {
@@ -499,7 +535,7 @@ bool TestBodyGroupList()
 	bool	failed = false;
 	double	value = 0.0;
 
-    // Test DistinctEpochs()
+    // DistinctEpochs()
     {
         BodyGroupList bodyGroupList;
 
@@ -540,7 +576,7 @@ bool TestBodyGroupList()
         }
     }
 
-    // Test GetEpoch()
+    // GetEpoch()
     {
         BodyGroupList bodyGroupList;
 
@@ -587,60 +623,12 @@ bool TestBodyGroupList()
         }
     }
 
-    // Test DistinctStartTimes()
-    {
+	// SetStartTime()
+	{
         BodyGroupList bodyGroupList;
 
-        std::list<double> epochs;
-        bool increasing = true;
-
-        int result = bodyGroupList.DistinctEpochs(epochs, increasing);
-        if (result != 0)
-        {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			failed = true;
-        }
-
-        BodyGroup bg0;
-        bg0.epoch = "19900101";
-        BodyGroup bg1;
-        bg1.epoch = "19910101";
-        BodyGroup bg2;
-        bg2.epoch = "19930101";
-        BodyGroup bg3;
-        bg3.epoch = "19930101";
-
-        bodyGroupList.items.push_back(bg0);
-        bodyGroupList.items.push_back(bg1);
-        bodyGroupList.items.push_back(bg2);
-        bodyGroupList.items.push_back(bg3);
-
-        result = bodyGroupList.DistinctEpochs(epochs, increasing);
-        if (result != 0)
-        {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			failed = true;
-        }
-        if (epochs.size() != 3)
-        {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			failed = true;
-        }
-    }
-
-	// Test GetStartTime()
-    {
-        BodyGroupList bodyGroupList;
-
-		int result = bodyGroupList.FirstStartTime();
-        if (result != -1)
-        {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			failed = true;
-        }
-        
-        result = bodyGroupList.GetEpoch(value, Last);
-        if (result != -1)
+		int result = bodyGroupList.SetStartTime(0.0);
+		if (result != 0)
         {
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
@@ -653,6 +641,64 @@ bool TestBodyGroupList()
         BodyGroup bg2;
         bg2.epoch = "19920101";
         BodyGroup bg3;
+
+        bodyGroupList.items.push_back(bg0);
+        bodyGroupList.items.push_back(bg1);
+        bodyGroupList.items.push_back(bg2);
+        bodyGroupList.items.push_back(bg3);
+
+		result = bodyGroupList.SetStartTime(100.0);
+		if (result != 0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		std::list<BodyGroup>::iterator it = bodyGroupList.items.begin();
+		if (it->startTime != 2447892.5)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		it++;
+		if (it->startTime != 2448257.5)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		it++;
+		if (it->startTime != 2448622.5)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		it++;
+		if (it->startTime != 100.0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+	}
+
+    // DistinctStartTimes()
+    {
+        BodyGroupList bodyGroupList;
+
+        std::list<double> startTimes;
+        bool increasing = true;
+
+		bodyGroupList.DistinctStartTimes(startTimes, increasing);
+		if (startTimes.size() != 0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+        BodyGroup bg0;
+        bg0.epoch = "19900101";
+        BodyGroup bg1;
+        BodyGroup bg2;
+        bg2.epoch = "19930101";
+        BodyGroup bg3;
         bg3.epoch = "19930101";
 
         bodyGroupList.items.push_back(bg0);
@@ -660,21 +706,461 @@ bool TestBodyGroupList()
         bodyGroupList.items.push_back(bg2);
         bodyGroupList.items.push_back(bg3);
 
-        result = bodyGroupList.GetEpoch(value, First);
-        if (result != 0 && value != 2447892.5)
-        {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			failed = true;
-        }
+		bodyGroupList.SetStartTime(100.0);
+		bodyGroupList.DistinctStartTimes(startTimes, increasing);
 
-        result = bodyGroupList.GetEpoch(value, Last);
-        if (result != 0 && value != 2448999.5)
+		if (startTimes.size() != 3)
         {
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
     }
-    return failed;
+
+	// GetStartTime()
+    {
+		double startTimeOfMainIntegrationPhase = 100.0;
+        BodyGroupList bodyGroupList;
+
+        BodyGroup bg0;
+        bg0.epoch = "19900101";
+        BodyGroup bg1;
+        BodyGroup bg2;
+        bg2.epoch = "19930101";
+        BodyGroup bg3;
+        bg3.epoch = "19930101";
+
+        bodyGroupList.items.push_back(bg0);
+        bodyGroupList.items.push_back(bg1);
+        bodyGroupList.items.push_back(bg2);
+        bodyGroupList.items.push_back(bg3);
+
+		int result = bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase);
+		if (result != 0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+		double startTime = bodyGroupList.GetStartTime(First);
+		if (startTime != 100.0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+		startTime = bodyGroupList.GetStartTime(Last);
+		if (startTime != 2448988.5)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+    }
+
+	// DistinctStartTimesOfMassiveBodies()
+	{
+		double startTimeOfMainIntegrationPhase = 100.0;
+        BodyGroupList bodyGroupList;
+
+        BodyGroup bg0;
+        bg0.epoch = "19900101";
+        BodyGroup bg1;
+        BodyGroup bg2;
+        bg2.epoch = "19930101";
+
+		Body star(CentralBody);
+		star.characteristics = new Characteristics(1.0);
+
+		Body planet(RockyPlanet);
+		planet.characteristics = new Characteristics(1.0 * Constants::EarthToSolar);
+
+		Body testP(TestParticle);
+
+		bg0.items.push_back(star);
+		bg0.items.push_back(planet);
+
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+
+		bg2.items.push_back(testP);
+		bg2.items.push_back(testP);
+
+        bodyGroupList.items.push_back(bg0);
+        bodyGroupList.items.push_back(bg1);
+        bodyGroupList.items.push_back(bg2);
+
+		int result = bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase);
+		if (result != 0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+		int nBG;
+		result = bodyGroupList.DistinctStartTimesOfMassiveBodies(nBG);
+		if (result != 0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		if (nBG != 1)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+		bg0.items.clear();
+		bg1.items.clear();
+		bg2.items.clear();
+		bodyGroupList.items.clear();
+
+		bg0.items.push_back(star);
+		bg0.items.push_back(planet);
+
+		bg1.items.push_back(testP);
+		bg1.items.push_back(planet);
+
+		bg2.items.push_back(testP);
+		bg2.items.push_back(testP);
+
+		bodyGroupList.items.push_back(bg0);
+        bodyGroupList.items.push_back(bg1);
+        bodyGroupList.items.push_back(bg2);
+
+		result = bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase);
+		if (result != 0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		result = bodyGroupList.DistinctStartTimesOfMassiveBodies(nBG);
+		if (result != 0)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		if (nBG != 2)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+	}
+
+	// CountBy()
+	{
+        BodyGroupList bodyGroupList;
+
+        BodyGroup bg0;
+        bg0.epoch = "19900101";
+        BodyGroup bg1;
+        BodyGroup bg2;
+        bg2.epoch = "19930101";
+
+		Body star(CentralBody);
+		star.characteristics = new Characteristics(1.0);
+
+		Body proto(ProtoPlanet);
+		proto.characteristics = new Characteristics(1.0 * Constants::EarthMoonToSolar);
+	
+		Body rockyPlanet(RockyPlanet);
+		rockyPlanet.characteristics = new Characteristics(1.0 * Constants::EarthToSolar);
+	
+		Body giant(GiantPlanet);
+		giant.characteristics = new Characteristics(1.0 * Constants::JupiterToSolar);
+	
+		Body superPl(SuperPlanetesimal);
+		giant.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
+	
+		Body Pl(Planetesimal);
+		Pl.characteristics = new Characteristics(1.0 * Constants::KilogramToSolar);
+	
+		Body testP(TestParticle);
+
+		bg0.items.push_back(star);
+
+		bg0.items.push_back(proto);
+		bg0.items.push_back(proto);
+
+		bg0.items.push_back(rockyPlanet);
+		bg0.items.push_back(rockyPlanet);
+		bg0.items.push_back(rockyPlanet);
+
+		bg2.items.push_back(giant);
+		bg2.items.push_back(giant);
+		bg2.items.push_back(giant);
+		bg2.items.push_back(giant);
+
+		bg1.items.push_back(superPl);
+		bg1.items.push_back(superPl);
+		bg1.items.push_back(superPl);
+		bg1.items.push_back(superPl);
+		bg1.items.push_back(superPl);
+
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+
+
+		bodyGroupList.items.push_back(bg0);
+        bodyGroupList.items.push_back(bg1);
+        bodyGroupList.items.push_back(bg2);
+
+		int nBody = bodyGroupList.CountBy(CentralBody);
+		if (nBody != 1)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		nBody = bodyGroupList.CountBy(ProtoPlanet);
+		if (nBody != 2)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		nBody = bodyGroupList.CountBy(RockyPlanet);
+		if (nBody != 3)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		nBody = bodyGroupList.CountBy(GiantPlanet);
+		if (nBody != 4)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		nBody = bodyGroupList.CountBy(SuperPlanetesimal);
+		if (nBody != 5)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		nBody = bodyGroupList.CountBy(Planetesimal);
+		if (nBody != 6)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		nBody = bodyGroupList.CountBy(TestParticle);
+		if (nBody != 7)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+	}
+
+	// FindBy(double startTime, std::list<BodyGroup *> &result)
+	{
+		double startTimeOfMainIntegrationPhase = 100.0;
+        BodyGroupList bodyGroupList;
+
+        BodyGroup bg0("bg0");
+        bg0.epoch = "19900101";
+        BodyGroup bg1("bg1");
+        BodyGroup bg2("bg2");
+        bg2.epoch = "19930101";
+        BodyGroup bg3("bg3");
+        bg3.epoch = "19900101";
+
+		bodyGroupList.items.push_back(bg0);
+		bodyGroupList.items.push_back(bg1);
+		bodyGroupList.items.push_back(bg2);
+		bodyGroupList.items.push_back(bg3);
+
+		bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase);
+
+		std::list<BodyGroup *> result;
+		bodyGroupList.FindBy(100.0, result);
+		std::list<BodyGroup *>::iterator it = result.begin();
+		if ((*it)->guid != "bg1") 
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+
+		result.clear();
+		bodyGroupList.FindBy(2447892.5, result);
+		it = result.begin();
+		if ((*it)->guid != "bg0") 
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		it++;
+		if ((*it)->guid != "bg3") 
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+	}
+
+	// FindBy(BodyType type, std::list<Body *> &result)
+	{
+        BodyGroupList bodyGroupList;
+
+        BodyGroup bg0;
+        bg0.epoch = "19900101";
+        BodyGroup bg1;
+        BodyGroup bg2;
+        bg2.epoch = "19930101";
+
+		Body star(CentralBody);
+		Body proto(ProtoPlanet);
+		Body rockyPlanet(RockyPlanet);
+		Body giant(GiantPlanet);
+		Body superPl(SuperPlanetesimal);
+		Body Pl(Planetesimal);
+		Body testP(TestParticle);
+
+		bg0.items.push_back(star);
+
+		bg0.items.push_back(proto);
+		bg0.items.push_back(proto);
+
+		bg0.items.push_back(rockyPlanet);
+		bg0.items.push_back(rockyPlanet);
+		bg0.items.push_back(rockyPlanet);
+
+		bg2.items.push_back(giant);
+		bg2.items.push_back(giant);
+		bg2.items.push_back(giant);
+		bg2.items.push_back(giant);
+
+		bg1.items.push_back(superPl);
+		bg1.items.push_back(superPl);
+		bg1.items.push_back(superPl);
+		bg1.items.push_back(superPl);
+		bg1.items.push_back(superPl);
+
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+		bg1.items.push_back(Pl);
+
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+
+		bodyGroupList.items.push_back(bg0);
+        bodyGroupList.items.push_back(bg1);
+        bodyGroupList.items.push_back(bg2);
+
+		std::list<Body *> result;
+		bodyGroupList.FindBy(CentralBody, result);
+		if (result.size() != 1)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		std::list<Body *>::iterator it = result.begin();
+		for ( ; it != result.end(); it++) 
+		{
+			if ((*it)->type != CentralBody)
+			{
+				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+				failed = true;
+			}
+		}
+		result.clear();
+
+		bodyGroupList.FindBy(ProtoPlanet, result);
+		if (result.size() != 2)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		it = result.begin();
+		for ( ; it != result.end(); it++) 
+		{
+			if ((*it)->type != ProtoPlanet)
+			{
+				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+				failed = true;
+			}
+		}
+		result.clear();
+	
+		bodyGroupList.FindBy(GiantPlanet, result);
+		if (result.size() != 4)
+        {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+        }
+		it = result.begin();
+		for ( ; it != result.end(); it++) 
+		{
+			if ((*it)->type != GiantPlanet)
+			{
+				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+				failed = true;
+			}
+		}
+	
+	}
+
+	// GetBodyGroupWithMassiveBodies()
+	{
+        BodyGroupList bodyGroupList;
+
+        BodyGroup bg0("bg0");
+        bg0.epoch = "19900101";
+        BodyGroup bg1("bg1");
+        BodyGroup bg2("bg2");
+        bg2.epoch = "19930101";
+
+		Body star(CentralBody);
+		star.characteristics = new Characteristics(1.0);
+		Body proto(ProtoPlanet);
+		proto.characteristics = new Characteristics(1.0);
+		Body testP(TestParticle);
+
+		bg0.items.push_back(star);
+		bg0.items.push_back(proto);
+		bg0.items.push_back(proto);
+
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+		bg1.items.push_back(testP);
+
+		bg2.items.push_back(testP);
+		bg2.items.push_back(testP);
+		bg2.items.push_back(testP);
+
+		bodyGroupList.items.push_back(bg0);
+		bodyGroupList.items.push_back(bg1);
+		bodyGroupList.items.push_back(bg2);
+
+		std::list<BodyGroup>::iterator it;
+		bool contains = bodyGroupList.GetBodyGroupWithMassiveBodies(it);
+		if (!contains)
+		{
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+		if (it->guid != "bg0")
+		{
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+	}
+
+	return failed;
 }
 
 /*
@@ -850,9 +1336,132 @@ void CalculateGraphOfEpsteinStokesVersusDistance(const double mC, const double d
     file.close();
 }
 
+int ProcessArgv(int argc, char* argv[], std::string &directory, std::string &fileName, std::string &runType)
+{
+	if (argc < 2) { // Check the value of argc.
+        Error::_errMsg = Constants::Usage;
+        return 1;
+    }
+    for (int i = 1; i < argc; i++) {
+        if (     strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+			std::cout << Constants::CodeName << ":" << std::endl << Constants::Usage;
+			exit(0);
+		}
+        else if (strcmp(argv[i], "-i") == 0) {
+			i++;
+			std::string input(argv[i]);			
+			Tools::SplitPath(input, Output::directorySeparator, directory, fileName);
+            runType = "New";
+        } 
+        else if (strcmp(argv[i], "-c") == 0) {
+			i++;
+			std::string input(argv[i]);			
+			Tools::SplitPath(input, Output::directorySeparator, directory, fileName);
+            runType = "Continue";
+        } 
+		else {
+			Error::_errMsg = "Invalid argument.\n" + Constants::Usage;
+            return 1;
+		}
+	}
+	
+	// If the directory is empty, then use the current/working directory
+	if (directory.length() == 0) {
+		directory = Tools::GetWorkingDirectory();
+	}
+
+	return 0;
+}
+
+/**
+ * Loads the input data and stores it into the simulation object.
+ *
+ * @param inputPath the input path of the data file
+ * @param simulation the object where the input data will be stored
+ * @return 0 on success 1 on error
+ */
+int LoadInput(char* inputPath, Simulation &simulation)
+{
+	XmlFileAdapter xml(inputPath);
+	if (XmlFileAdapter::Load(inputPath, xml.doc) == 1) {
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
+
+	if (XmlFileAdapter::DeserializeSimulation(xml.doc, simulation) == 1) {
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
+
+	if (simulation.nebula != 0 && simulation.nebula->path.length() > 0) {
+		simulation.fargoParameters = new FargoParameters();
+		simulation.fargoParameters->ReadConfigFile(simulation.nebula->path);
+		if (simulation.fargoParameters->ParseConfig(true) == 1) {
+    		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+        }
+	}
+
+	return 0;
+}
+
+int TestDustParticle(int argc, char* argv[])
+{
+	{
+		if (Tools::GetDirectorySeparator(&Output::directorySeparator) == 1) {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
+
+		std::string		fileName;
+		std::string     runType;
+		if (ProcessArgv(argc, argv, Output::directory, fileName, runType) == 1) {
+			Error::PrintStackTrace();
+			exit(1);
+		}
+
+		char*	inputPath = 0;
+		Tools::CreatePath(Output::directory, fileName, Output::directorySeparator, &inputPath);
+
+		Simulation  simulation(runType);
+		if (LoadInput(inputPath, simulation) == 1) {
+			Error::PrintStackTrace();
+			exit(1);
+		}
+	    simulation.binary = new BinaryFileAdapter(simulation.settings->output);
+		simulation.binary->LogStartParameters(argc, argv);
+		simulation.binary->Log("Simulation data was successfully loaded and deserialized.", true);
+
+		if (simulation.Initialize() == 1) {
+			Error::PrintStackTrace();
+			exit(1);
+		}
+		simulation.binary->Log("Simulation was successfully initialized.", false);
+
+		Simulator		simulator(&simulation);
+		if (simulation.runType == "Continue" ) {
+			if (simulator.Continue() == 1) {
+				Error::PrintStackTrace();
+				exit(1);
+			}
+		}
+
+		if (simulator.Run() == 1) {
+			Error::PrintStackTrace();
+			exit(1);
+		}
+
+		return 0;
+	}
+}
+
 int		main(int argc, char* argv[])
 {
-    bool failed= false;
+	bool failed = false;
+
+#ifdef TEST_DUSTPARTICLE
+	int result = TestDustParticle(argc, argv);
+#endif
 
 #ifdef TEST_CALCULATE
 	failed = TestCalculate();
@@ -870,7 +1479,7 @@ int		main(int argc, char* argv[])
     failed = TestMeanFreePath();
 #endif
 
-#ifdef TEST_FIRST_EPOCH
+#ifdef TEST_BODYGROUPLIST
     failed = TestBodyGroupList();
 #endif
 

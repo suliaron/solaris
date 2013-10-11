@@ -168,6 +168,11 @@ int Acceleration::ComputeAstroCentric(double t, double *y, double *totalAccel)
 	int result = GravityAC(t, y, totalAccel);
 	HANDLE_RESULT(result);
 
+#ifdef TEST_DUSTPARTICLE
+	double a_grav = sqrt(SQR(totalAccel[9]) + SQR(totalAccel[10]) + SQR(totalAccel[11]));
+	printf("a_grav: %20.15lf AU/d^2\n", a_grav);
+#endif
+
 	if (nebula != 0) {
 		if (accelGasDrag == 0 && bodyData->nBodies.NOfPlAndSpl() > 0) {
 			accelGasDrag = new double[3*bodyData->nBodies.NOfPlAndSpl()];
@@ -177,6 +182,10 @@ int Acceleration::ComputeAstroCentric(double t, double *y, double *totalAccel)
 		if (evaluateGasDrag && accelGasDrag != 0) {
 			result = GasDragAC(t, y, accelGasDrag);
 			HANDLE_RESULT(result);
+#ifdef TEST_DUSTPARTICLE
+	double a_gas = sqrt(SQR(accelGasDrag[0]) + SQR(accelGasDrag[1]) + SQR(accelGasDrag[2]));
+	printf("a_gas: %20.15lf AU/d^2\n", a_gas);
+#endif
 		}
 		int lower = bodyData->nBodies.NOfMassive();
 		int upper = lower + bodyData->nBodies.NOfPlAndSpl();
