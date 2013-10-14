@@ -84,6 +84,8 @@ BodyGroup::BodyGroup(std::string guid, std::string description, std::string epoc
 	inserted = false;
 }
 
+/// Counts how many bodies' type is equal to the specified type.
+/// The number of these bodies are returned. 
 int BodyGroup::CountBy(BodyType type)
 {
 	int	result = 0;
@@ -94,13 +96,16 @@ int BodyGroup::CountBy(BodyType type)
 	return result;
 }
 
+
+/// Counts how many bodies' mass is equal to or greater than the value of the parameter 'mass'.
+/// The number of these bodies are returned. 
 int BodyGroup::CountBy(double mass)
 {
     int result = 0;
 	for (std::list<Body>::iterator bodyIterator = items.begin(); bodyIterator != items.end(); bodyIterator++) {
 		if (bodyIterator->type == TestParticle)
 			continue;
-		if (bodyIterator->characteristics->mass > mass)
+		if (bodyIterator->characteristics->mass >= mass)
 			result++;
 	}
 
@@ -118,6 +123,14 @@ void BodyGroup::FindBy(BodyType type, std::list<Body *> &result)
 	}
 }
 
+/// The start time is the time instant when the bodies of the BodyGroup object became part of
+/// the simulation.
+/// The start time is determined by the epoch and the offset fields of the BodyGroup object.
+/// 4 possible cases exists:
+/// 1. both epoch and offset are defined: start time = from the epoch the julian date is computed + offset
+/// 2. only epoch is defined: start time = from the epoch the julian date is computed
+/// 3. only offset is defined: start time = startTimeOfMainSimulation + offset
+/// 4. none of them are defined: start time = startTimeOfMainSimulation
 int BodyGroup::SetStartTime(double startTimeOfMainSimulation)
 {
     // The Epoch property is defined
@@ -156,6 +169,7 @@ bool BodyGroup::ContainsMassiveBody()
 	return false;
 }
 
+/// Iterates over the Bodies and stores their reference in the result parameter.
 int BodyGroup::ToBodyList(std::list<Body *> &result)
 {
 	for (std::list<Body>::iterator it = items.begin(); it != items.end(); it++) {

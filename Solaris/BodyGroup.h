@@ -20,7 +20,6 @@ public:
 	int		CountBy(double mass);
 	
 	void	FindBy(BodyType type, std::list<Body *> &result);
-	void	BodyListBy(BodyType type, std::list<Body *> &result);
 
 	int		ToBodyList(std::list<Body *> &result);
 
@@ -35,8 +34,8 @@ public:
 
 	std::list<Body> items;
 
-	double offset;
-	double startTime;
+	double		offset;
+	double		startTime;
 
 	std::string description;
 	std::string epoch;
@@ -44,7 +43,7 @@ public:
 	std::string guid;
 
 	// This flag is needed by the pre-integration process
-	bool inserted;
+	bool		inserted;
 
 private:
 	// id of the bodyGroup instance
@@ -52,7 +51,7 @@ private:
 
 	// id of the class BodyGroup, its value will be assigned to the next instance of BodyGroup
 	// guaranteeing the uniqueness of the _id field of each BodyGroup object.
-	static int _bodyGroupId;
+	static int	_bodyGroupId;
 };
 
 #endif

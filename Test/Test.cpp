@@ -60,9 +60,10 @@
 //#define TEST_CONSTANTS
 //#define TEST_TYPEI_MIGRATION_TIME
 //#define TEST_MEAN_FREE_PATH
+#define TEST_BODYGROUP
 //#define TEST_BODYGROUPLIST
 
-#define TEST_DUSTPARTICLE
+//#define TEST_DUSTPARTICLE
 
 bool TestConstants()
 {
@@ -545,6 +546,7 @@ bool TestBodyGroupList()
         int result = bodyGroupList.DistinctEpochs(epochs, increasing);
         if (result != 0)
         {
+			std::cout << "Failed at bodyGroupList.DistinctEpochs(epochs, increasing)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -566,11 +568,13 @@ bool TestBodyGroupList()
         result = bodyGroupList.DistinctEpochs(epochs, increasing);
         if (result != 0)
         {
+			std::cout << "Failed at bodyGroupList.DistinctEpochs(epochs, increasing)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
         if (epochs.size() != 3)
         {
+			std::cout << "Failed at bodyGroupList.DistinctEpochs(epochs, increasing)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -583,6 +587,7 @@ bool TestBodyGroupList()
         int result = bodyGroupList.GetEpoch(value, First);
         if (result != -1)
         {
+			std::cout << "Failed at bodyGroupList.GetEpoch(value, First)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -590,6 +595,7 @@ bool TestBodyGroupList()
         result = bodyGroupList.GetEpoch(value, Last);
         if (result != -1)
         {
+			std::cout << "Failed at bodyGroupList.GetEpoch(value, Last)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -611,6 +617,7 @@ bool TestBodyGroupList()
         result = bodyGroupList.GetEpoch(value, First);
         if (result != 0 && value != 2447892.5)
         {
+			std::cout << "Failed at bodyGroupList.GetEpoch(value, First)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -618,6 +625,7 @@ bool TestBodyGroupList()
         result = bodyGroupList.GetEpoch(value, Last);
         if (result != 0 && value != 2448999.5)
         {
+			std::cout << "Failed at bodyGroupList.GetEpoch(value, Last)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -630,6 +638,7 @@ bool TestBodyGroupList()
 		int result = bodyGroupList.SetStartTime(0.0);
 		if (result != 0)
         {
+			std::cout << "Failed at bodyGroupList.SetStartTime(0.0)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -650,30 +659,35 @@ bool TestBodyGroupList()
 		result = bodyGroupList.SetStartTime(100.0);
 		if (result != 0)
         {
+			std::cout << "Failed at bodyGroupList.SetStartTime(100.0)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		std::list<BodyGroup>::iterator it = bodyGroupList.items.begin();
 		if (it->startTime != 2447892.5)
         {
+			std::cout << "Failed at it->startTime != 2447892.5" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		it++;
 		if (it->startTime != 2448257.5)
         {
+			std::cout << "Failed at it->startTime != 2448257.5" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		it++;
 		if (it->startTime != 2448622.5)
         {
+			std::cout << "Failed at it->startTime != 2448622.5" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		it++;
 		if (it->startTime != 100.0)
         {
+			std::cout << "Failed at it->startTime != 100.0" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -689,6 +703,7 @@ bool TestBodyGroupList()
 		bodyGroupList.DistinctStartTimes(startTimes, increasing);
 		if (startTimes.size() != 0)
         {
+			std::cout << "Failed at bodyGroupList.DistinctStartTimes(startTimes, increasing)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -711,6 +726,7 @@ bool TestBodyGroupList()
 
 		if (startTimes.size() != 3)
         {
+			std::cout << "Failed at bodyGroupList.DistinctStartTimes(startTimes, increasing)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -737,6 +753,7 @@ bool TestBodyGroupList()
 		int result = bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase);
 		if (result != 0)
         {
+			std::cout << "Failed at bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -744,6 +761,7 @@ bool TestBodyGroupList()
 		double startTime = bodyGroupList.GetStartTime(First);
 		if (startTime != 100.0)
         {
+			std::cout << "Failed at bodyGroupList.GetStartTime(First)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -751,6 +769,7 @@ bool TestBodyGroupList()
 		startTime = bodyGroupList.GetStartTime(Last);
 		if (startTime != 2448988.5)
         {
+			std::cout << "Failed at bodyGroupList.GetStartTime(Last)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -791,6 +810,7 @@ bool TestBodyGroupList()
 		int result = bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase);
 		if (result != 0)
         {
+			std::cout << "Failed at bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -799,11 +819,13 @@ bool TestBodyGroupList()
 		result = bodyGroupList.DistinctStartTimesOfMassiveBodies(nBG);
 		if (result != 0)
         {
+			std::cout << "Failed at bodyGroupList.DistinctStartTimesOfMassiveBodies(nBG)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		if (nBG != 1)
         {
+			std::cout << "Failed at bodyGroupList.DistinctStartTimesOfMassiveBodies(nBG)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -829,17 +851,20 @@ bool TestBodyGroupList()
 		result = bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase);
 		if (result != 0)
         {
+			std::cout << "Failed at bodyGroupList.SetStartTime(startTimeOfMainIntegrationPhase)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		result = bodyGroupList.DistinctStartTimesOfMassiveBodies(nBG);
 		if (result != 0)
         {
+			std::cout << "Failed at bodyGroupList.DistinctStartTimesOfMassiveBodies(nBG)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		if (nBG != 2)
         {
+			std::cout << "Failed at bodyGroupList.DistinctStartTimesOfMassiveBodies(nBG)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -918,42 +943,49 @@ bool TestBodyGroupList()
 		int nBody = bodyGroupList.CountBy(CentralBody);
 		if (nBody != 1)
         {
+			std::cout << "Failed at bodyGroupList.CountBy(CentralBody)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		nBody = bodyGroupList.CountBy(ProtoPlanet);
 		if (nBody != 2)
         {
+			std::cout << "Failed at bodyGroupList.CountBy(ProtoPlanet)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		nBody = bodyGroupList.CountBy(RockyPlanet);
 		if (nBody != 3)
         {
+			std::cout << "Failed at bodyGroupList.CountBy(RockyPlanet)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		nBody = bodyGroupList.CountBy(GiantPlanet);
 		if (nBody != 4)
         {
+			std::cout << "Failed at bodyGroupList.CountBy(GiantPlanet)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		nBody = bodyGroupList.CountBy(SuperPlanetesimal);
 		if (nBody != 5)
         {
+			std::cout << "Failed at bodyGroupList.CountBy(SuperPlanetesimal)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		nBody = bodyGroupList.CountBy(Planetesimal);
 		if (nBody != 6)
         {
+			std::cout << "Failed at bodyGroupList.CountBy(Planetesimal)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		nBody = bodyGroupList.CountBy(TestParticle);
 		if (nBody != 7)
         {
+			std::cout << "Failed at bodyGroupList.CountBy(TestParticle)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -984,6 +1016,7 @@ bool TestBodyGroupList()
 		std::list<BodyGroup *>::iterator it = result.begin();
 		if ((*it)->guid != "bg1") 
         {
+			std::cout << "Failed at bodyGroupList.FindBy(100.0, result)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -993,12 +1026,14 @@ bool TestBodyGroupList()
 		it = result.begin();
 		if ((*it)->guid != "bg0") 
         {
+			std::cout << "Failed at bodyGroupList.FindBy(2447892.5, result)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
 		it++;
 		if ((*it)->guid != "bg3") 
         {
+			std::cout << "Failed at (*it)->guid != \"bg3\"" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -1065,6 +1100,7 @@ bool TestBodyGroupList()
 		bodyGroupList.FindBy(CentralBody, result);
 		if (result.size() != 1)
         {
+			std::cout << "Failed at bodyGroupList.FindBy(CentralBody, result)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -1073,6 +1109,7 @@ bool TestBodyGroupList()
 		{
 			if ((*it)->type != CentralBody)
 			{
+				std::cout << "Failed at (*it)->type != CentralBody" << std::endl;
 				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 				failed = true;
 			}
@@ -1082,6 +1119,7 @@ bool TestBodyGroupList()
 		bodyGroupList.FindBy(ProtoPlanet, result);
 		if (result.size() != 2)
         {
+			std::cout << "Failed at bodyGroupList.FindBy(ProtoPlanet, result)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -1090,6 +1128,7 @@ bool TestBodyGroupList()
 		{
 			if ((*it)->type != ProtoPlanet)
 			{
+				std::cout << "Failed at bodyGroupList.FindBy(ProtoPlanet, result)" << std::endl;
 				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 				failed = true;
 			}
@@ -1099,6 +1138,7 @@ bool TestBodyGroupList()
 		bodyGroupList.FindBy(GiantPlanet, result);
 		if (result.size() != 4)
         {
+			std::cout << "Failed at bodyGroupList.FindBy(GiantPlanet, result)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
         }
@@ -1107,11 +1147,11 @@ bool TestBodyGroupList()
 		{
 			if ((*it)->type != GiantPlanet)
 			{
+				std::cout << "Failed at bodyGroupList.FindBy(GiantPlanet, result)" << std::endl;
 				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 				failed = true;
 			}
 		}
-	
 	}
 
 	// GetBodyGroupWithMassiveBodies()
@@ -1150,11 +1190,333 @@ bool TestBodyGroupList()
 		bool contains = bodyGroupList.GetBodyGroupWithMassiveBodies(it);
 		if (!contains)
 		{
+			std::cout << "Failed at bodyGroupList.GetBodyGroupWithMassiveBodies(it)" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
 		}
 		if (it->guid != "bg0")
 		{
+			std::cout << "Failed at it->guid != \"bg0\"" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+	}
+
+	return failed;
+}
+
+bool TestBodyGroup()
+{
+	bool	failed = false;
+	double	value = 0.0;
+
+    // 	int		CountBy(BodyType type);
+    {
+		BodyGroup bodyGroup;
+
+		Body star(CentralBody);
+		star.characteristics = new Characteristics(1.0);
+
+		Body giant(GiantPlanet);
+		giant.characteristics = new Characteristics(1.0 * Constants::JupiterToSolar);
+
+		Body rockyPlanet(RockyPlanet);
+		rockyPlanet.characteristics = new Characteristics(1.0 * Constants::EarthToSolar);
+	
+		Body proto(ProtoPlanet);
+		proto.characteristics = new Characteristics(1.0 * Constants::EarthMoonToSolar);
+	
+		Body superPl(SuperPlanetesimal);
+		giant.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
+	
+		Body Pl(Planetesimal);
+		Pl.characteristics = new Characteristics(1.0 * Constants::KilogramToSolar);
+	
+		Body testP(TestParticle);
+
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(star);
+
+		int count = bodyGroup.CountBy(CentralBody);
+		if (3 != count)
+		{
+			std::cout << "Failed at bodyGroup.CountBy(CentralBody)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+
+		bodyGroup.items.push_back(giant);
+		count = bodyGroup.CountBy(GiantPlanet);
+		if (1 != count)
+		{
+			std::cout << "Failed at bodyGroup.CountBy(GiantPlanet)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+
+		count = bodyGroup.CountBy(RockyPlanet);
+		if (0 != count)
+		{
+			std::cout << "Failed at bodyGroup.CountBy(RockyPlanet)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+	}
+
+	// int		CountBy(double mass);
+	{
+		BodyGroup bodyGroup;
+
+		Body star(CentralBody);
+		star.characteristics = new Characteristics(1.0);
+
+		Body giant(GiantPlanet);
+		giant.characteristics = new Characteristics(1.0 * Constants::JupiterToSolar);
+
+		Body rockyPlanet(RockyPlanet);
+		rockyPlanet.characteristics = new Characteristics(1.0 * Constants::EarthToSolar);
+	
+		Body proto(ProtoPlanet);
+		proto.characteristics = new Characteristics(1.0 * Constants::EarthMoonToSolar);
+	
+		Body superPl(SuperPlanetesimal);
+		superPl.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
+	
+		Body Pl(Planetesimal);
+		Pl.characteristics = new Characteristics(1.0 * Constants::KilogramToSolar);
+	
+		Body testP(TestParticle);
+
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(star);
+
+		int count = bodyGroup.CountBy(1.0);
+		if (3 != count)
+		{
+			std::cout << "Failed at bodyGroup.CountBy(1.0)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+
+		bodyGroup.items.clear();
+		bodyGroup.items.push_back(giant);
+		bodyGroup.items.push_back(giant);
+		count = bodyGroup.CountBy(1.0 * Constants::JupiterToSolar);
+		if (2 != count)
+		{
+			std::cout << "Failed at bodyGroup.CountBy(1.0 * Constants::JupiterToSolar)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+	}
+
+	// 	void	FindBy(BodyType type, std::list<Body *> &result);
+	{
+		BodyGroup bodyGroup;
+
+		Body star(CentralBody);
+		star.characteristics = new Characteristics(1.0);
+
+		Body giant(GiantPlanet);
+		giant.characteristics = new Characteristics(1.0 * Constants::JupiterToSolar);
+
+		Body rockyPlanet(RockyPlanet);
+		rockyPlanet.characteristics = new Characteristics(1.0 * Constants::EarthToSolar);
+	
+		Body proto(ProtoPlanet);
+		proto.characteristics = new Characteristics(1.0 * Constants::EarthMoonToSolar);
+	
+		Body superPl(SuperPlanetesimal);
+		superPl.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
+	
+		Body Pl(Planetesimal);
+		Pl.characteristics = new Characteristics(1.0 * Constants::KilogramToSolar);
+	
+		Body testP(TestParticle);
+
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(rockyPlanet);
+		bodyGroup.items.push_back(superPl);
+
+		std::list<Body *> result;
+		bodyGroup.FindBy(CentralBody, result);
+		if (3 != result.size())
+		{
+			std::cout << "Failed at bodyGroup.FindBy(CentralBody, result)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+		std::list<Body *>::iterator it = result.begin();
+		for ( ; it != result.end(); it++) 
+		{
+			if ((*it)->type != CentralBody)
+			{
+				std::cout << "Failed at (*it)->type != CentralBody" << std::endl;
+				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+				failed = true;
+			}
+		}
+		result.clear();
+
+		bodyGroup.FindBy(RockyPlanet, result);
+		if (1 != result.size())
+		{
+			std::cout << "Failed at bodyGroup.FindBy(CentralBody, result)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+		it = result.begin();
+		for ( ; it != result.end(); it++) 
+		{
+			if ((*it)->type != RockyPlanet)
+			{
+				std::cout << "Failed at (*it)->type != RockyPlanet" << std::endl;
+				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+				failed = true;
+			}
+		}
+		result.clear();
+	}
+
+	// int		ToBodyList(std::list<Body *> &result)
+	{
+		BodyGroup bodyGroup;
+
+		Body star(CentralBody);
+		star.characteristics = new Characteristics(1.0);
+
+		Body giant(GiantPlanet);
+		giant.characteristics = new Characteristics(1.0 * Constants::JupiterToSolar);
+
+		Body rockyPlanet(RockyPlanet);
+		rockyPlanet.characteristics = new Characteristics(1.0 * Constants::EarthToSolar);
+	
+		Body proto(ProtoPlanet);
+		proto.characteristics = new Characteristics(1.0 * Constants::EarthMoonToSolar);
+	
+		Body superPl(SuperPlanetesimal);
+		superPl.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
+	
+		Body Pl(Planetesimal);
+		Pl.characteristics = new Characteristics(1.0 * Constants::KilogramToSolar);
+	
+		Body testP(TestParticle);
+
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(star);
+		bodyGroup.items.push_back(rockyPlanet);
+		bodyGroup.items.push_back(superPl);
+
+		std::list<Body *> result;
+		bodyGroup.ToBodyList(result);
+		if (5 != result.size())
+		{
+			std::cout << "Failed at bodyGroup.ToBodyList(result)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+		std::list<Body *>::iterator it = result.begin();
+		std::list<Body>::iterator _it = bodyGroup.items.begin();
+		for ( ; it != result.end() && _it != bodyGroup.items.end(); it++, _it++) 
+		{
+			if ((*it)->type != _it->type)
+			{
+				std::cout << "Failed at (*it)->type != _it->type" << std::endl;
+				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+				failed = true;
+			}
+		}
+	}
+	
+	// int		SetStartTime(double startTimeOfMainSimulation)
+	{
+		double startTimeOfMainSimulation = 100.0;
+
+		BodyGroup bodyGroup0("89A79746-3D47-49A0-9026-157F61420376", "Test body group 0", "",          0.0, "J2000.0");
+		BodyGroup bodyGroup1("8C4C23A0-D162-419D-95EB-46F5034572A1", "Test body group 1", "20010101",  0.0, "J2000.0");
+		BodyGroup bodyGroup2("A130417E-D47C-43F7-B6D9-A1FD8CCCAAB0", "Test body group 2", "20020101", 10.0, "J2000.0");
+		BodyGroup bodyGroup3("6CDFBA3F-8AFA-485F-8507-17C8C9E673A7", "Test body group 3", "",         20.0, "J2000.0");
+
+		bodyGroup0.SetStartTime(startTimeOfMainSimulation);
+		if (startTimeOfMainSimulation != bodyGroup0.startTime)
+		{
+			std::cout << "Failed at bodyGroup0.SetStartTime(startTimeOfMainSimulation)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+
+		bodyGroup1.SetStartTime(startTimeOfMainSimulation);
+		if (2451910.5 != bodyGroup1.startTime)
+		{
+			std::cout << "Failed at bodyGroup1.SetStartTime(startTimeOfMainSimulation)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+
+		bodyGroup2.SetStartTime(startTimeOfMainSimulation);
+		if (2452275.5 + 10.0 != bodyGroup2.startTime)
+		{
+			std::cout << "Failed at bodyGroup2.SetStartTime(startTimeOfMainSimulation)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+
+		bodyGroup3.SetStartTime(startTimeOfMainSimulation);
+		if (startTimeOfMainSimulation + 20.0 != bodyGroup3.startTime)
+		{
+			std::cout << "Failed at bodyGroup3.SetStartTime(startTimeOfMainSimulation)" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+	}
+
+	// bool	ContainsMassiveBody()
+	{
+		BodyGroup bodyGroup;
+
+		Body star(CentralBody);
+		star.characteristics = new Characteristics(1.0);
+
+		Body giant(GiantPlanet);
+		giant.characteristics = new Characteristics(1.0 * Constants::JupiterToSolar);
+
+		Body rockyPlanet(RockyPlanet);
+		rockyPlanet.characteristics = new Characteristics(1.0 * Constants::EarthToSolar);
+	
+		Body proto(ProtoPlanet);
+		proto.characteristics = new Characteristics(1.0 * Constants::EarthMoonToSolar);
+	
+		Body superPl(SuperPlanetesimal);
+		superPl.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
+	
+		Body Pl(Planetesimal);
+		Pl.characteristics = new Characteristics(1.0 * Constants::KilogramToSolar);
+	
+		Body testP(TestParticle);
+
+		bodyGroup.items.push_back(testP);
+		bodyGroup.items.push_back(testP);
+		bodyGroup.items.push_back(testP);
+		bodyGroup.items.push_back(testP);
+
+		bool result = bodyGroup.ContainsMassiveBody();
+		if (true == result)
+		{
+			std::cout << "Failed at bodyGroup.ContainsMassiveBody()" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+
+		bodyGroup.items.push_back(proto);
+		result = bodyGroup.ContainsMassiveBody();
+		if (false == result)
+		{
+			std::cout << "Failed at bodyGroup.ContainsMassiveBody()" << std::endl;
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			failed = true;
 		}
@@ -1465,23 +1827,64 @@ int		main(int argc, char* argv[])
 
 #ifdef TEST_CALCULATE
 	failed = TestCalculate();
+	if (!failed) {
+		std::cout << "TestCalculate() passed." << std::endl;
+	}
+	else {
+		Error::PrintStackTrace();
+	}
 #endif
 
 #ifdef TEST_CONSTANTS
 	failed = TestConstants();
+	if (!failed) {
+		std::cout << "TestConstants() passed." << std::endl;
+	}
+	else {
+		Error::PrintStackTrace();
+	}
 #endif
 
 #ifdef TEST_TYPEI_MIGRATION_TIME
 	failed = TestTypeIMigrationTime();
+	if (!failed) {
+		std::cout << "TestTypeIMigrationTime() passed." << std::endl;
+	}
+	else {
+		Error::PrintStackTrace();
+	}
 #endif
 
 #ifdef TEST_MEAN_FREE_PATH
     failed = TestMeanFreePath();
+	if (!failed) {
+		std::cout << "TestMeanFreePath() passed." << std::endl;
+	}
+	else {
+		Error::PrintStackTrace();
+	}
 #endif
 
 #ifdef TEST_BODYGROUPLIST
     failed = TestBodyGroupList();
+	if (!failed) {
+		std::cout << "TestBodyGroupList() passed." << std::endl;
+	}
+	else {
+		Error::PrintStackTrace();
+	}
 #endif
+
+#ifdef TEST_BODYGROUP
+	failed = TestBodyGroup();
+	if (!failed) {
+		std::cout << "TestBodyGroup() passed." << std::endl;
+	}
+	else {
+		Error::PrintStackTrace();
+	}
+#endif
+
 
 #ifdef EPSTEIN_STOKES_VERSUS_DISTANCE
     const double mC = 1.0;      // mass of the star in solra mass unit

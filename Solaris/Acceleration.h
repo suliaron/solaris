@@ -32,13 +32,6 @@ public:
 	int MigrationTypeIBC(            double t, double *y, double *a);
 	int MigrationTypeIIBC(           double t, double *y, double *a);
 
-	int	GravityBC_RKDP(                   double t, double *y, double *a);
-	int	GravityBC_RKDP_SelfInteracting(   double t, double *y, double *a);
-	int GravityBC_RKDP_NonSelfInteracting(double t, double *y, double *a);
-/*	int	GasDragBC_RKDP(                   double t, double *y, double *a);
-	int MigrationTypeIBC_RKDP(            double t, double *y, double *a);
-	int MigrationTypeIIBC_RKDP(           double t, double *y, double *a);*/
-
 	double TypeIMigrationTime(          const double C, const double O, const double ar, const double er, const double h);
 	double TypeIEccentricityDampingTime(const double C, const double O, const double ar, const double er, const double h);
 

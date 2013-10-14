@@ -169,8 +169,8 @@ int Acceleration::ComputeAstroCentric(double t, double *y, double *totalAccel)
 	HANDLE_RESULT(result);
 
 #ifdef TEST_DUSTPARTICLE
-	double a_grav = sqrt(SQR(totalAccel[9]) + SQR(totalAccel[10]) + SQR(totalAccel[11]));
-	printf("a_grav: %20.15lf AU/d^2\n", a_grav);
+	double a_g = sqrt(SQR(totalAccel[9]) + SQR(totalAccel[10]) + SQR(totalAccel[11]));
+	printf("a_g: %30.15lf AU/d^2\n", a_g);
 #endif
 
 	if (nebula != 0) {
@@ -183,10 +183,10 @@ int Acceleration::ComputeAstroCentric(double t, double *y, double *totalAccel)
 			result = GasDragAC(t, y, accelGasDrag);
 			HANDLE_RESULT(result);
 #ifdef TEST_DUSTPARTICLE
-	double a_gas = sqrt(SQR(accelGasDrag[0]) + SQR(accelGasDrag[1]) + SQR(accelGasDrag[2]));
-	printf("a_gas: %20.15lf AU/d^2\n", a_gas);
+	double a_d = sqrt(SQR(accelGasDrag[0]) + SQR(accelGasDrag[1]) + SQR(accelGasDrag[2]));
+	printf("a_d: %30.15lf AU/d^2\n", a_d);
 #endif
-		}
+        }
 		int lower = bodyData->nBodies.NOfMassive();
 		int upper = lower + bodyData->nBodies.NOfPlAndSpl();
 		for (int i=lower; i<upper; i++) {
@@ -753,31 +753,6 @@ int	Acceleration::MigrationTypeIIBC(double t, double *y, double *accel)
 		accel[j0 + 1] = -factor*(c0 * ( 0.5*y[i0 + 4] + 50 * (c1*y[i0 + 1]) ));
 		accel[j0 + 2] = -factor*(c0 * ( 0.5*y[i0 + 5] + 50 * (c1*y[i0 + 2]) + y[i0 + 5] ));
 	}
-
-	return 0;
-}
-
-int Acceleration::GravityBC_RKDP(double t, double *y, double *accel)
-{
-	int result = GravityBC_RKDP_SelfInteracting(t, y, accel);
-	HANDLE_RESULT(result);
-
-	result = GravityBC_RKDP_NonSelfInteracting(t, y, accel);
-	HANDLE_RESULT(result);
-
-	return result;
-}
-
-int Acceleration::GravityBC_RKDP_SelfInteracting(double t, double *y, double *accel)
-{
-
-
-	return 0;
-}
-
-int Acceleration::GravityBC_RKDP_NonSelfInteracting(double t, double *y, double *accel)
-{
-
 
 	return 0;
 }

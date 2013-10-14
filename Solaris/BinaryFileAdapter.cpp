@@ -92,8 +92,7 @@ void BinaryFileAdapter::LogTimeSpan(std::string msg, time_t t0)
 	std::string diffTime;
 	Tools::TimeDifference(diff, diffTime);
 	msg += diffTime;
-	std::cerr << msg;
-	Log(msg, false);
+	Log(msg, true);
 }
 
 /// <summary>
@@ -118,6 +117,7 @@ void BinaryFileAdapter::SavePhases(double time, int n, double *y, int *id)
 		Log("The file '" + path + "' could not opened!", true);
 		exit(1);
 	}
+    std::cout << "At " << time * Constants::DayToYear << " [yr] phases were saved" << std::endl;
 }
 
 void BinaryFileAdapter::SavePhase(std::ofstream& writer, double *y, int *id)
