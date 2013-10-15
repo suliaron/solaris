@@ -8,16 +8,22 @@
 #include <string.h>
 #include <stdio.h>
 
+// TODO: for compilation define the WIN32 symbol
+#ifdef WIN32
+    #include <direct.h>
+    #define GetCurrentDir _getcwd
+#else
+    #include <unistd.h>
+    #define GetCurrentDir getcwd
+#endif
+
 #include "Tools.h"
 #include "Component.h"
 #include "Constants.h"
 #include "Phase.h"
 #include "Error.h"
 
-enum OS {
-	Windows,
-	Linux
-} Os;
+enum OS Os;
 
 void  Tools::ToPhase(double *y, Phase *phase)
 {
@@ -50,6 +56,7 @@ bool Tools::IsNumber(const std::string& str)
    return true;
 }
 
+/// Removes all trailing white-space characters from the current std::string object.
 void Tools::TrimRight(std::string& str)
 {
 	// trim trailing spaces
@@ -59,6 +66,7 @@ void Tools::TrimRight(std::string& str)
 	}
 }
 
+/// Removes all leading white-space characters from the current std::string object.
 void Tools::TrimLeft(std::string& str)
 {
 	// trim leading spaces
@@ -68,6 +76,7 @@ void Tools::TrimLeft(std::string& str)
 	}
 }
 
+/// Removes all leading and trailing white-space characters from the current std::string object.
 void Tools::Trim(std::string& str)
 {
 	TrimRight(str);
@@ -90,136 +99,93 @@ void Tools::GuidToCharArray(std::string& guid, char *result)
 	}
 }
 
-void Tools::SplitPath(const std::string path, const char directorySeparator, std::string &directory, std::string &fileName)
+/// Returns the directory information for the specified path string.
+/// Returns an empty string if path does not contain directory information.
+std::string Tools::GetDirectory(const std::string path, const char directorySeparator)
 {
-	size_t found;
-	if ( path.find_first_of(directorySeparator) >= path.length() ) {
-		fileName = path;
-		return;
+	size_t found = 0;
+	if (path.find_first_of(directorySeparator) >= path.length() ) {
+		return "";
 	}
 	found = path.find_last_of(directorySeparator);
-	directory = path.substr(0, found);
-	fileName = path.substr(found+1);
+	return path.substr(0, found);
 }
 
-int Tools::GetDirectorySeparator(char *c) {
-	if (GetOs() == 1) {
-		char *os = getenv("OS");
-		if (os == 0) {
-			std::cerr << "Missing OS environment parameter.\n";
-		}
-		else {
-			std::cerr << "Unrecognized operating system. OS=" << os << "\n";
-		}
+/// Returns the file name and extension of the specified path string.
+/// Returns the characters after the last directory character in path. 
+/// If the last character of path is a directory, this method returns an empty string.
+std::string Tools::GetFileName(const std::string path, const char directorySeparator)
+{
+	size_t found = 0;
+	if (path.find_first_of(directorySeparator) >= path.length() ) {
+		return path;
+	}
+	found = path.find_last_of(directorySeparator);
+	return path.substr(found+1);
+}
+
+/// Determines the directory separator character and stores it in the c parameter.
+int Tools::GetDirectorySeparator(char *c)
+{
+	enum OS os = GetOs();
+	switch (os) {
+	case Windows:
+		*c = '\\';
+		break;
+	case Linux:
+		*c = '/';
+		break;
+	default:
+		std::cerr << "Failed to determine the operating system type.\n";
 		std::cerr << "Please enter the directory separator character: ";
 		std::cin >> *c;
-	}
-	else {
-		switch (Os) {
-		case Windows:
-			*c = '\\';
-			break;
-		case Linux:
-			*c = '/';
-			break;
-		default:
-			std::cerr << "Failed to determine the operating system type.\n";
-			std::cerr << "Please enter the directory separator character: ";
-			std::cin >> *c;
-			break;
-		}
+		break;
 	}
 
 	return 0;
 }
 
-std::string Tools::GetWorkingDirectory()
+/// Gets the current working directory and stores it in the wd parameter.
+int Tools::GetWorkingDirectory(std::string& wd)
 {
-	std::string wd;
+	char cCurrentPath[FILENAME_MAX];
 
-	if (GetOs() == 1) {
-		char *os = getenv("OS");
-		if (os == 0) {
-			std::cerr << "Missing OS environment parameter.\n";
-		}
-		else {
-			std::cerr << "Unrecognized operating system. OS=" << os << "\n";
-		}
-		std::cerr << "Please enter the working directory: ";
-		std::cin >> wd;
-		return wd;
+	if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
+	{
+		Error::_errMsg = "Could not determine the current directory.\n";
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
 	}
-	else {
-		char *c = 0;
-		switch (Os) {
-		case Windows:
-			// Note: This is not functioning!
-			c = getenv("PATH");
-			if (c == 0) {
-				std::cerr << "Missing CD environment parameter.\n";
-				std::cerr << "Please enter the working directory: ";
-				std::cin >> wd;
-				return wd;
-			}
-			else {
-				wd = std::string(c);
-				return wd;
-			}
-			break;
-		case Linux:
-			c = getenv("PWD");
-			if (c == 0) {
-				std::cerr << "Missing PWD environment parameter.\n";
-				std::cerr << "Please enter the working directory: ";
-				std::cin >> wd;
-				return wd;
-			}
-			else {
-				wd = std::string(c);
-				return wd;
-			}
-			break;
-		default:
-			std::cerr << "Failed to determine the operating system type.\n";
-			std::cerr << "Please enter the working directory: ";
-			std::cin >> wd;
-			return wd;
-			break;
-		}
-	}
-	std::cerr << "Please enter the working directory: ";
-	std::cin >> wd;
-	return wd;
+	wd.append(cCurrentPath);
+
+	return 0;
 }
 
-int	Tools::GetOs()
+/// Determines the name of the running operating system. It returns an enum containing the name.
+/// If the os is unknwon the Unknow enum variable is returned.
+enum OS	Tools::GetOs()
 {
 	// Windows
 	char *os = getenv("OS");
 	if (os == 0 ) {
-		// Linux
+	// Linux
 		os = getenv("OSTYPE");
 	}
 	if (os == 0 ) {
-		Error::_errMsg = "Could not find the environmental variable for the operating system!";
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
+		std::cerr << "Could not find the environmental variable (\"OS\" or \"OSTYPE\") for the operating system!";
+		return Unknown;
 	}
 
 	char *p = os;
 	do {
 		*p = (char)tolower(*p);
-	}while ( *p++ != 0 );
+	} while ( *p++ != 0 );
 
-
-	if (	 strcmp(os, "windows_nt") == 0) Os = Windows;
-	else if (strcmp(os, "linux")	  == 0) Os = Linux;
+	if (	 strcmp(os, "windows_nt") == 0) return Windows;
+	else if (strcmp(os, "linux")	  == 0) return Linux;
 	else {
-		Error::_errMsg = "Could not determine the operating system!";
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
+		return Unknown;
 	}
-	return 0;
 }
 
 int	Tools::CreatePath(const std::string &directory, const std::string &fileName, const char separator, char **path)

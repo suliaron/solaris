@@ -39,25 +39,25 @@ enum MigrationType {
 };
 
 enum MPCOrbitType {
-    UndefinedMPCOrbitType = 0,
-    Aten = 2,
-    Apollo = 3,
-    Amor = 4,
-    ObjectWithqLt1_665 = 5,
-    Hungaria = 6,
-    Phocaea = 7,
-    Hilda = 8,
-    JupiterTrojan = 9,
-    Centaur = 10,
-    Plutino = 14,
-    OtherResonantTNO = 15,
-    Cubewano = 16,
-    ScatteredDisk = 17,
-    ObjectIsNEO = 2048,
-    ObjectIs1kmOrLargerNEO = 4096,
-    OneOppositionObjectSeenAtEarlierOpposition = 8192,
-    CriticalListNumberedObject = 16384,
-    ObjectIsPHA = 32768
+    UndefinedMPCOrbitType						= 0,
+    Aten										= 2,
+    Apollo										= 3,
+    Amor										= 4,
+    ObjectWithqLt1_665							= 5,
+    Hungaria									= 6,
+    Phocaea										= 7,
+    Hilda										= 8,
+    JupiterTrojan								= 9,
+    Centaur										= 10,
+    Plutino										= 14,
+    OtherResonantTNO							= 15,
+    Cubewano									= 16,
+    ScatteredDisk								= 17,
+    ObjectIsNEO									= 2048,
+    ObjectIs1kmOrLargerNEO						= 4096,
+    OneOppositionObjectSeenAtEarlierOpposition	= 8192,
+    CriticalListNumberedObject					= 16384,
+    ObjectIsPHA									= 32768
 };
 
 class Body {

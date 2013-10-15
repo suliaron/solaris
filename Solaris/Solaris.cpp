@@ -36,26 +36,39 @@ int ProcessArgv(int argc, char* argv[], std::string &directory, std::string &fil
 			exit(0);
 		}
         else if (strcmp(argv[i], "-i") == 0) {
-			i++;
-			std::string input(argv[i]);			
-			Tools::SplitPath(input, Output::directorySeparator, directory, fileName);
             runType = "New";
+			i++;
+			std::string input(argv[i]);
+			directory = Tools::GetDirectory(input, Output::directorySeparator);
+			fileName  = Tools::GetFileName( input, Output::directorySeparator);
         } 
         else if (strcmp(argv[i], "-c") == 0) {
-			i++;
-			std::string input(argv[i]);			
-			Tools::SplitPath(input, Output::directorySeparator, directory, fileName);
             runType = "Continue";
+			i++;
+			std::string input(argv[i]);
+			directory = Tools::GetDirectory(input, Output::directorySeparator);
+			fileName  = Tools::GetFileName( input, Output::directorySeparator);
         } 
 		else {
 			Error::_errMsg = "Invalid argument.\n" + Constants::Usage;
             return 1;
 		}
 	}
+
+	// If the file name is empty
+	if (fileName.length() == 0) {
+		Error::_errMsg = "Missing input file name.";
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+        return 1;
+	}
 	
 	// If the directory is empty, then use the current/working directory
 	if (directory.length() == 0) {
-		directory = Tools::GetWorkingDirectory();
+		 int result = Tools::GetWorkingDirectory(directory);
+		 if (result == 1){
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+            return 1;
+		}
 	}
 
 	return 0;

@@ -59,7 +59,7 @@ int Calculate::Integrals(BodyData *bodyData)
 	PotentialEnergy(bodyData, bodyData->integrals[14]);
 	bodyData->integrals[15] = bodyData->integrals[13] - bodyData->integrals[14];
 
-	return 1;
+	return 0;
 }
 
 int	Calculate::TotalMass(BodyData *bodyData, double& result)

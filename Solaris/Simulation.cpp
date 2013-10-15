@@ -46,38 +46,12 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 {
     // Compute the start time of the main integration phase
     // If the start attribute in the TimeLine tag was not defined in the xml, than it will be computed from the epochs of the BodyGroups
-	if (!this->settings->timeLine->startTimeDefined)
+	if (!settings->timeLine->startTimeDefined)
     {
-		double start = 0.0;
-		//int result = this->CalculateStartTime(start);
-
-        // If the length attribute in the TimeLine tag is positive (forward integration) than
-        // the start time is the last epoch, 
-        //int result = this->settings->timeLine->Forward() ? this->bodyGroupList.GetEpoch(start, Last) : this->bodyGroupList.GetEpoch(start, First);
-        int result = this->bodyGroupList.GetEpoch(start, this->settings->timeLine->Forward() ? Last : First);
-
-		// No epochs were defined for the BodyGroups
-		if (     result == -1)
-			this->settings->timeLine->start = 0.0;
-		// One or more epochs were found. If the direction of
-		// the main integration is Forward in time, than the start time will be the latest epoch,
-		// if the direction is Backward than it will be the first epoch.
-		else if (result == 0)
-			this->settings->timeLine->start = start;
-		// An error occurred during the calculation.
-		else {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
+		SetStartTimeOfMainPhase();
     }
 
-    // If the TimeLine.StartTime was not defined in the xml, than it will be computed from the epochs of the BodyGroups
-	//if (InitializeStartTime() == 1) {
-	//	Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-	//	return 1;
-	//}
-	
-	if (bodyGroupList.SetStartTime(this->settings->timeLine->start) == 1) {
+	if (bodyGroupList.SetStartTime(settings->timeLine->start) == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
@@ -89,8 +63,8 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 
 	// Sort the BodyGroups in the BodyGroupList into increasing order
 	this->bodyGroupList.items.sort(BodyGroupList::CompareStartTime);
-	if (!this->settings->timeLine->Forward())
-		this->bodyGroupList.items.reverse();
+	if (!settings->timeLine->Forward())
+		bodyGroupList.items.reverse();
 
 	/*
 	* If the EnableDistinctStartTimes is false, than the Time and Save
@@ -98,7 +72,7 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 	* StartTime of the massive bodies.
 	*/
 	double time = 0.0;
-	if (!this->settings->enableDistinctStartTimes)
+	if (!settings->enableDistinctStartTimes)
 	{
 		std::list<BodyGroup>::iterator it;
 		if (!bodyGroupList.GetBodyGroupWithMassiveBodies(it)) {
@@ -110,37 +84,39 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 	}
 	// Because of the sort operation above the time equals to the startTime field of the first BodyGroup
 	else {
-		time = this->bodyGroupList.items.front().startTime;
+		time = bodyGroupList.items.front().startTime;
 	}
-	this->settings->timeLine->time = time;
-	this->settings->timeLine->save = time;
+	settings->timeLine->time = time;
+	settings->timeLine->save = time;
 
 	return 0;
 }
 
-//int Simulation::InitializeStartTime()
-//{
-//	if (!this->settings->timeLine->startTimeDefined)
-//    {
-//		double start = 0.0;
-//		int result = this->CalculateStartTime(start);
-//		// No epochs were defined for the BodyGroups
-//		if (result == -1)
-//			this->settings->timeLine->start = 0.0;
-//		// One or more epochs were found, set the  start of the  simulation. If the direction of
-//		// the main integration is Forward in time, than the start time will be the latest epoch,
-//		// if the direction is Backward than it will be the first epoch.
-//		else if (result == 0)
-//			this->settings->timeLine->start = start;
-//		// An error occurred during the calculation.
-//		else {
-//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-//			return 1;
-//		}
-//    }
-//
-//	return 0;
-//}
+int Simulation::SetStartTimeOfMainPhase()
+{
+	double start = 0.0;
+    // If the length attribute in the TimeLine tag is positive (forward integration) than
+    // the start time is the last epoch, 
+    int result = bodyGroupList.GetEpoch(start, settings->timeLine->Forward() ? Last : First);
+
+	// No epochs were defined for the BodyGroups
+	if (     result == -1) {
+		settings->timeLine->start = 0.0;
+	}
+	// One or more epochs were found. If the direction of
+	// the main integration is Forward in time, than the start time will be the latest epoch,
+	// if the direction is Backward than it will be the first epoch.
+	else if (result == 0) {
+		settings->timeLine->start = start;
+	}
+	// An error occurred during the calculation.
+	else {
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
+
+	return 0;
+}
 
 int Simulation::InitializePhases()
 {

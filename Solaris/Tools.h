@@ -2,9 +2,16 @@
 #define TOOLS_H_
 
 #include <list>
+#include <string>
 
 class Component;
 class Phase;
+
+enum OS {
+	Unknown,
+	Windows,
+	Linux
+};
 
 class Tools {
 public:
@@ -17,10 +24,11 @@ public:
 	static void Trim(std::string& str);
 	static void GuidToCharArray(std::string& guid, char *result);
 	
-	static void SplitPath(const std::string path, const char directorySeparator, std::string &directory, std::string &fileName);
+	static std::string GetDirectory(const std::string path, const char directorySeparator);
+	static std::string GetFileName(const std::string path, const char directorySeparator);
 	static int	GetDirectorySeparator(char *c);
-	static std::string GetWorkingDirectory();
-	static int	GetOs();
+	static int	GetWorkingDirectory(std::string &wd);
+	static enum OS GetOs();
 	static int	CreatePath(const std::string &directory, const std::string &fileName, const char separator, char **path);
 
 	static void TimeDifference(int diff, std::string& result);

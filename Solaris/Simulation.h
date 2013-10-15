@@ -18,7 +18,7 @@ public:
 	Simulation(std::string runType);
 
 	int Initialize();
-	//int InitializeStartTime();
+	int SetStartTimeOfMainPhase();
 	int InitializeTimeLineAndBodyGroups();
 	int InitializePhases();
 

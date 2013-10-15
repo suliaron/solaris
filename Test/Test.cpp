@@ -48,7 +48,6 @@
 #include "../Solaris/Vector.h"
 #include "../Solaris/XmlFileAdapter.h"
 
-
 #define SQR(a)		((a)*(a))
 #define CUBE(a)		((a)*(a)*(a))
 #define FORTH(a)	((a)*(a)*(a)*(a))
@@ -60,8 +59,9 @@
 //#define TEST_CONSTANTS
 //#define TEST_TYPEI_MIGRATION_TIME
 //#define TEST_MEAN_FREE_PATH
-#define TEST_BODYGROUP
+//#define TEST_BODYGROUP
 //#define TEST_BODYGROUPLIST
+#define TEST_TOOLS
 
 //#define TEST_DUSTPARTICLE
 
@@ -1525,6 +1525,78 @@ bool TestBodyGroup()
 	return failed;
 }
 
+bool TestTools()
+{
+	bool	failed = false;
+	double	value = 0.0;
+
+    // enum OS	GetOs()
+    {
+		OS os = Tools::GetOs();
+		if (Windows != os)
+		{
+			std::cout << "Failed at Tools::GetOs()" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+	}
+
+	// std::string Tools::GetWorkingDirectory()
+	{
+		std::string wd;
+		int result = Tools::GetWorkingDirectory(wd);
+		std::cout << "Current working directory: " << wd << std::endl;
+	}
+
+	// static std::string GetDirectory(const std::string path, const char directorySeparator)
+	{
+		std::string path = "E:\\Work\\VSSolutions\\solaris\\Debug\\Test.exe";
+		char dirSep = '\\';
+
+		std::string directory = Tools::GetDirectory(path, dirSep);
+		if ("E:\\Work\\VSSolutions\\solaris\\Debug" != directory)
+		{
+			std::cout << "Failed at Tools::GetDirectory()" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+
+		path = "Test.exe";
+		directory = Tools::GetDirectory(path, dirSep);
+		if ("" != directory)
+		{
+			std::cout << "Failed at Tools::GetDirectory()" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+	}
+
+	// static std::string GetFileName(const std::string path, const char directorySeparator)
+	{
+		std::string path = "E:\\Work\\VSSolutions\\solaris\\Debug\\Test.exe";
+		char dirSep = '\\';
+
+		std::string fileName = Tools::GetFileName(path, dirSep);
+		if ("Test.exe" != fileName)
+		{
+			std::cout << "Failed at Tools::GetFileName()" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+
+		path = "Test.exe";
+		fileName = Tools::GetFileName(path, dirSep);
+		if ("Test.exe" != fileName)
+		{
+			std::cout << "Failed at Tools::GetFileName()" << std::endl;
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			failed = true;
+		}
+	}
+
+
+	return failed;
+}
 /*
 
 cd 'G:\Work\VSSolutions\Solaris\TestCases\UnifiedDragForce
@@ -1698,126 +1770,7 @@ void CalculateGraphOfEpsteinStokesVersusDistance(const double mC, const double d
     file.close();
 }
 
-int ProcessArgv(int argc, char* argv[], std::string &directory, std::string &fileName, std::string &runType)
-{
-	if (argc < 2) { // Check the value of argc.
-        Error::_errMsg = Constants::Usage;
-        return 1;
-    }
-    for (int i = 1; i < argc; i++) {
-        if (     strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
-			std::cout << Constants::CodeName << ":" << std::endl << Constants::Usage;
-			exit(0);
-		}
-        else if (strcmp(argv[i], "-i") == 0) {
-			i++;
-			std::string input(argv[i]);			
-			Tools::SplitPath(input, Output::directorySeparator, directory, fileName);
-            runType = "New";
-        } 
-        else if (strcmp(argv[i], "-c") == 0) {
-			i++;
-			std::string input(argv[i]);			
-			Tools::SplitPath(input, Output::directorySeparator, directory, fileName);
-            runType = "Continue";
-        } 
-		else {
-			Error::_errMsg = "Invalid argument.\n" + Constants::Usage;
-            return 1;
-		}
-	}
-	
-	// If the directory is empty, then use the current/working directory
-	if (directory.length() == 0) {
-		directory = Tools::GetWorkingDirectory();
-	}
-
-	return 0;
-}
-
-/**
- * Loads the input data and stores it into the simulation object.
- *
- * @param inputPath the input path of the data file
- * @param simulation the object where the input data will be stored
- * @return 0 on success 1 on error
- */
-int LoadInput(char* inputPath, Simulation &simulation)
-{
-	XmlFileAdapter xml(inputPath);
-	if (XmlFileAdapter::Load(inputPath, xml.doc) == 1) {
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
-	}
-
-	if (XmlFileAdapter::DeserializeSimulation(xml.doc, simulation) == 1) {
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
-	}
-
-	if (simulation.nebula != 0 && simulation.nebula->path.length() > 0) {
-		simulation.fargoParameters = new FargoParameters();
-		simulation.fargoParameters->ReadConfigFile(simulation.nebula->path);
-		if (simulation.fargoParameters->ParseConfig(true) == 1) {
-    		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-        }
-	}
-
-	return 0;
-}
-
-int TestDustParticle(int argc, char* argv[])
-{
-	{
-		if (Tools::GetDirectorySeparator(&Output::directorySeparator) == 1) {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-
-		std::string		fileName;
-		std::string     runType;
-		if (ProcessArgv(argc, argv, Output::directory, fileName, runType) == 1) {
-			Error::PrintStackTrace();
-			exit(1);
-		}
-
-		char*	inputPath = 0;
-		Tools::CreatePath(Output::directory, fileName, Output::directorySeparator, &inputPath);
-
-		Simulation  simulation(runType);
-		if (LoadInput(inputPath, simulation) == 1) {
-			Error::PrintStackTrace();
-			exit(1);
-		}
-	    simulation.binary = new BinaryFileAdapter(simulation.settings->output);
-		simulation.binary->LogStartParameters(argc, argv);
-		simulation.binary->Log("Simulation data was successfully loaded and deserialized.", true);
-
-		if (simulation.Initialize() == 1) {
-			Error::PrintStackTrace();
-			exit(1);
-		}
-		simulation.binary->Log("Simulation was successfully initialized.", false);
-
-		Simulator		simulator(&simulation);
-		if (simulation.runType == "Continue" ) {
-			if (simulator.Continue() == 1) {
-				Error::PrintStackTrace();
-				exit(1);
-			}
-		}
-
-		if (simulator.Run() == 1) {
-			Error::PrintStackTrace();
-			exit(1);
-		}
-
-		return 0;
-	}
-}
-
-int		main(int argc, char* argv[])
+int		main(int argc, char* argv[], char* envp[])
 {
 	bool failed = false;
 
@@ -1885,6 +1838,15 @@ int		main(int argc, char* argv[])
 	}
 #endif
 
+#ifdef TEST_TOOLS
+	failed = TestTools();
+	if (!failed) {
+		std::cout << "TestTools() passed." << std::endl;
+	}
+	else {
+		Error::PrintStackTrace();
+	}
+#endif
 
 #ifdef EPSTEIN_STOKES_VERSUS_DISTANCE
     const double mC = 1.0;      // mass of the star in solra mass unit
