@@ -1,0 +1,74 @@
+<Simulation name="" description="">
+  <Settings enableDistinctStartTimes="">
+
+    <Output>
+      <Phases></Phases>
+      <ConstantProperties></ConstantProperties>
+      <VariableProperties></VariableProperties>
+      <CompositionProperties></CompositionProperties>
+      <TwoBodyAffair></TwoBodyAffair>
+      <Log></Log>
+    </Output>
+    <Integrator name="">
+      <Accuracy value=""/>
+    </Integrator>
+    <TimeLine start="" length="" output="" unit=""/>
+    <Ejection value="" unit=""/>    
+    <HitCentrum value="" unit=""/>
+    <CloseEncounter value="" unit=""/>
+    <Collision factor="" stop=""/>
+    <WeakCapture factor="" stop=""/>
+
+  </Settings>
+
+  <BodyGroupList>
+    <BodyGroup description="" epoch="" referenceFrame="" offset="" guid="">
+      <Items>
+
+        <Body name="" type="" designation="" provisionalDesignation="" reference="" opposition=""              
+	      ln="" MPCOrbitType="" guid="" >
+          <Phase>
+            <Position x="" y="" z="" unit="" />
+            <Velocity x="" y="" z="" unit="" />
+          </Phase>
+
+          <OrbitalElement semiMajorAxis="" eccentricity="" inclination="" argumentOfPericenter="" 
+	  		  longitudeOfNode="" meanAnomaly="" distanceUnit="" angleUnit="" />
+
+          <Characteristics absVisMag="" >
+            <Mass value="" unit="" />
+            <Radius value="" unit="" />
+            <Density value="" unit="" />
+	    <ComponentList>
+	      <Component name="" ratio=""/>
+	    </ComponentList>
+          </Characteristics>
+	  <DragCoefficient stokes=""/>
+	  <Migration type=""/>
+        </Body>
+
+      </Items>
+    </BodyGroup>
+  </BodyGroupList>
+
+  <Nebula name="" description="">
+    <MassFactor></MassFactor>
+    <GasToDustRatio></GasToDustRatio>
+    <SnowLine></SnowLine>
+    <SolidsComponent>
+      <IceCondensationFactor></IceCondensationFactor>
+      <SolidsDensityFunction index="">
+        <SurfaceDensity value="" unit=""/>
+      </SolidsDensityFunction>
+    </SolidsComponent>
+    <GasComponent alpha="">
+      <Eta c="" index=""/>
+      <ScaleHeight c="" index=""/>
+      <Tau c="" index=""/>
+      <GasDensityFunction index="">
+        <Density value="" unit=""/>
+      </GasDensityFunction>
+    </GasComponent>
+  </Nebula>
+
+</Simulation>
