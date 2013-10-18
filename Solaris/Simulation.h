@@ -36,7 +36,7 @@ public:
 	std::list<Body *>	bodyList;
 	BodyData			bodyData;
 
-	Settings			*settings;
+	Settings			settings;
 	Nebula				*nebula;
 	BinaryFileAdapter	*binary;
 	FargoParameters		*fargoParameters;

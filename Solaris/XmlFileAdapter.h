@@ -63,11 +63,12 @@ public:
 
 	static int DeserializeBody(TiXmlElement *xmlElement, Body *body);
 	static int DeserializeBodyAttributes(TiXmlAttribute *attribute, Body *body);
-	static int DeserializeBodyType(std::string type, Body *body);
-	static int DeserializeLn(std::string ln, Body *body);
-	static int DeserializeMigrationType(TiXmlElement *xmlElement, Body *body);
-	static int DeserializeMigrationType(std::string migrationType, Body *body);
-	static int DeserializeMigrationTypeAttributes(TiXmlAttribute *attribute, Body *body);
+	static int SetBodyType(std::string type, Body *body);
+	static int SetMPCOrbitType(std::string type, Body *body);
+	static int SetLn(std::string ln, Body *body);
+	static int DeserializeMigration(TiXmlElement *xmlElement, Body *body);
+	static int DeserializeMigrationAttributes(TiXmlAttribute *attribute, Body *body);
+	static int SetMigrationType(std::string migrationType, Body *body);
 	static int DeserializePhase(TiXmlElement *xmlElement, Phase *phase);
 	static int DeserializePosition(TiXmlElement *xmlElement, Vector& r);
 	static int DeserializeVelocity(TiXmlElement *xmlElement, Vector& v);
@@ -75,8 +76,8 @@ public:
 	static int DeserializeOrbitalElement(TiXmlElement *xmlElement, OrbitalElement *oe);
 	static int DeserializeCharacteristics(TiXmlElement *xmlElement, Characteristics *characteristics, BodyType bodyType);
 	static int DeserializeCharacteristicsAttributes(TiXmlAttribute *attribute, Characteristics *characteristics);
-	static int DeserializeDragCoefficient(TiXmlElement *xmlElement, DragCoefficient *dragCoefficient);
-	static int DeserializeDragCoefficientAttributes(TiXmlAttribute *attribute, DragCoefficient *dragCoefficient);
+	//static int DeserializeDragCoefficient(TiXmlElement *xmlElement, DragCoefficient *dragCoefficient);
+	//static int DeserializeDragCoefficientAttributes(TiXmlAttribute *attribute, DragCoefficient *dragCoefficient);
 	static int DeserializeComponentList(TiXmlElement *xmlElement, std::list<Component> *componentList);
 	static int DeserializeComponent(TiXmlElement *xmlElement, Component *component);
 	static int DeserializeComponentAttributes(TiXmlAttribute *attribute, Component *component);
@@ -89,7 +90,7 @@ public:
 
 	static int DeserializeGasComponent(TiXmlElement *xmlElement, GasComponent *gasComponent);
 	static int DeserializeGasComponentAttributes(TiXmlAttribute *attribute, GasComponent *gasComponent, std::string unitString);
-	static int DeserializeGasDecreaseType(std::string type, GasComponent *gasComponent);
+	static int SetGasDecreaseType(std::string type, GasComponent *gasComponent);
 	static int DeserializeGasDensityFunction(TiXmlElement *xmlElement, GasComponent *gasComponent);
 	static int DeserializeGasDensityFunctionAttributes(TiXmlAttribute *attribute, GasComponent *gasComponent);
 

@@ -8,39 +8,39 @@
 int UnitTool::MassToSolar(std::string unit, double& value)
 {
 	std::transform(unit.begin(), unit.end(), unit.begin(), ::tolower);	
-	if (		unit == "solar")
+	if (	 unit == "solar")
 		value *= 1;
-	else if (	unit == "mercury" ) {
+	else if (unit == "mercury" ) {
 		value *= Constants::MercuryToSolar;
 	}
-	else if (	unit == "venus" ) {
+	else if (unit == "venus" ) {
 		value *= Constants::VenusToSolar;
 	}
-	else if (	unit == "earth" ) {
+	else if (unit == "earth" ) {
 		value *= Constants::EarthToSolar;
 	}
-	else if (	unit == "earthmoon" ) {
+	else if (unit == "earthmoon" ) {
 		value *= Constants::EarthMoonToSolar;
 	}
-	else if (	unit == "mars" ) {
+	else if (unit == "mars" ) {
 		value *= Constants::MarsToSolar;
 	}
-	else if (	unit == "jupiter" ) {
+	else if (unit == "jupiter" ) {
 		value *= Constants::JupiterToSolar;
 	}
-	else if (	unit == "saturn" ) {
+	else if (unit == "saturn" ) {
 		value *= Constants::SaturnToSolar;
 	}
-	else if (	unit == "uranus" ) {
+	else if (unit == "uranus" ) {
 		value *= Constants::UranusToSolar;
 	}
-	else if (	unit == "neptune" ) {
+	else if (unit == "neptune" ) {
 		value *= Constants::NeptuneToSolar;
 	}
-	else if (	unit == "kilogram" || unit == "kg") {
+	else if (unit == "kilogram" || unit == "kg") {
 		value *= Constants::KilogramToSolar;
 	}
-	else if (	unit == "gram" || unit == "g") {
+	else if (unit == "gram" || unit == "g") {
 		value *= Constants::GramToSolar;
 	}
 	else {
@@ -55,13 +55,13 @@ int UnitTool::MassToSolar(std::string unit, double& value)
 int UnitTool::TimeToDay(std::string unit, double& value)
 {
 	std::transform(unit.begin(), unit.end(), unit.begin(), ::tolower);	
-	if (		unit == "day") {
+	if (	 unit == "day") {
 		value *= 1;
 	}
-	else if (	unit == "year" ) {
+	else if (unit == "year" ) {
 		value *= Constants::YearToDay;
 	}
-	else if (	unit == "second" ) {
+	else if (unit == "second" ) {
 		value *= Constants::SecondToDay;
 	}
 	else {
@@ -76,16 +76,16 @@ int UnitTool::TimeToDay(std::string unit, double& value)
 int UnitTool::DistanceToAu(std::string unit, double& value)
 {
 	std::transform(unit.begin(), unit.end(), unit.begin(), ::tolower);	
-	if (		unit == "au") {
+	if (	 unit == "au") {
 		value *= 1;
 	}
-	else if (	unit == "m" || unit == "meter" ) {
+	else if (unit == "m" || unit == "meter" ) {
 		value *= Constants::MeterToAu;
 	}
-	else if (	unit == "km" || unit == "kilometer") {
+	else if (unit == "km" || unit == "kilometer") {
 		value *= Constants::KilometerToAu;
 	}
-	else if (	unit == "solarradius") {
+	else if (unit == "solarradius") {
 		value *= Constants::SolarRadiusToAu;
 	}
 	else {
@@ -100,10 +100,10 @@ int UnitTool::DistanceToAu(std::string unit, double& value)
 int UnitTool::AngleToRadian(std::string unit, double& value)
 {
 	std::transform(unit.begin(), unit.end(), unit.begin(), ::tolower);	
-	if (		unit == "radian") {
+	if (	 unit == "radian") {
 		value *= 1;
 	}
-	else if (	unit == "degree" ) {
+	else if (unit == "degree" ) {
 		value *= Constants::DegreeToRadian;
 	}
 	else {
@@ -118,8 +118,14 @@ int UnitTool::AngleToRadian(std::string unit, double& value)
 int UnitTool::VelocityToCM(std::string unit, double& value)
 {
 	std::transform(unit.begin(), unit.end(), unit.begin(), ::tolower);	
-	if (		unit == "auday") {
+	if (	 unit == "auday") {
 		value *= 1;
+	}
+	else if (unit == "kmsec") {
+		value *= Constants::KilometerToAu / Constants::SecondToDay;
+	}
+	else if (unit == "msec") {
+		value *= Constants::MeterToAu / Constants::SecondToDay;
 	}
 	else {
 		Error::_errMsg = "Undefined velocity unit!";
@@ -133,13 +139,13 @@ int UnitTool::VelocityToCM(std::string unit, double& value)
 int UnitTool::SurfaceDensityToCM(std::string unit, double& value)
 {
 	std::transform(unit.begin(), unit.end(), unit.begin(), ::tolower);	
-	if (		unit == "solarau2") {
+	if (	 unit == "solarau2") {
 		value *= 1;
 	}
-	else if (	unit == "earthau2" ) {
+	else if (unit == "earthau2" ) {
 		value *= Constants::EarthPerAu2ToSolarPerAu2;
 	}
-	else if (	unit == "gcm2" ) {
+	else if (unit == "gcm2" ) {
 		value *= Constants::GramPerCm2ToSolarPerAu2;
 	}
 	else {
@@ -154,10 +160,10 @@ int UnitTool::SurfaceDensityToCM(std::string unit, double& value)
 int UnitTool::VolumeDensityToCM(std::string unit, double& value)
 {
 	std::transform(unit.begin(), unit.end(), unit.begin(), ::tolower);	
-	if (		unit == "solarau3") {
+	if (	 unit == "solarau3") {
 		value *= 1;
 	}
-	else if (	unit == "gcm3" ) {
+	else if (unit == "gcm3" ) {
 		value *= Constants::GramPerCm3ToSolarPerAu3;
 	}
 	else {

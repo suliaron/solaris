@@ -82,7 +82,6 @@ int XmlFileAdapter::DeserializeSimulation(TiXmlDocument &doc, Simulation &simula
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
-	Settings settings;
 	xmlElement = node->ToElement();
 	if (xmlElement == 0) {
 		_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
@@ -90,10 +89,9 @@ int XmlFileAdapter::DeserializeSimulation(TiXmlDocument &doc, Simulation &simula
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
-	if (DeserializeSettings(xmlElement, &settings) == 1) {
+	if (DeserializeSettings(xmlElement, &simulation.settings) == 1) {
 		return 1;
 	}
-	simulation.settings = new Settings(settings);
 	
 	node = root->FirstChild("BodyGroupList");
 	if (node == 0) {
@@ -121,12 +119,11 @@ int XmlFileAdapter::DeserializeSimulation(TiXmlDocument &doc, Simulation &simula
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
-		Nebula nebula;
-		if (DeserializeNebula(xmlElement, &nebula) == 1) {
+		simulation.nebula = new Nebula();
+		if (DeserializeNebula(xmlElement, simulation.nebula) == 1) {
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
-		}
-		simulation.nebula = new Nebula(nebula);
+		}		
 	}
 
 	return 0;
@@ -259,22 +256,6 @@ int XmlFileAdapter::DeserializeSettings(TiXmlElement *xmlElement, Settings *sett
 	}
 
 	EventCondition e;
-	child = xmlElement->FirstChild("CloseEncounter");
-	if (child != 0) {
-		if (child->ToElement() == 0) {
-			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		if (DeserializeEventCondition(child->ToElement(), &e) == 1) {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		settings->closeEncounter = new EventCondition(e);
-	}
-
-	e = EventCondition();
 	child = xmlElement->FirstChild("Collision");
 	if (child != 0) {
 		if (child->ToElement() == 0) {
@@ -288,6 +269,22 @@ int XmlFileAdapter::DeserializeSettings(TiXmlElement *xmlElement, Settings *sett
 			return 1;
 		}
 		settings->collision = new EventCondition(e);
+	}
+
+	e = EventCondition();
+	child = xmlElement->FirstChild("CloseEncounter");
+	if (child != 0) {
+		if (child->ToElement() == 0) {
+			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+			Error::_errMsg = _stream.str();
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
+		if (DeserializeEventCondition(child->ToElement(), &e) == 1) {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
+		settings->closeEncounter = new EventCondition(e);
 	}
 
 	e = EventCondition();
@@ -861,21 +858,21 @@ int XmlFileAdapter::DeserializeBody(TiXmlElement *xmlElement, Body *body)
 		}
 		body->characteristics = new Characteristics(characteristics);
 
-		DragCoefficient dragCoefficient;
-		child = xmlElement->FirstChild("DragCoefficient");
-		if (child != 0) {
-			if (child->ToElement() == 0) {
-				_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-				Error::_errMsg = _stream.str();
-				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-				return 1;
-			}
-			if (DeserializeDragCoefficient(child->ToElement(), &dragCoefficient) == 1) {
-				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-				return 1;
-			}
-			body->characteristics->stokes = dragCoefficient.stokes;
-		}
+		//DragCoefficient dragCoefficient;
+		//child = xmlElement->FirstChild("DragCoefficient");
+		//if (child != 0) {
+		//	if (child->ToElement() == 0) {
+		//		_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+		//		Error::_errMsg = _stream.str();
+		//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		//		return 1;
+		//	}
+		//	if (DeserializeDragCoefficient(child->ToElement(), &dragCoefficient) == 1) {
+		//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		//		return 1;
+		//	}
+		//	body->characteristics->stokes = dragCoefficient.stokes;
+		//}
 
 		child = xmlElement->FirstChild("Migration");
 		if (child != 0) {
@@ -908,18 +905,26 @@ int XmlFileAdapter::DeserializeBodyAttributes(TiXmlAttribute *attribute, Body *b
 	else if (attributeName == "type") {
 		std::string bodyType = attributeValue;
 		std::transform(bodyType.begin(), bodyType.end(), bodyType.begin(), ::tolower);
-		if (DeserializeBodyType(bodyType, body) == 1) {
+		if (SetBodyType(bodyType, body) == 1) {
 			_stream << "Unknown type: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
 			Error::_errMsg = _stream.str();
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
 	}
+	else if (attributeName == "mpcorbittype") {
+		std::string mpcOrbitType = attributeValue;
+		std::transform(mpcOrbitType.begin(), mpcOrbitType.end(), mpcOrbitType.begin(), ::tolower);
+		if (SetMPCOrbitType(mpcOrbitType, body) == 1) {
+			_stream << "Unknown type: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
+			Error::_errMsg = _stream.str();
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
+		body->mPCOrbitTypestr = attributeValue;
+	}
 	else if (attributeName == "designation" || attributeName == "des") {
 		body->designation = attributeValue;
-	}
-	else if (attributeName == "mpcorbittype") {
-		body->mPCOrbitTypestr = attributeValue;
 	}
 	else if (attributeName == "provisionaldesignation" || attributeName == "provdes") {
 		body->provisionalDesignation = attributeValue;
@@ -933,7 +938,7 @@ int XmlFileAdapter::DeserializeBodyAttributes(TiXmlAttribute *attribute, Body *b
 	else if (attributeName == "ln") {
 		std::string bodyLn = attributeValue;
 		std::transform(bodyLn.begin(), bodyLn.end(), bodyLn.begin(), ::tolower);
-		if (DeserializeLn(bodyLn, body)) {
+		if (SetLn(bodyLn, body)) {
 			_stream << "Unknown ln: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
 			Error::_errMsg = _stream.str();
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
@@ -953,7 +958,7 @@ int XmlFileAdapter::DeserializeBodyAttributes(TiXmlAttribute *attribute, Body *b
 	return 0;
 }
 
-int XmlFileAdapter::DeserializeBodyType(std::string type, Body *body)
+int XmlFileAdapter::SetBodyType(std::string type, Body *body)
 {
 	if (     type == "centralbody")			{ body->type = CentralBody;			}
 	else if (type == "giantplanet")			{ body->type = GiantPlanet;			}
@@ -969,7 +974,34 @@ int XmlFileAdapter::DeserializeBodyType(std::string type, Body *body)
 	return 0;
 }
 
-int XmlFileAdapter::DeserializeLn(std::string ln, Body *body)
+int XmlFileAdapter::SetMPCOrbitType(std::string type, Body *body)
+{
+	if (     type == "aten")											{ body->mPCOrbitType = Aten;										}
+	else if (type == "apollo")											{ body->mPCOrbitType = Apollo;										}
+	else if (type == "amor")											{ body->mPCOrbitType = Amor;										}
+	else if (type == "objectwithqlt1_665")								{ body->mPCOrbitType = ObjectWithqLt1_665;							}
+	else if (type == "hungaria")										{ body->mPCOrbitType = Hungaria;									}
+	else if (type == "phocaea")											{ body->mPCOrbitType = Phocaea;										}
+	else if (type == "hilda")											{ body->mPCOrbitType = Hilda;										}
+	else if (type == "JupiterTrojan")									{ body->mPCOrbitType = JupiterTrojan;								}
+	else if (type == "Centaur")											{ body->mPCOrbitType = Centaur;										}
+	else if (type == "Plutino")											{ body->mPCOrbitType = Plutino;										}
+	else if (type == "OtherResonantTNO")								{ body->mPCOrbitType = OtherResonantTNO;							}
+	else if (type == "Cubewano")										{ body->mPCOrbitType = Cubewano;									}
+	else if (type == "ScatteredDisk")									{ body->mPCOrbitType = ScatteredDisk;								}
+	else if (type == "ObjectIsNEO")										{ body->mPCOrbitType = ObjectIsNEO;									}
+	else if (type == "ObjectIs1kmOrLargerNEO")							{ body->mPCOrbitType = ObjectIs1kmOrLargerNEO;						}
+	else if (type == "OneOppositionObjectSeenAtEarlierOpposition")		{ body->mPCOrbitType = OneOppositionObjectSeenAtEarlierOpposition;	}
+	else if (type == "CriticalListNumberedObject")						{ body->mPCOrbitType = CriticalListNumberedObject;					}
+	else if (type == "ObjectIsPHA")										{ body->mPCOrbitType = ObjectIsPHA;									}
+	else {
+		return 1;
+	}
+
+	return 0;
+}
+
+int XmlFileAdapter::SetLn(std::string ln, Body *body)
 {
 	if (     ln == "l1") { body->ln = L1; }
 	else if (ln == "l2") { body->ln = L2; }
@@ -983,11 +1015,11 @@ int XmlFileAdapter::DeserializeLn(std::string ln, Body *body)
 	return 0; 
 }
 
-int XmlFileAdapter::DeserializeMigrationType(TiXmlElement *xmlElement, Body *body)
+int XmlFileAdapter::DeserializeMigration(TiXmlElement *xmlElement, Body *body)
 {
 	// Iterate over the attributes
 	for (TiXmlAttribute *attribute = xmlElement->FirstAttribute(); attribute; attribute = attribute->Next() ) {
-		if (DeserializeMigrationTypeAttributes(attribute, body) == 1) {
+		if (DeserializeMigrationAttributes(attribute, body) == 1) {
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
@@ -996,7 +1028,7 @@ int XmlFileAdapter::DeserializeMigrationType(TiXmlElement *xmlElement, Body *bod
 	return 0;
 }
 
-int XmlFileAdapter::DeserializeMigrationTypeAttributes(TiXmlAttribute *attribute, Body *body)
+int XmlFileAdapter::DeserializeMigrationAttributes(TiXmlAttribute *attribute, Body *body)
 {
 	double x = 0.0;
 
@@ -1008,7 +1040,7 @@ int XmlFileAdapter::DeserializeMigrationTypeAttributes(TiXmlAttribute *attribute
 	if (     attributeName == "type") {
 		std::string migType = attributeValue;
 		std::transform(migType.begin(), migType.end(), migType.begin(), ::tolower);
-		if (DeserializeMigrationType(migType, body) == 1) {
+		if (SetMigrationType(migType, body) == 1) {
 			_stream << "Unknown type: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
 			Error::_errMsg = _stream.str();
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
@@ -1040,7 +1072,7 @@ int XmlFileAdapter::DeserializeMigrationTypeAttributes(TiXmlAttribute *attribute
 	return 0;
 }
 
-int XmlFileAdapter::DeserializeMigrationType(std::string migrationType, Body *body)
+int XmlFileAdapter::SetMigrationType(std::string migrationType, Body *body)
 {
 	if (     migrationType == "i")  { body->migrationType = TypeI;  }
 	else if (migrationType == "ii") { body->migrationType = TypeII; }
@@ -1234,7 +1266,7 @@ int XmlFileAdapter::DeserializeOrbitalElement(TiXmlElement *xmlElement, OrbitalE
 				return 1;
 			}
 		}
-		else if (attributeName == "inclination" || attributeName == "incl") {
+		else if (attributeName == "inclination" || attributeName == "inc") {
 			if (attribute->QueryDoubleValue(&inc) != TIXML_SUCCESS) {
 				_stream << "Invalid value: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
 				Error::_errMsg = _stream.str();
@@ -1438,35 +1470,7 @@ int XmlFileAdapter::DeserializeCharacteristicsAttributes(TiXmlAttribute *attribu
 		}
 		characteristics->absVisMag = value;
 	}
-	else {
-		_stream << "Unknown attribute: '" << attribute->Name() << "' at row: " << attribute->Row() << ", col: " << attribute->Column();
-		Error::_errMsg = _stream.str();
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
-	}
-
-	return 0;
-}
-
-int XmlFileAdapter::DeserializeDragCoefficient(TiXmlElement *xmlElement, DragCoefficient *dragCoefficient)
-{
-	for (TiXmlAttribute *attribute = xmlElement->FirstAttribute(); attribute; attribute = attribute->Next() ) {
-		if (DeserializeDragCoefficientAttributes(attribute, dragCoefficient) == 1) {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-int XmlFileAdapter::DeserializeDragCoefficientAttributes(TiXmlAttribute *attribute, DragCoefficient *dragCoefficient)
-{
-	std::string attributeName = attribute->Name();
-	std::string attributeValue = attribute->Value();
-	// Transform the name to lowercase
-	std::transform(attributeName.begin(), attributeName.end(), attributeName.begin(), ::tolower);
-	if (     attributeName == "stokes") {
+	else if (attributeName == "cd") {
 		double value;
 		if (attribute->QueryDoubleValue(&value) != TIXML_SUCCESS) {
 			_stream << "Invalid value: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
@@ -1480,7 +1484,7 @@ int XmlFileAdapter::DeserializeDragCoefficientAttributes(TiXmlAttribute *attribu
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
-		dragCoefficient->stokes = value;
+		characteristics->stokes = cd;
 	}
 	else {
 		_stream << "Unknown attribute: '" << attribute->Name() << "' at row: " << attribute->Row() << ", col: " << attribute->Column();
@@ -1491,6 +1495,50 @@ int XmlFileAdapter::DeserializeDragCoefficientAttributes(TiXmlAttribute *attribu
 
 	return 0;
 }
+
+//int XmlFileAdapter::DeserializeDragCoefficient(TiXmlElement *xmlElement, DragCoefficient *dragCoefficient)
+//{
+//	for (TiXmlAttribute *attribute = xmlElement->FirstAttribute(); attribute; attribute = attribute->Next() ) {
+//		if (DeserializeDragCoefficientAttributes(attribute, dragCoefficient) == 1) {
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//	}
+//
+//	return 0;
+//}
+//
+//int XmlFileAdapter::DeserializeDragCoefficientAttributes(TiXmlAttribute *attribute, DragCoefficient *dragCoefficient)
+//{
+//	std::string attributeName = attribute->Name();
+//	std::string attributeValue = attribute->Value();
+//	// Transform the name to lowercase
+//	std::transform(attributeName.begin(), attributeName.end(), attributeName.begin(), ::tolower);
+//	if (     attributeName == "stokes") {
+//		double value;
+//		if (attribute->QueryDoubleValue(&value) != TIXML_SUCCESS) {
+//			_stream << "Invalid value: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
+//			Error::_errMsg = _stream.str();
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//		if (!Validator::GreaterThanOrEqualTo(0.0, value)) {
+//			_stream << "Value out of range: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
+//			Error::_errMsg = _stream.str();
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//		dragCoefficient->stokes = value;
+//	}
+//	else {
+//		_stream << "Unknown attribute: '" << attribute->Name() << "' at row: " << attribute->Row() << ", col: " << attribute->Column();
+//		Error::_errMsg = _stream.str();
+//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//		return 1;
+//	}
+//
+//	return 0;
+//}
 
 int XmlFileAdapter::DeserializeComponentList(TiXmlElement *xmlElement, std::list<Component> *componentList)
 {
@@ -1919,7 +1967,7 @@ int XmlFileAdapter::DeserializeGasComponentAttributes(TiXmlAttribute *attribute,
 	else if (attributeName == "type") {
 		std::string type = attributeValue;
 		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-		if (DeserializeGasDecreaseType(type, gasComponent) == 1) {
+		if (SetGasDecreaseType(type, gasComponent) == 1) {
 			_stream << "Unknown type: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
 			Error::_errMsg = _stream.str();
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
@@ -1978,7 +2026,7 @@ int XmlFileAdapter::DeserializeGasComponentAttributes(TiXmlAttribute *attribute,
 	return 0;
 }
 
-int XmlFileAdapter::DeserializeGasDecreaseType(std::string type, GasComponent *gasComponent)
+int XmlFileAdapter::SetGasDecreaseType(std::string type, GasComponent *gasComponent)
 {
 	if (     type == "constant")	{ gasComponent->type = Constant;	}
 	else if (type == "linear")		{ gasComponent->type = Linear;		}

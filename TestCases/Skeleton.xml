@@ -1,5 +1,5 @@
 <Simulation name="" description="">
-  <Settings enableDistinctStartTimes="">
+  <Settings enableDistinctStartTimes="true|false" barycentric="true|false">
 
     <Output>
       <Phases></Phases>
@@ -7,51 +7,53 @@
       <VariableProperties></VariableProperties>
       <CompositionProperties></CompositionProperties>
       <TwoBodyAffair></TwoBodyAffair>
+	  <Integrals></Integrals>
       <Log></Log>
     </Output>
     <Integrator name="">
       <Accuracy value=""/>
     </Integrator>
-    <TimeLine start="" length="" output="" unit=""/>
-    <Ejection value="" unit=""/>    
-    <HitCentrum value="" unit=""/>
-    <CloseEncounter value="" unit=""/>
-    <Collision factor="" stop=""/>
-    <WeakCapture factor="" stop=""/>
+    <TimeLine start="" length="" output="" unit="second|day|year"/>
+    <Ejection value="" unit="m|meter|km|kilometer|solarradius|au"/>
+    <HitCentrum value="" unit="m|meter|km|kilometer|solarradius|au"/>
+    <Collision factor="" stop="true|false"/>
+    <CloseEncounter factor="" stop="true|false" />	// not implemented
+    <WeakCapture factor="" stop="true|false"/>		// not implemented
 
   </Settings>
 
   <BodyGroupList>
-    <BodyGroup description="" epoch="" referenceFrame="" offset="" guid="">
+    <BodyGroup description="" epoch="20110316|JD2442512.5|K139D" offset="" referenceFrame="" guid="">
       <Items>
 
-        <Body name="" type="" designation="" provisionalDesignation="" reference="" opposition=""              
-	      ln="" MPCOrbitType="" guid="" >
+        <Body name="" type="CentralBody|GiantPlanet|RockyPlanet|ProtoPlanet|SuperPlanetesimal|Planetesimal|TestParticle"
+		MPCOrbitType="Aten|Apollo|Amor|ObjectWithqLt1_665|Hungaria|Phocaea|Hilda|JupiterTrojan|Centaur|Plutino|OtherResonantTNO|Cubewano|
+		              ScatteredDisk|ObjectIsNEO|ObjectIs1kmOrLargerNEO|OneOppositionObjectSeenAtEarlierOpposition|CriticalListNumberedObject|ObjectIsPHA"
+					  designation|des="" provisionalDesignation|provDes="" reference|ref="" opposition|opp="" ln="L1|L2|L3|L4|L5" guid="">
           <Phase>
-            <Position x="" y="" z="" unit="" />
-            <Velocity x="" y="" z="" unit="" />
+            <Position x="" y="" z="" unit="m|meter|km|kilometer|solarradius|au"/>
+            <Velocity x="" y="" z="" unit="au/day"/>
           </Phase>
 
-          <OrbitalElement semiMajorAxis="" eccentricity="" inclination="" argumentOfPericenter="" 
-	  		  longitudeOfNode="" meanAnomaly="" distanceUnit="" angleUnit="" />
+          <OrbitalElement semiMajorAxis|a="" eccentricity|e="" inclination|inc="" argumentOfPericenter|peri="" 
+	  		  longitudeOfNode|node="" meanAnomaly|m="" distanceUnit="m|meter|km|kilometer|solarradius|au" angleUnit="degree|radian"/>
 
-          <Characteristics absVisMag="" >
-            <Mass value="" unit="" />
-            <Radius value="" unit="" />
-            <Density value="" unit="" />
-	    <ComponentList>
-	      <Component name="" ratio=""/>
-	    </ComponentList>
+          <Characteristics absVisMag="" cd="">
+            <Mass value="" unit="solar|mercury|venus|earth|earthmoon|mars|jupiter|saturn|uranus|neptune|kilogram|kg|gram|g"/>
+            <Radius value="" unit="m|meter|km|kilometer|solarradius|au"/>
+            <Density value="" unit="gcm3|solarau3"/>
+	        <ComponentList>
+	          <Component name="" ratio=""/>
+	        </ComponentList>
           </Characteristics>
-	  <DragCoefficient stokes=""/>
-	  <Migration type=""/>
+	      <Migration type="I|II" stopAt=""/>
         </Body>
 
       </Items>
     </BodyGroup>
   </BodyGroupList>
 
-  <Nebula name="" description="">
+  <Nebula name="" description="" path="">
     <MassFactor></MassFactor>
     <GasToDustRatio></GasToDustRatio>
     <SnowLine></SnowLine>
@@ -61,12 +63,12 @@
         <SurfaceDensity value="" unit=""/>
       </SolidsDensityFunction>
     </SolidsComponent>
-    <GasComponent alpha="">
+    <GasComponent alpha="" type="constant|linear|exponential" timescale="" t0="" t1="" unit="second|day|year">
       <Eta c="" index=""/>
-      <ScaleHeight c="" index=""/>
       <Tau c="" index=""/>
+      <ScaleHeight c="" index=""/>
       <GasDensityFunction index="">
-        <Density value="" unit=""/>
+        <Density value="" unit="gcm3|solarau3"/>
       </GasDensityFunction>
     </GasComponent>
   </Nebula>

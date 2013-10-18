@@ -536,6 +536,53 @@ bool TestBodyGroupList()
 	bool	failed = false;
 	double	value = 0.0;
 
+	// Test data structure
+	{
+		BodyGroupList bodyGroupList;
+
+		BodyGroup bodyGroup0("89A79746-3D47-49A0-9026-157F61420376", "Test body group 0", "",          0.0, "J2000.0");
+		BodyGroup bodyGroup1("8C4C23A0-D162-419D-95EB-46F5034572A1", "Test body group 1", "20010101",  0.0, "J2000.0");
+		BodyGroup bodyGroup2("A130417E-D47C-43F7-B6D9-A1FD8CCCAAB0", "Test body group 2", "20020101", 10.0, "J2000.0");
+
+		Body centralBody(CentralBody);
+		centralBody.characteristics = new Characteristics(1.0);
+
+		Body protoPlanet(ProtoPlanet);
+		protoPlanet.characteristics = new Characteristics(1.0 * Constants::EarthMoonToSolar);
+	
+		Body rockyPlanet(RockyPlanet);
+		rockyPlanet.characteristics = new Characteristics(1.0 * Constants::EarthToSolar);
+	
+		Body giantPlanet(GiantPlanet);
+		giantPlanet.characteristics = new Characteristics(1.0 * Constants::JupiterToSolar);
+	
+		Body superPl(SuperPlanetesimal);
+		superPl.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
+	
+		Body planetesimal(Planetesimal);
+		planetesimal.characteristics = new Characteristics(1.0 * Constants::KilogramToSolar);
+	
+		Body testParticle(TestParticle);
+
+		bodyGroup0.items.push_back(centralBody);
+		bodyGroup0.items.push_back(protoPlanet);
+		bodyGroup0.items.push_back(rockyPlanet);
+
+		bodyGroup1.items.push_back(giantPlanet);
+		bodyGroup1.items.push_back(superPl);
+
+		bodyGroup2.items.push_back(planetesimal);
+		bodyGroup2.items.push_back(testParticle);
+
+		bodyGroupList.items.push_back(bodyGroup0);
+		bodyGroupList.items.push_back(bodyGroup1);
+		bodyGroupList.items.push_back(bodyGroup2);
+
+		BodyGroup bg = bodyGroupList.items.front();
+		Body body = bodyGroupList.items.front().items.front();
+	}
+
+
     // DistinctEpochs()
     {
         BodyGroupList bodyGroupList;
@@ -893,7 +940,7 @@ bool TestBodyGroupList()
 		giant.characteristics = new Characteristics(1.0 * Constants::JupiterToSolar);
 	
 		Body superPl(SuperPlanetesimal);
-		giant.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
+		superPl.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
 	
 		Body Pl(Planetesimal);
 		Pl.characteristics = new Characteristics(1.0 * Constants::KilogramToSolar);
@@ -1227,7 +1274,7 @@ bool TestBodyGroup()
 		proto.characteristics = new Characteristics(1.0 * Constants::EarthMoonToSolar);
 	
 		Body superPl(SuperPlanetesimal);
-		giant.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
+		superPl.characteristics = new Characteristics(1.0e3 * Constants::KilogramToSolar);
 	
 		Body Pl(Planetesimal);
 		Pl.characteristics = new Characteristics(1.0 * Constants::KilogramToSolar);
