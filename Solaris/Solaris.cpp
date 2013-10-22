@@ -94,9 +94,9 @@ int LoadInput(char* inputPath, Simulation &simulation)
 		return 1;
 	}
 
-	if (simulation.nebula != 0 && simulation.nebula->path.length() > 0) {
+	if (simulation.nebula != 0 && simulation.nebula->fargoPath.length() > 0) {
 		simulation.fargoParameters = new FargoParameters();
-		simulation.fargoParameters->ReadConfigFile(simulation.nebula->path);
+		simulation.fargoParameters->ReadConfigFile(simulation.nebula->fargoPath);
 		if (simulation.fargoParameters->ParseConfig(true) == 1) {
     		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-    simulation.binary = new BinaryFileAdapter(simulation.settings->output);
+    simulation.binary = new BinaryFileAdapter(&simulation.settings.output);
 	simulation.binary->LogStartParameters(argc, argv);
 	simulation.binary->Log("Simulation data was successfully loaded and deserialized.", true);
 

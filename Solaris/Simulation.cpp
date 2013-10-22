@@ -11,7 +11,6 @@
 
 Simulation::Simulation()
 {
-	settings	        = 0;
 	nebula		        = 0;
 	binary		        = 0;
     fargoParameters     = 0;
@@ -21,7 +20,6 @@ Simulation::Simulation(std::string runType)
 {
     this->runType       = runType;
 
-    settings	        = 0;
 	nebula		        = 0;
 	binary		        = 0;
     fargoParameters     = 0;
@@ -46,12 +44,12 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 {
     // Compute the start time of the main integration phase
     // If the start attribute in the TimeLine tag was not defined in the xml, than it will be computed from the epochs of the BodyGroups
-	if (!settings->timeLine->startTimeDefined)
+	if (!settings.timeLine->startTimeDefined)
     {
 		SetStartTimeOfMainPhase();
     }
 
-	if (bodyGroupList.SetStartTime(settings->timeLine->start) == 1) {
+	if (bodyGroupList.SetStartTime(settings.timeLine->start) == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
@@ -63,7 +61,7 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 
 	// Sort the BodyGroups in the BodyGroupList into increasing order
 	this->bodyGroupList.items.sort(BodyGroupList::CompareStartTime);
-	if (!settings->timeLine->Forward())
+	if (!settings.timeLine->Forward())
 		bodyGroupList.items.reverse();
 
 	/*
@@ -72,7 +70,7 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 	* StartTime of the massive bodies.
 	*/
 	double time = 0.0;
-	if (!settings->enableDistinctStartTimes)
+	if (!settings.enableDistinctStartTimes)
 	{
 		std::list<BodyGroup>::iterator it;
 		if (!bodyGroupList.GetBodyGroupWithMassiveBodies(it)) {
@@ -86,8 +84,8 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 	else {
 		time = bodyGroupList.items.front().startTime;
 	}
-	settings->timeLine->time = time;
-	settings->timeLine->save = time;
+	settings.timeLine->time = time;
+	settings.timeLine->save = time;
 
 	return 0;
 }
@@ -97,17 +95,17 @@ int Simulation::SetStartTimeOfMainPhase()
 	double start = 0.0;
     // If the length attribute in the TimeLine tag is positive (forward integration) than
     // the start time is the last epoch, 
-    int result = bodyGroupList.GetEpoch(start, settings->timeLine->Forward() ? Last : First);
+    int result = bodyGroupList.GetEpoch(start, settings.timeLine->Forward() ? Last : First);
 
 	// No epochs were defined for the BodyGroups
 	if (     result == -1) {
-		settings->timeLine->start = 0.0;
+		settings.timeLine->start = 0.0;
 	}
 	// One or more epochs were found. If the direction of
 	// the main integration is Forward in time, than the start time will be the latest epoch,
 	// if the direction is Backward than it will be the first epoch.
 	else if (result == 0) {
-		settings->timeLine->start = start;
+		settings.timeLine->start = start;
 	}
 	// An error occurred during the calculation.
 	else {
@@ -221,7 +219,7 @@ int Simulation::CheckStartTimes()
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
-	if (!settings->enableDistinctStartTimes && count > 1)
+	if (!settings.enableDistinctStartTimes && count > 1)
     {
 		binary->Log("More than 1 BodyGroups contain massive bodies with different epochs!", true);
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);

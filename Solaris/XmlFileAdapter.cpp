@@ -161,8 +161,6 @@ int XmlFileAdapter::DeserializeSettings(TiXmlElement *xmlElement, Settings *sett
 	}
 
 	TiXmlNode *child = xmlElement->FirstChild("Output");
-	Output output;
-	// If the Output tag is defined than overwrite the default values
 	if (child != 0) {
 		if (child->ToElement() == 0) {
 			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
@@ -170,15 +168,17 @@ int XmlFileAdapter::DeserializeSettings(TiXmlElement *xmlElement, Settings *sett
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
-		if (DeserializeOutput(child->ToElement(), &output) == 1) {
+		if (DeserializeOutput(child->ToElement(), &settings->output) == 1) {
 			return 1;
 		}
 	}
-    settings->output = new Output(output);
 
 	child = xmlElement->FirstChild("Integrator");
-	Integrator integrator;
-	// If the Integrator tag is defined than overwrite the default values
+	if (child == 0) {
+		Error::_errMsg = "Missing Integrator tag";
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
 	if (child != 0) {
 		if (child->ToElement() == 0) {
 			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
@@ -186,11 +186,13 @@ int XmlFileAdapter::DeserializeSettings(TiXmlElement *xmlElement, Settings *sett
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
-		if (DeserializeIntegrator(child->ToElement(), &integrator) == 1) {
+		// TODO: check this
+		//Integrator integrator;
+		if (DeserializeIntegrator(child->ToElement(), &(settings->integrator)) == 1) {
 			return 1;
 		}
+		//settings->integrator = new Integrator(integrator);
 	}
-    settings->integrator = new Integrator(integrator);
 
 	child = xmlElement->FirstChild("TimeLine");
 	if (child == 0) {
@@ -265,6 +267,12 @@ int XmlFileAdapter::DeserializeSettings(TiXmlElement *xmlElement, Settings *sett
 			return 1;
 		}
 		if (DeserializeEventCondition(child->ToElement(), &e) == 1) {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
+		if (e.factor < 1.0 ) {
+			_stream << "Invalid value for 'factor' at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+			Error::_errMsg = _stream.str();
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
@@ -490,6 +498,9 @@ int XmlFileAdapter::DeserializeIntegratorAttributes(TiXmlAttribute *attribute, I
 	if (     attributeName == "name" || attributeName == "xsi:type") {
 		integrator->name = attributeValue;
 	}
+	// These attributes are only needed because in C# the Integrator class is a base class and the
+	// specialized integrators are derived from this class. This fact is reflected in the xmlns
+	// namespace which is written to the xml document.
 	else if (attributeName == "xmlns:xsi" || attributeName == "xmlns:xsd") {
 		;
 	}
@@ -583,6 +594,12 @@ int XmlFileAdapter::DeserializeTimeLine(TiXmlElement *xmlElement, TimeLine *time
 				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 				return 1;
 			}
+			if (length == 0.0) {
+				_stream << "Invalid value: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
+				Error::_errMsg = _stream.str();
+				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+				return 1;
+			} 
 			UnitTool::TimeToDay(unitString, length);
 			timeLine->length = length;
 		}
@@ -788,6 +805,12 @@ int XmlFileAdapter::DeserializeBody(TiXmlElement *xmlElement, Body *body)
 		if (DeserializeBodyAttributes(attribute, body) == 1)
 			return 1;
 	}
+	if (body->type == UndefinedBodyType) {
+		_stream << "The 'type' attribute is obligatory! Row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+		Error::_errMsg = _stream.str();
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
 	
 	TiXmlNode *phaseChild	= xmlElement->FirstChild("Phase");
 	TiXmlNode *oeChild		= xmlElement->FirstChild("OrbitalElement");
@@ -882,7 +905,7 @@ int XmlFileAdapter::DeserializeBody(TiXmlElement *xmlElement, Body *body)
 				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 				return 1;
 			}
-			if (DeserializeMigrationType(child->ToElement(), body) == 1) {
+			if (DeserializeMigration(child->ToElement(), body) == 1) {
 				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 				return 1;
 			}
@@ -1230,7 +1253,8 @@ int XmlFileAdapter::DeserializeOrbitalElement(TiXmlElement *xmlElement, OrbitalE
 	}
 
 	double sma, ecc, inc, peri, node, mean;
-	sma = ecc = inc = peri = node = mean = 0.0;
+	sma = -1.0;
+	ecc = inc = peri = node = mean = 0.0;
 	// Iterate over the attributes
 	for (TiXmlAttribute *attribute = xmlElement->FirstAttribute(); attribute; attribute = attribute->Next() ) {
 		std::string attributeName = attribute->Name();
@@ -1320,6 +1344,13 @@ int XmlFileAdapter::DeserializeOrbitalElement(TiXmlElement *xmlElement, OrbitalE
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
+	}
+
+	if (oe->semiMajorAxis < 0.0) {
+		_stream << "Missing 'semiMajorAxis' attribute. At row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+		Error::_errMsg = _stream.str();
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
 	}
 
 	oe->semiMajorAxis			= sma;
@@ -1484,7 +1515,7 @@ int XmlFileAdapter::DeserializeCharacteristicsAttributes(TiXmlAttribute *attribu
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
-		characteristics->stokes = cd;
+		characteristics->stokes = value;
 	}
 	else {
 		_stream << "Unknown attribute: '" << attribute->Name() << "' at row: " << attribute->Row() << ", col: " << attribute->Column();
@@ -1619,104 +1650,104 @@ int XmlFileAdapter::DeserializeNebula(TiXmlElement *xmlElement, Nebula *nebula)
 		}
 	}
 
-	std::string text;
-	double value = 0.0;
-	TiXmlNode *child = xmlElement->FirstChild("MassFactor");
-	if (child != 0) {
-		TiXmlNode *node = child->ToElement();
-		if (node == 0) {
-			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		// TODO: howto check whether the tag contains data or not. If it is empty the next line will cause on error!!
-		text = child->ToElement()->GetText();
-		if (text.length() > 0) {
-			// TODO: implement check for number
-			value = atof(text.c_str());
-			if (!Validator::GreaterThan(0.0, value)) {
-				_stream << "Value out of range at row: " << child->Row() << ", col: " << child->Column();
-				Error::_errMsg = _stream.str();
-				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-				return 1;
-			}
-			nebula->massFactor = value;
-		} else {
-			_stream << "Missing value at row: " << child->Row() << ", col: " << child->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-	}
+	//std::string text;
+	//double value = 0.0;
+	//TiXmlNode *child = xmlElement->FirstChild("MassFactor");
+	//if (child != 0) {
+	//	TiXmlNode *node = child->ToElement();
+	//	if (node == 0) {
+	//		_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+	//		Error::_errMsg = _stream.str();
+	//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//		return 1;
+	//	}
+	//	// TODO: howto check whether the tag contains data or not. If it is empty the next line will cause on error!!
+	//	text = child->ToElement()->GetText();
+	//	if (text.length() > 0) {
+	//		// TODO: implement check for number
+	//		value = atof(text.c_str());
+	//		if (!Validator::GreaterThan(0.0, value)) {
+	//			_stream << "Value out of range at row: " << child->Row() << ", col: " << child->Column();
+	//			Error::_errMsg = _stream.str();
+	//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//			return 1;
+	//		}
+	//		nebula->massFactor = value;
+	//	} else {
+	//		_stream << "Missing value at row: " << child->Row() << ", col: " << child->Column();
+	//		Error::_errMsg = _stream.str();
+	//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//		return 1;
+	//	}
+	//}
 
-	child = xmlElement->FirstChild("GasToDustRatio");
-	if (child != 0) {
-		if (child->ToElement() == 0) {
-			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		text = child->ToElement()->GetText();
-		if (text.length() > 0) {
-			// TODO: implement check for number
-			value = atof(text.c_str());
-			if (!Validator::GreaterThan(0.0, value)) {
-				_stream << "Value out of range at row: " << child->Row() << ", col: " << child->Column();
-				Error::_errMsg = _stream.str();
-				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-				return 1;
-			}
-			nebula->gasToDustRatio = value;
-		} else {
-			_stream << "Missing value at row: " << child->Row() << ", col: " << child->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-	}
+	//child = xmlElement->FirstChild("GasToDustRatio");
+	//if (child != 0) {
+	//	if (child->ToElement() == 0) {
+	//		_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+	//		Error::_errMsg = _stream.str();
+	//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//		return 1;
+	//	}
+	//	text = child->ToElement()->GetText();
+	//	if (text.length() > 0) {
+	//		// TODO: implement check for number
+	//		value = atof(text.c_str());
+	//		if (!Validator::GreaterThan(0.0, value)) {
+	//			_stream << "Value out of range at row: " << child->Row() << ", col: " << child->Column();
+	//			Error::_errMsg = _stream.str();
+	//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//			return 1;
+	//		}
+	//		nebula->gasToDustRatio = value;
+	//	} else {
+	//		_stream << "Missing value at row: " << child->Row() << ", col: " << child->Column();
+	//		Error::_errMsg = _stream.str();
+	//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//		return 1;
+	//	}
+	//}
 
-	child = xmlElement->FirstChild("SnowLine");
-	if (child != 0) {
-		if (child->ToElement() == 0) {
-			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		text = child->ToElement()->GetText();
-		if (text.length() > 0) {
-			// TODO: implement check for number
-			value = atof(text.c_str());
-			if (!Validator::GreaterThan(0.0, value)) {
-				_stream << "Value out of range at row: " << child->Row() << ", col: " << child->Column();
-				Error::_errMsg = _stream.str();
-				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-				return 1;
-			}
-			nebula->snowLine = value;
-		} else {
-			_stream << "Missing value at row: " << child->Row() << ", col: " << child->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-	}
+	//child = xmlElement->FirstChild("SnowLine");
+	//if (child != 0) {
+	//	if (child->ToElement() == 0) {
+	//		_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+	//		Error::_errMsg = _stream.str();
+	//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//		return 1;
+	//	}
+	//	text = child->ToElement()->GetText();
+	//	if (text.length() > 0) {
+	//		// TODO: implement check for number
+	//		value = atof(text.c_str());
+	//		if (!Validator::GreaterThan(0.0, value)) {
+	//			_stream << "Value out of range at row: " << child->Row() << ", col: " << child->Column();
+	//			Error::_errMsg = _stream.str();
+	//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//			return 1;
+	//		}
+	//		nebula->snowLine = value;
+	//	} else {
+	//		_stream << "Missing value at row: " << child->Row() << ", col: " << child->Column();
+	//		Error::_errMsg = _stream.str();
+	//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//		return 1;
+	//	}
+	//}
 
-	child = xmlElement->FirstChild("SolidsComponent");
-	if (child != 0) {
-		if (child->ToElement() == 0) {
-			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		if (DeserializeSolidsComponent(child->ToElement(), &(nebula->solidsComponent)) == 1)
-			return 1;
-	}
+	//child = xmlElement->FirstChild("SolidsComponent");
+	//if (child != 0) {
+	//	if (child->ToElement() == 0) {
+	//		_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+	//		Error::_errMsg = _stream.str();
+	//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//		return 1;
+	//	}
+	//	if (DeserializeSolidsComponent(child->ToElement(), &(nebula->solidsComponent)) == 1)
+	//		return 1;
+	//}
 
-	child = xmlElement->FirstChild("GasComponent");
+	TiXmlNode *child = xmlElement->FirstChild("GasComponent");
 	if (child != 0) {
 		if (child->ToElement() == 0) {
 			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
@@ -1743,8 +1774,8 @@ int XmlFileAdapter::DeserializeNebulaAttributes(TiXmlAttribute *attribute, Nebul
 	else if (attributeName == "description") {
 		nebula->description = attributeValue;
 	}
-	else if (attributeName == "path") {
-		nebula->path = attributeValue;
+	else if (attributeName == "fargopath") {
+		nebula->fargoPath = attributeValue;
 	}
 	else {
 		_stream << "Unknown attribute: '" << attribute->Name() << "' at row: " << attribute->Row() << ", col: " << attribute->Column();
@@ -1756,115 +1787,115 @@ int XmlFileAdapter::DeserializeNebulaAttributes(TiXmlAttribute *attribute, Nebul
 	return 0;
 }
 
-int XmlFileAdapter::DeserializeSolidsComponent(TiXmlElement *xmlElement, SolidsComponent *solidsComponent)
-{
-	std::string text;
-	double value = 0.0;
-	TiXmlNode *child = xmlElement->FirstChild("IceCondensationFactor");
-	if (child != 0) {
-		if (child->ToElement() == 0) {
-			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		text = child->ToElement()->GetText();
-		if (text.length() > 0) {
-			// TODO: implement check for number
-			value = atof(text.c_str());
-			if (!Validator::GreaterThan(0.0, value)) {
-				_stream << "Value out of range at row: " << child->Row() << ", col: " << child->Column();
-				Error::_errMsg = _stream.str();
-				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-				return 1;
-			}
-			solidsComponent->SetIceCondensationFactor(value);
-		} else {
-			_stream << "Missing value at row: " << child->Row() << ", col: " << child->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-	}
-
-	child = xmlElement->FirstChild("SolidsDensityFunction");
-	if (child != 0) {
-		if (child->ToElement() == 0) {
-			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		if (DeserializeSolidsDensityFunction(child->ToElement(), solidsComponent) == 1) {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-int XmlFileAdapter::DeserializeSolidsDensityFunction(TiXmlElement *xmlElement, SolidsComponent *solidsComponent)
-{
-	// Iterate over the attributes
-	for (TiXmlAttribute *attribute = xmlElement->FirstAttribute(); attribute; attribute = attribute->Next() ) {
-		if (DeserializeSolidsDensityFunctionAttributes(attribute, solidsComponent) == 1) {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-	}
-
-	TiXmlNode *child = xmlElement->FirstChild("Density");
-	if (child != 0) {
-		if (child->ToElement() == 0) {
-			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		double value = 0.0;
-		std::string unit;
-		if (DeserializeDimensionalQuantity(child->ToElement(), &value, &unit) == 1) {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		if (!ValidSurfaceDensityUnitAttribute(child->ToElement(), unit, "unit")) {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		// unit conversion
-		UnitTool::SurfaceDensityToCM(unit, value);
-		solidsComponent->GetSolidsDensityFunction()->c = value;
-	}
-
-	return 0;
-}
-
-int XmlFileAdapter::DeserializeSolidsDensityFunctionAttributes(TiXmlAttribute *attribute, SolidsComponent *solidsComponent)
-{
-	std::string attributeName = attribute->Name();
-	std::string attributeValue = attribute->Value();
-	// Transform the name to lowercase
-	std::transform(attributeName.begin(), attributeName.end(), attributeName.begin(), ::tolower);
-	if (attributeName == "index") {
-		double value;
-		if (attribute->QueryDoubleValue(&value) != TIXML_SUCCESS) {
-			_stream << "Invalid value: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		solidsComponent->GetSolidsDensityFunction()->index = value;
-	}
-	else {
-		_stream << "Unknown attribute: '" << attribute->Name() << "' at row: " << attribute->Row() << ", col: " << attribute->Column();
-		Error::_errMsg = _stream.str();
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
-	}
-
-	return 0;
-}
+//int XmlFileAdapter::DeserializeSolidsComponent(TiXmlElement *xmlElement, SolidsComponent *solidsComponent)
+//{
+//	std::string text;
+//	double value = 0.0;
+//	TiXmlNode *child = xmlElement->FirstChild("IceCondensationFactor");
+//	if (child != 0) {
+//		if (child->ToElement() == 0) {
+//			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+//			Error::_errMsg = _stream.str();
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//		text = child->ToElement()->GetText();
+//		if (text.length() > 0) {
+//			// TODO: implement check for number
+//			value = atof(text.c_str());
+//			if (!Validator::GreaterThan(0.0, value)) {
+//				_stream << "Value out of range at row: " << child->Row() << ", col: " << child->Column();
+//				Error::_errMsg = _stream.str();
+//				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//				return 1;
+//			}
+//			solidsComponent->SetIceCondensationFactor(value);
+//		} else {
+//			_stream << "Missing value at row: " << child->Row() << ", col: " << child->Column();
+//			Error::_errMsg = _stream.str();
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//	}
+//
+//	child = xmlElement->FirstChild("SolidsDensityFunction");
+//	if (child != 0) {
+//		if (child->ToElement() == 0) {
+//			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+//			Error::_errMsg = _stream.str();
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//		if (DeserializeSolidsDensityFunction(child->ToElement(), solidsComponent) == 1) {
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//	}
+//
+//	return 0;
+//}
+//
+//int XmlFileAdapter::DeserializeSolidsDensityFunction(TiXmlElement *xmlElement, SolidsComponent *solidsComponent)
+//{
+//	// Iterate over the attributes
+//	for (TiXmlAttribute *attribute = xmlElement->FirstAttribute(); attribute; attribute = attribute->Next() ) {
+//		if (DeserializeSolidsDensityFunctionAttributes(attribute, solidsComponent) == 1) {
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//	}
+//
+//	TiXmlNode *child = xmlElement->FirstChild("Density");
+//	if (child != 0) {
+//		if (child->ToElement() == 0) {
+//			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+//			Error::_errMsg = _stream.str();
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//		double value = 0.0;
+//		std::string unit;
+//		if (DeserializeDimensionalQuantity(child->ToElement(), &value, &unit) == 1) {
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//		if (!ValidSurfaceDensityUnitAttribute(child->ToElement(), unit, "unit")) {
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//		// unit conversion
+//		UnitTool::SurfaceDensityToCM(unit, value);
+//		solidsComponent->GetSolidsDensityFunction()->c = value;
+//	}
+//
+//	return 0;
+//}
+//
+//int XmlFileAdapter::DeserializeSolidsDensityFunctionAttributes(TiXmlAttribute *attribute, SolidsComponent *solidsComponent)
+//{
+//	std::string attributeName = attribute->Name();
+//	std::string attributeValue = attribute->Value();
+//	// Transform the name to lowercase
+//	std::transform(attributeName.begin(), attributeName.end(), attributeName.begin(), ::tolower);
+//	if (attributeName == "index") {
+//		double value;
+//		if (attribute->QueryDoubleValue(&value) != TIXML_SUCCESS) {
+//			_stream << "Invalid value: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
+//			Error::_errMsg = _stream.str();
+//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//			return 1;
+//		}
+//		solidsComponent->GetSolidsDensityFunction()->index = value;
+//	}
+//	else {
+//		_stream << "Unknown attribute: '" << attribute->Name() << "' at row: " << attribute->Row() << ", col: " << attribute->Column();
+//		Error::_errMsg = _stream.str();
+//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+//		return 1;
+//	}
+//
+//	return 0;
+//}
 
 int XmlFileAdapter::DeserializeGasComponent(TiXmlElement *xmlElement, GasComponent *gasComponent)
 {
@@ -1896,20 +1927,6 @@ int XmlFileAdapter::DeserializeGasComponent(TiXmlElement *xmlElement, GasCompone
 		}
 	}
 
-	child = xmlElement->FirstChild("ScaleHeight");
-	if (child != 0) {
-		if (child->ToElement() == 0) {
-			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
-			Error::_errMsg = _stream.str();
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		if (DeserializePowerLaw(child->ToElement(), &(gasComponent->scaleHeight)) == 1) {
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-	}
-
 	child = xmlElement->FirstChild("Tau");
 	if (child != 0) {
 		if (child->ToElement() == 0) {
@@ -1924,7 +1941,21 @@ int XmlFileAdapter::DeserializeGasComponent(TiXmlElement *xmlElement, GasCompone
 		}
 	}
 
-	child = xmlElement->FirstChild("GasDensityFunction");
+	child = xmlElement->FirstChild("ScaleHeight");
+	if (child != 0) {
+		if (child->ToElement() == 0) {
+			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
+			Error::_errMsg = _stream.str();
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
+		if (DeserializePowerLaw(child->ToElement(), &(gasComponent->scaleHeight)) == 1) {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
+	}
+
+	child = xmlElement->FirstChild("DensityFunction");
 	if (child != 0) {
 		if (child->ToElement() == 0) {
 			_stream << "Invalid xml element at row: " << xmlElement->Row() << ", col: " << xmlElement->Column();
@@ -2068,7 +2099,7 @@ int XmlFileAdapter::DeserializeGasDensityFunction(TiXmlElement *xmlElement, GasC
 		}
 		// unit conversion
 		UnitTool::VolumeDensityToCM(unit, value);
-		gasComponent->gasDensityFunction.c = value;
+		gasComponent->density.c = value;
 	}
 
 	return 0;
@@ -2088,7 +2119,7 @@ int XmlFileAdapter::DeserializeGasDensityFunctionAttributes(TiXmlAttribute *attr
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
-		gasComponent->gasDensityFunction.index = value;
+		gasComponent->density.index = value;
 	}
 	else {
 		_stream << "Unknown attribute: '" << attribute->Name() << "' at row: " << attribute->Row() << ", col: " << attribute->Column();

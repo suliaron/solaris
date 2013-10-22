@@ -59,18 +59,18 @@ int Simulator::Continue()
 
 int Simulator::Run()
 {
-	if (     _simulation->settings->integrator->name == "rungekutta78" || _simulation->settings->integrator->name == "rungekuttafehlberg78") {
+	if (     _simulation->settings.integrator.name == "rungekutta78" || _simulation->settings.integrator.name == "rungekuttafehlberg78") {
 		integratorType = RUNGE_KUTTA_FEHLBERG78;
 		rungeKuttaFehlberg78 =  new RungeKuttaFehlberg78();
 	}
-	else if (_simulation->settings->integrator->name == "rungekutta4") {
+	else if (_simulation->settings.integrator.name == "rungekutta4") {
 		integratorType = RUNGE_KUTTA4;
 		rungeKutta4 = new RungeKutta4();
 	}
-	else if (_simulation->settings->integrator->name == "rungekutta56") {
+	else if (_simulation->settings.integrator.name == "rungekutta56") {
 		integratorType = RUNGE_KUTTA56;
 	}
-	else if (_simulation->settings->integrator->name == "dormandprince") {
+	else if (_simulation->settings.integrator.name == "dormandprince") {
 		integratorType = DORMAND_PRINCE;
 		dormandPrince = new DormandPrince();
 	}
@@ -80,7 +80,7 @@ int Simulator::Run()
 		return 1;
 	}
 
-	_acceleration = new Acceleration(integratorType, _simulation->settings->baryCentric, &bodyData, _simulation->nebula);
+	_acceleration = new Acceleration(integratorType, _simulation->settings.baryCentric, &bodyData, _simulation->nebula);
 
 	if (_simulation->bodyGroupList.nOfDistinctStartTimes > 1) {
 		_simulation->binary->Log("The synchronization phase of the simulation begins", false);
@@ -96,7 +96,7 @@ int Simulator::Run()
 	// in the TimeLine Tag. Otherwise the start time will be the last or the first epoch
 	// of the BodyGroupList, and therefore at the end of the synchronization process
 	// the time equals to the start time.
-	if (_simulation->settings->timeLine->startTimeDefined) {
+	if (_simulation->settings.timeLine->startTimeDefined) {
 		_simulation->binary->Log("The pre-integration phase of the simulation begins", false);
 		_startTime = time(0);
 		if (PreIntegration() == 1) {
@@ -106,7 +106,7 @@ int Simulator::Run()
 		_simulation->binary->LogTimeSpan("The pre-integration phase of the simulation took ", _startTime);
 	}
 
-	if (_simulation->settings->timeLine->length != 0.0) {
+	if (_simulation->settings.timeLine->length != 0.0) {
 		_simulation->binary->Log("The main-integration phase of the simulation begins", false);
 		_startTime = time(0);
 		if (MainIntegration() == 1) {
@@ -285,15 +285,15 @@ int	Simulator::DecisionMaking(const long int stepCounter, TimeLine* timeLine, do
 int Simulator::Synchronization()
 {
 	// TODO: check this assignment
-	TimeLine syncTimeLine = *_simulation->settings->timeLine;
+	TimeLine syncTimeLine = *_simulation->settings.timeLine;
 
 	std::list<double> startTimes;
-	_simulation->bodyGroupList.DistinctStartTimes(startTimes, _simulation->settings->timeLine->Forward());
+	_simulation->bodyGroupList.DistinctStartTimes(startTimes, _simulation->settings.timeLine->Forward());
 
 	// The first start time will be that of the massive bodies, since
 	// the time field of syncTimeLine equals to that if enableDistinctStartTimes
 	// is not enabled.
-	if (!_simulation->settings->enableDistinctStartTimes) {
+	if (!_simulation->settings.enableDistinctStartTimes) {
 		startTimes.push_front(syncTimeLine.time);
 	}
 
@@ -311,8 +311,8 @@ int Simulator::Synchronization()
 		}
 		if (++it != startTimes.end()) {
 			syncTimeLine.length = *it - syncTimeLine.time;
-			syncTimeLine.output = syncTimeLine.Forward() ? _simulation->settings->timeLine->output :
-														  -_simulation->settings->timeLine->output;
+			syncTimeLine.output = syncTimeLine.Forward() ? _simulation->settings.timeLine->output :
+														  -_simulation->settings.timeLine->output;
 			--it;
 		}
 		else
@@ -346,8 +346,8 @@ int Simulator::Synchronization()
 		listOfBG.clear();
 	}
 
-	_simulation->settings->timeLine->time = syncTimeLine.time;
-	_simulation->settings->timeLine->save = syncTimeLine.time;
+	_simulation->settings.timeLine->time = syncTimeLine.time;
+	_simulation->settings.timeLine->save = syncTimeLine.time;
 
 	return 0;
 }
@@ -355,10 +355,10 @@ int Simulator::Synchronization()
 int Simulator::PreIntegration()
 {
 	// TODO: check this assignment
-	TimeLine preTimeLine = *_simulation->settings->timeLine;
+	TimeLine preTimeLine = *_simulation->settings.timeLine;
 
 	preTimeLine.length = preTimeLine.start - preTimeLine.time;
-	preTimeLine.output = preTimeLine.Forward() ? _simulation->settings->timeLine->output : -_simulation->settings->timeLine->output;
+	preTimeLine.output = preTimeLine.Forward() ? _simulation->settings.timeLine->output : -_simulation->settings.timeLine->output;
 
 	preTimeLine.hDid = 0.0;
 	preTimeLine.hNext  = preTimeLine.Forward() ? ShortestPeriod() / 50.0 : -ShortestPeriod() / 50.0;
@@ -388,19 +388,19 @@ int Simulator::MainIntegration()
 	// If neither synchronization nor pre-integration was performed, than the bodyList is empty,
 	// so it must be populated before the call to Integrate()
 	if (_simulation->bodyList.size() == 0) {
-		if (PopulateBodyList(_simulation->settings->timeLine->time) == 1) {
+		if (PopulateBodyList(_simulation->settings.timeLine->time) == 1) {
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
 	}
 
-	_simulation->settings->timeLine->hDid = 0.0;
-	_simulation->settings->timeLine->hNext = _simulation->settings->timeLine->Forward() ? ShortestPeriod() / 50000.0 : -ShortestPeriod() / 50000.0;
-	if (fabs(_simulation->settings->timeLine->hNext) > fabs(_simulation->settings->timeLine->length)) {
-		_simulation->settings->timeLine->hNext = _simulation->settings->timeLine->length;
+	_simulation->settings.timeLine->hDid = 0.0;
+	_simulation->settings.timeLine->hNext = _simulation->settings.timeLine->Forward() ? ShortestPeriod() / 50000.0 : -ShortestPeriod() / 50000.0;
+	if (fabs(_simulation->settings.timeLine->hNext) > fabs(_simulation->settings.timeLine->length)) {
+		_simulation->settings.timeLine->hNext = _simulation->settings.timeLine->length;
 	}
 
-	if (Integrate(_simulation->settings->timeLine) == 1) {
+	if (Integrate(_simulation->settings.timeLine) == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
@@ -540,7 +540,7 @@ int Simulator::BodyListToBodyData()
 		i++;
 	}
 
-	if (_simulation->settings->baryCentric) {
+	if (_simulation->settings.baryCentric) {
 		Calculate::PhaseOfBC(&bodyData, bodyData.bc);
 		Tools::ToPhase(bodyData.bc, &(bodyData.phaseOfBC));
 
@@ -586,8 +586,8 @@ int Simulator::CheckEvent(double timeOfEvent)
 #ifdef _DEBUG
 //	fprintf(stderr, "File: %40s, Function: %40s, Line: %10d\n", __FILE__, __FUNCTION__, __LINE__);
 #endif
-	static double ejection = _simulation->settings->ejection;
-	static double hitCentrum = _simulation->settings->hitCentrum;
+	static double ejection = _simulation->settings.ejection;
+	static double hitCentrum = _simulation->settings.hitCentrum;
 	static double e3 = ejection > 0 ? 1.0/(ejection*ejection*ejection) : 0.0;
 	static double h3 = hitCentrum > 0 ? 1.0/(hitCentrum*hitCentrum*hitCentrum) : 0.0;
 
@@ -650,9 +650,9 @@ int Simulator::CheckEvent(double timeOfEvent)
 		_hitCentrumEvent.items.clear();
 	}
 
-	if (_simulation->settings->collision != 0) {
+	if (_simulation->settings.collision != 0) {
 		std::list<TwoBodyAffair> collisions;
-		double factor = _simulation->settings->collision->factor;
+		double factor = _simulation->settings.collision->factor;
 		for (register int i=0; i < bodyData.nBodies.total; i++) {
 			int j = bodyData.indexOfNN[i];
 			if (j >= 0 && factor*(bodyData.radius[i] + bodyData.radius[j]) > bodyData.distanceOfNN[i]) {
@@ -667,7 +667,7 @@ int Simulator::CheckEvent(double timeOfEvent)
 					return 1;
 				}
 
-				double time = _simulation->settings->timeLine->time;
+				double time = _simulation->settings.timeLine->time;
 				// TODO: Check whether the affair class meeds the survivIdx, mergerIdx!
 				TwoBodyAffair affair(Collision, time, survivIdx, mergerIdx, survivId, mergerId, &bodyData.y[6*survivIdx], &bodyData.y[6*mergerIdx]);
 				collisions.push_back(affair);

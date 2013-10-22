@@ -35,9 +35,9 @@ public:
 	double TypeIMigrationTime(          const double C, const double O, const double ar, const double er, const double h);
 	double TypeIEccentricityDampingTime(const double C, const double O, const double ar, const double er, const double h);
 
-	Vector CircularVelocity(double mu, double r, double alpha);
-	Vector GasVelocity(double mu, double r, double alpha);
-	double GasDensityAt(double r, double z);
+	//Vector CircularVelocity(double mu, double r, double alpha);
+	//Vector GasVelocity(double mu, double r, double alpha);
+	//double GasDensityAt(double r, double z);
 	double TauNu(double r, double O);
 
 	BodyData	*bodyData;
@@ -51,9 +51,9 @@ public:
 	// nBodies contains the number of the different bodies
 	double		*rm3;
 
-	bool evaluateGasDrag;
-	bool evaluateTypeIMigration;
-	bool evaluateTypeIIMigration;
+	bool		evaluateGasDrag;
+	bool		evaluateTypeIMigration;
+	bool		evaluateTypeIIMigration;
 
 private:
 	IntegratorType	_integratorType;

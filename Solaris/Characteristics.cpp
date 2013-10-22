@@ -5,31 +5,33 @@
 
 Characteristics::Characteristics()
 {
-	this->mass		= 0.0;
-	this->radius	= 0.0;
-	this->density	= 0.0;
-	this->stokes	= 0.0;
-	this->absVisMag	= 0.0;
+	stokes		= 0.0;
+	absVisMag	= 0.0;
+
+	mass		= 0.0;
+	radius		= 0.0;
+	density		= 0.0;
 }
 
 Characteristics::Characteristics(double mass)
 {
 	this->mass		= mass;
-	this->radius	= 0.0;
-	this->density	= 0.0;
+
 	this->stokes	= 0.0;
 	this->absVisMag	= 0.0;
+	this->radius	= 0.0;
+	this->density	= 0.0;
 }
 
 Characteristics::Characteristics(const Characteristics &characteristics)
 {
-	this->mass			= characteristics.mass;
-	this->radius		= characteristics.radius;
-	this->density		= characteristics.density;
-	this->stokes		= characteristics.stokes;
-	this->absVisMag		= characteristics.absVisMag;
+	mass		= characteristics.mass;
+	radius		= characteristics.radius;
+	density		= characteristics.density;
+	stokes		= characteristics.stokes;
+	absVisMag	= characteristics.absVisMag;
 	// TODO: check
-	this->componentList = characteristics.componentList;
+	componentList = characteristics.componentList;
 }
 
 /// <summary>

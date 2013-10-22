@@ -10,7 +10,7 @@ GasComponent::GasComponent()
 {
 	// TODO: create an xml attribute for innerEdge in the xml input file.
 	innerEdge	        = 10.0 * Constants::SolarRadiusToAu;
-	alpha		        = 0.0;
+	alpha		        = 2.0e-3;
 	
 	// TODO: create an xml attribute for meanMolecularWeight and particleRadius
     meanMolecularWeight = 2.3;
@@ -22,13 +22,15 @@ GasComponent::GasComponent()
 	type		        = Constant;
 
 	eta					= PowerLaw(0.0019, 0.5); 
-	scaleHeight			= PowerLaw(0.02, 1.25);
 	tau					= PowerLaw(2.0/3.0, 2.0);
-	gasDensityFunction	= PowerLaw(1.4e-9 * Constants::GramPerCm3ToSolarPerAu3, -2.75);
+	scaleHeight			= PowerLaw(0.02, 1.25);
+	density				= PowerLaw(1.4e-9 * Constants::GramPerCm3ToSolarPerAu3, -2.75);
+	a					= density.Evaluate(innerEdge) / SQR(SQR(innerEdge));
     
-    double Clambda      = meanMolecularWeight * Constants::ProtonMass_CMU / (sqrt(2.0) * Constants::Pi * SQR(particleDiameter * Constants::MeterToAu) * gasDensityFunction.c);
-    double plambda      =-gasDensityFunction.index;
+    double Clambda      = meanMolecularWeight * Constants::ProtonMass_CMU / (sqrt(2.0) * Constants::Pi * SQR(particleDiameter * Constants::MeterToAu) * density.c);
+    double plambda      =-density.index;
     meanFreePath        = PowerLaw(Clambda, plambda);
+
 }
 
 double GasComponent::FactorAt(const double t)
@@ -60,10 +62,42 @@ double GasComponent::FactorAt(const double t)
 
 double GasComponent::MidplaneDensity(const double r)
 {
-	double a1 = this->gasDensityFunction.Evaluate(r);
+	double a1 = this->density.Evaluate(r);
 	double a2 = this->scaleHeight.Evaluate(r);
 	double a3 = a1*a2*Constants::SqrtTwoPi;
 	return a3;
+}
+
+double GasComponent::GasDensityAt(double r, double z)
+{
+//	static double a = density.Evaluate(innerEdge) / SQR(SQR(innerEdge));
+
+	double h = scaleHeight.Evaluate(r);
+	double arg = SQR(z/h);
+	if (r > innerEdge) {
+		return density.Evaluate(r) * exp(-arg);
+	}
+	else {
+		return a * SQR(SQR(r)) * exp(-arg);
+	}
+}
+
+Vector GasComponent::GasVelocity(double mu, double r, double alpha)
+{
+	double f = sqrt(1.0 - 2.0*eta.Evaluate(r));
+	return f * CircularVelocity(mu, r, alpha);
+	//Vector v = f * CircularVelocity(mu, r, alpha);
+	//v.x *= f;
+	//v.y *= f;
+	//v.z *= f;
+
+	//return v;
+}
+
+Vector GasComponent::CircularVelocity(double mu, double r, double alpha)
+{
+	double v = sqrt( mu/r );
+	return Vector(-v*sin(alpha), v*cos(alpha), 0.0);
 }
 
 double  GasComponent::MeanFreePath_SI(const double rho)

@@ -12,7 +12,7 @@ public:
 	std::string name;
 	std::string description;
 	std::string file;
-	std::string path;
+	std::string fargoPath;
 
 	double	massFactor;
 	double	gasToDustRatio;

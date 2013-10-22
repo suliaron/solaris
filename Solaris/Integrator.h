@@ -8,7 +8,6 @@ public:
 	Integrator();
 
 	std::string	name;
-	std::string	xsitype;
 	double		accuracy;
 	double		epsilon;
 };

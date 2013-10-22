@@ -54,22 +54,13 @@
   </BodyGroupList>
 
   <Nebula name="" description="" path="">
-    <MassFactor></MassFactor>
-    <GasToDustRatio></GasToDustRatio>
-    <SnowLine></SnowLine>
-    <SolidsComponent>
-      <IceCondensationFactor></IceCondensationFactor>
-      <SolidsDensityFunction index="">
-        <SurfaceDensity value="" unit=""/>
-      </SolidsDensityFunction>
-    </SolidsComponent>
     <GasComponent alpha="" type="constant|linear|exponential" timescale="" t0="" t1="" unit="second|day|year">
       <Eta c="" index=""/>
       <Tau c="" index=""/>
       <ScaleHeight c="" index=""/>
-      <GasDensityFunction index="">
+      <DensityFunction index="">
         <Density value="" unit="gcm3|solarau3"/>
-      </GasDensityFunction>
+      </DensityFunction>
     </GasComponent>
   </Nebula>
 

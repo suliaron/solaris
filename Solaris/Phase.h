@@ -10,9 +10,9 @@ public:
 	Phase(int id, double rx, double ry, double rz, double vx, double vy, double vz);
 	Phase(const Phase &phase);
 
-	int	bodyId;
-	Vector position;
-	Vector velocity;
+	int		bodyId;
+	Vector	position;
+	Vector	velocity;
 
 	// Input/Output streams
 	friend std::ostream& operator<<( std::ostream&, Phase);

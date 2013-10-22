@@ -347,10 +347,10 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
         double C = 0.0;
         {
 	        // Calculate the relative velocity of the solid with respect to the gas
-            Vector vGas = GasVelocity(Constants::Gauss2*bodyData->mass[0], r, atan2(y[i0 + 1], y[i0 + 0]));
+			Vector vGas = nebula->gasComponent.GasVelocity(Constants::Gauss2*bodyData->mass[0], r, atan2(y[i0 + 1], y[i0 + 0]));
 		    // The relative velocity
 		    Vector u(y[i0 + 3] - vGas.x, y[i0 + 4] - vGas.y, y[i0 + 5] - vGas.z);
-            double rhoGas = factor * GasDensityAt(r, y[i0 + 2]);
+			double rhoGas = factor * nebula->gasComponent.GasDensityAt(r, y[i0 + 2]);
 
             double lambda = this->nebula->gasComponent.meanFreePath.Evaluate(r);
             // Epstein regime
@@ -761,7 +761,7 @@ double Acceleration::TypeIMigrationTime(const double C, const double O, const do
 {
 	double result = 0.0;
 
-	double Cm = 2.0/(2.7 + 1.1*abs(this->nebula->gasComponent.gasDensityFunction.index))/O;
+	double Cm = 2.0/(2.7 + 1.1*abs(this->nebula->gasComponent.density.index))/O;
 	double er1 = er/(1.3*h);
 	double er2 = er/(1.1*h);
 	double frac = (1.0 + FIFTH(er1) )/(1.0 - FORTH(er2) );
@@ -782,45 +782,45 @@ double Acceleration::TypeIEccentricityDampingTime(const double C, const double O
 	return result;
 }
 
-Vector Acceleration::CircularVelocity(double mu, double r, double alpha)
-{
-	Vector result;
-
-	double v = sqrt( mu/r );
-	result.x = -v*sin(alpha);
-	result.y = v*cos(alpha);
-	result.z = 0.0;
-
-	return result;
-}
-
-Vector Acceleration::GasVelocity(double mu, double r, double alpha)
-{
-	double f = sqrt(1.0 - 2.0*this->nebula->gasComponent.eta.Evaluate(r));
-	Vector v = CircularVelocity(mu, r, alpha);
-	v.x *= f;
-	v.y *= f;
-	v.z *= f;
-
-	return v;
-}
-
-double Acceleration::GasDensityAt(double r, double z)
-{
-	static double innerEdge = nebula->gasComponent.innerEdge;
-	static double a = nebula->gasComponent.gasDensityFunction.Evaluate(innerEdge) / SQR(SQR(innerEdge));
-
-	double h = nebula->gasComponent.scaleHeight.Evaluate(r);
-	double arg = SQR(z/h);
-	double density = 0.0;
-	if ( r > innerEdge) {
-		density = nebula->gasComponent.gasDensityFunction.Evaluate(r) * exp(-arg);
-	}
-	else {
-		density = a * SQR(SQR(r)) * exp(-arg);
-	}
-	return density;
-}
+//Vector Acceleration::CircularVelocity(double mu, double r, double alpha)
+//{
+//	Vector result;
+//
+//	double v = sqrt( mu/r );
+//	result.x = -v*sin(alpha);
+//	result.y = v*cos(alpha);
+//	result.z = 0.0;
+//
+//	return result;
+//}
+//
+//Vector Acceleration::GasVelocity(double mu, double r, double alpha)
+//{
+//	double f = sqrt(1.0 - 2.0*this->nebula->gasComponent.eta.Evaluate(r));
+//	Vector v = CircularVelocity(mu, r, alpha);
+//	v.x *= f;
+//	v.y *= f;
+//	v.z *= f;
+//
+//	return v;
+//}
+//
+//double Acceleration::GasDensityAt(double r, double z)
+//{
+//	static double innerEdge = nebula->gasComponent.innerEdge;
+//	static double a = nebula->gasComponent.density.Evaluate(innerEdge) / SQR(SQR(innerEdge));
+//
+//	double h = nebula->gasComponent.scaleHeight.Evaluate(r);
+//	double arg = SQR(z/h);
+//	double density = 0.0;
+//	if ( r > innerEdge) {
+//		density = nebula->gasComponent.density.Evaluate(r) * exp(-arg);
+//	}
+//	else {
+//		density = a * SQR(SQR(r)) * exp(-arg);
+//	}
+//	return density;
+//}
 
 double Acceleration::TauNu(double r, double O)
 {

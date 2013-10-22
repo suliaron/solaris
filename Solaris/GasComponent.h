@@ -3,6 +3,7 @@
 
 #include "GasDecreaseType.h"
 #include "PowerLaw.h"
+#include "Vector.h"
 
 class GasComponent
 {
@@ -18,16 +19,20 @@ public:
 	double		t0;
 	double		t1;
 	double		innerEdge;
+	double		a;
 
 	PowerLaw	eta;
-	PowerLaw	scaleHeight;
 	PowerLaw	tau;
-	PowerLaw	gasDensityFunction;
+	PowerLaw	scaleHeight;
+	PowerLaw	density;
     PowerLaw    meanFreePath;
     PowerLaw    temperature;
 
 	double	FactorAt(const double t);
 	double	MidplaneDensity(const double r);
+	double	GasDensityAt(double r, double z);
+	Vector	GasVelocity(double mu, double r, double alpha);
+	Vector	CircularVelocity(double mu, double r, double alpha);
 
     double  MeanFreePath_SI(const double rho);
     double  MeanFreePath_CMU(const double rho);

@@ -1,9 +1,10 @@
 #ifndef SETTINGS_H_
 #define SETTINGS_H_
 
+#include "Integrator.h"
+#include "Output.h"
+
 class EventCondition;
-class Integrator;
-class Output;
 class TimeLine;
 
 class Settings {
@@ -13,8 +14,8 @@ public:
 
 	bool			enableDistinctStartTimes;
 	bool			baryCentric;
-	Output			*output;
-	Integrator		*integrator;
+	Integrator		integrator;
+	Output			output;
 	TimeLine		*timeLine;
 
 	double			ejection;

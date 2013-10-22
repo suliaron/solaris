@@ -4,12 +4,12 @@
 #include <string>
 #include "BodyData.h"
 #include "BodyGroupList.h"
+#include "Settings.h"
 
 class	BinaryFileAdapter;
 class	Body;
 class	FargoParameters;
 class	Nebula;
-class	Settings;
 
 class Simulation {
 public:

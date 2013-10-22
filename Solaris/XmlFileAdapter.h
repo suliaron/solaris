@@ -84,9 +84,9 @@ public:
 
 	static int DeserializeNebula(TiXmlElement *xmlElement, Nebula *nebula);
 	static int DeserializeNebulaAttributes(TiXmlAttribute *attribute, Nebula *nebula);
-	static int DeserializeSolidsComponent(TiXmlElement *xmlElement, SolidsComponent *solidsComponent);
-	static int DeserializeSolidsDensityFunction(TiXmlElement *xmlElement, SolidsComponent *solidsComponent);
-	static int DeserializeSolidsDensityFunctionAttributes(TiXmlAttribute *attribute, SolidsComponent *solidsComponent);
+	//static int DeserializeSolidsComponent(TiXmlElement *xmlElement, SolidsComponent *solidsComponent);
+	//static int DeserializeSolidsDensityFunction(TiXmlElement *xmlElement, SolidsComponent *solidsComponent);
+	//static int DeserializeSolidsDensityFunctionAttributes(TiXmlAttribute *attribute, SolidsComponent *solidsComponent);
 
 	static int DeserializeGasComponent(TiXmlElement *xmlElement, GasComponent *gasComponent);
 	static int DeserializeGasComponentAttributes(TiXmlAttribute *attribute, GasComponent *gasComponent, std::string unitString);
