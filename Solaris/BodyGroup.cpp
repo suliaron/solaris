@@ -136,19 +136,16 @@ int BodyGroup::SetStartTime(double startTimeOfMainSimulation)
     // The Epoch property is defined
     if (!epoch.empty())
     {
-		if (Ephemeris::GetJulianDate(epoch, this->startTime) == 1) {
+		if (Ephemeris::GetJulianDate(epoch, startTime) == 1) {
 			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 			return 1;
 		}
     }
     else
     {
-        this->startTime = startTimeOfMainSimulation;
+        startTime = startTimeOfMainSimulation;
     }
-    // The offset property is defined
-    if (offset != 0.0) {
-        this->startTime += offset;
-    }
+    startTime += offset;
 	
 	return 0;
 }

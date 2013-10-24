@@ -84,7 +84,7 @@ void BodyGroupList::FindBy(BodyType type, std::list<Body *> &result)
 }
 
 /**
- * Set the iterator to point to the body group containing the massive bodies.
+ * Set the iterator to point to the first body group containing massive bodies.
  *
  * @param it the iterator which iterates over the body groups. It will point to the first body group in the list
  *        which contains massive bodies.
@@ -100,6 +100,8 @@ bool BodyGroupList::GetBodyGroupWithMassiveBodies(std::list<BodyGroup>::iterator
 	return false;
 }
 
+/// Iterates over the BodyGroups of the list and creates a list containing the disitnct
+/// reference frames.
 int BodyGroupList::DistinctReferenceFrame(std::list<std::string> &referenceFrames)
 {
 	for (std::list<BodyGroup>::iterator it = this->items.begin(); it != this->items.end(); it++) {
@@ -114,7 +116,7 @@ int BodyGroupList::DistinctReferenceFrame(std::list<std::string> &referenceFrame
 }
 
 /// <summary>
-/// Returns a sorted list (increasing) of the distinct julian dates (epochs) of the BodyGroups.
+/// Creates a sorted list (increasing) of the distinct julian dates (epochs) of the BodyGroups.
 /// </summary>
 /// <returns>List of epochs in increasing or decreasing order</returns>
 int BodyGroupList::DistinctEpochs(std::list<double> &epochs)
@@ -156,6 +158,7 @@ int BodyGroupList::DistinctEpochs(std::list<double> &epochs, bool increasing)
 	return 0;
 }
 
+/// Creates a list of the distinct start times of the Body Groups
 void BodyGroupList::DistinctStartTimes(std::list<double> &startTimes, bool increasing)
 {
 	for (std::list<BodyGroup>::iterator it = items.begin(); it != items.end(); it++) {
@@ -171,6 +174,8 @@ void BodyGroupList::DistinctStartTimes(std::list<double> &startTimes, bool incre
 	if (nOfDistinctStartTimes == 0) nOfDistinctStartTimes = startTimes.size();
 }
 
+/// Counts the number of Body Groups that contain one or more bodies
+/// whose mass is greater than zero. The Central Body is ignored.
 int BodyGroupList::DistinctStartTimesOfMassiveBodies(int &count)
 {
 	std::list<double> startTimes;

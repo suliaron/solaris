@@ -59,37 +59,47 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 		return 1;
 	}
 
-	// Sort the BodyGroups in the BodyGroupList into increasing order
+	// Sort the Body Groups in the BodyGroupList based on their start time into increasing order.
 	this->bodyGroupList.items.sort(BodyGroupList::CompareStartTime);
-	if (!settings.timeLine->Forward())
+	if (!settings.timeLine->Forward()) {
 		bodyGroupList.items.reverse();
+	}
+
+	if (SetTimeAndSaveOfTimeLine() == 1) {
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
 
 	/*
-	* If the EnableDistinctStartTimes is false, than the Time and Save
-	* property of the TimeLine class must be set accordingly to the
-	* StartTime of the massive bodies.
+	* If the enableDistinctStartTimes is false, than the Time and Save
+	* property of the TimeLine class must be set equal to the
+	* startTime of the BodyGroup containing the massive bodies.
 	*/
-	double time = 0.0;
-	if (!settings.enableDistinctStartTimes)
-	{
-		std::list<BodyGroup>::iterator it;
-		if (!bodyGroupList.GetBodyGroupWithMassiveBodies(it)) {
-			binary->Log("None of the BodyGroups contains massive bodies!", true);
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-		}
-		time = it->startTime;
-	}
-	// Because of the sort operation above the time equals to the startTime field of the first BodyGroup
-	else {
-		time = bodyGroupList.items.front().startTime;
-	}
-	settings.timeLine->time = time;
-	settings.timeLine->save = time;
+	//double time = 0.0;
+	//if (!settings.enableDistinctStartTimes)
+	//{
+	//	std::list<BodyGroup>::iterator it;
+	//	if (!bodyGroupList.GetBodyGroupWithMassiveBodies(it)) {
+	//		binary->Log("None of the BodyGroups contains massive bodies!", true);
+	//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+	//		return 1;
+	//	}
+	//	time = it->startTime;
+	//}
+	//// Because of the sort operation above the time equals to the startTime field of the first BodyGroup
+	//else {
+	//	time = bodyGroupList.items.front().startTime;
+	//}
+	//settings.timeLine->time = time;
+	//settings.timeLine->save = time;
 
 	return 0;
 }
 
+/// Sets the start time of the main integration phase based on the epochs of the body groups.
+/// If the integration is a forward integration (i.e. length > 0) than the latest epoch will
+/// be the start time, if it is a backward integration than the earliset epoch will be.
+/// If none of the body groups contain epoch the start time is set to zero.
 int Simulation::SetStartTimeOfMainPhase()
 {
 	double start = 0.0;
@@ -112,6 +122,33 @@ int Simulation::SetStartTimeOfMainPhase()
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
+
+	return 0;
+}
+
+/// If enableDistinctStartTimes is false than the start time of the TimeLine will be
+/// the start time of the Body Group that contains the massive bodies. Otherwise the
+/// start time of the TimeLine will be the start time of the earliest (forward integration)
+/// or latest (backward) start time.
+int Simulation::SetTimeAndSaveOfTimeLine()
+{
+	double time = 0.0;
+	if (settings.enableDistinctStartTimes == false)
+	{
+		std::list<BodyGroup>::iterator it;
+		if (bodyGroupList.GetBodyGroupWithMassiveBodies(it) == false) {
+			binary->Log("None of the BodyGroups contains massive bodies!", true);
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
+		time = it->startTime;
+	}
+	// Because of the sort operation above the time equals to the startTime field of the first BodyGroup
+	else {
+		time = bodyGroupList.items.front().startTime;
+	}
+	settings.timeLine->time = time;
+	settings.timeLine->save = time;
 
 	return 0;
 }
@@ -211,6 +248,9 @@ int Simulation::CheckBodyGroupList()
 	return 0;
 }
 
+/// If the enableDistinctStartTimes attribute is false and more than one BodyGroup contains
+/// massive bodies with different start times, it returns with an error and logs it to the
+/// log file.
 int Simulation::CheckStartTimes()
 {
 	// If distinct start times for massive bodies was not enabled than massive bodies must have the same start time
@@ -221,7 +261,7 @@ int Simulation::CheckStartTimes()
 	}
 	if (!settings.enableDistinctStartTimes && count > 1)
     {
-		binary->Log("More than 1 BodyGroups contain massive bodies with different epochs!", true);
+		binary->Log("More than 1 BodyGroup contain massive bodies with different start times!", true);
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
     }
