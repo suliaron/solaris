@@ -58,7 +58,6 @@ int Ephemeris::CalculateOrbitalElement(const double mu, const Phase *phase, Orbi
 
     Vector c = Vector::CrossProduct(r, v);
 	Vector l = (-mu / r.Length()) * (r) + Vector::CrossProduct(v, c);
-	//Vector vc = Vector::CrossProduct(v, c);
 	double rv = Vector::DotProduct(r, v);
     /*
     * Calculate eccentricity, e
@@ -123,20 +122,18 @@ int Ephemeris::CalculateOrbitalElement(const double mu, const Phase *phase, Orbi
     double M = E - e * sin(E);
     ShiftIntoRange(0, 2.0*Constants::Pi, M);
 
-	orbitalElement->semiMajorAxis = a;
-	orbitalElement->eccentricity = e;
-	orbitalElement->inclination = incl;
-	orbitalElement->argumentOfPericenter = peri;
-	orbitalElement->longitudeOfNode = node;
-	orbitalElement->meanAnomaly = M;
+	orbitalElement->semiMajorAxis			= a;
+	orbitalElement->eccentricity			= e;
+	orbitalElement->inclination				= incl;
+	orbitalElement->argumentOfPericenter	= peri;
+	orbitalElement->longitudeOfNode			= node;
+	orbitalElement->meanAnomaly				= M;
 
 	return 0;
 }
 
 /// <summary>
-/// Computes the Phase of the body from the keplerian orbital elements. First the
-/// angular orbital elements are converted into radian. The DistanceUnit is AU
-/// and the VelocityUnit is AU/DAY.
+/// Computes the phase (position and velocity) of the body from the keplerian orbital elements.
 /// </summary>
 /// <param name="mu">(Gauss constant)^2*(m1 + m2)</param>
 /// <param name="oe">The Keplerian orbital element</param>

@@ -27,26 +27,14 @@ Simulation::Simulation(std::string runType)
 
 int Simulation::Initialize()
 {
-	if (InitializeTimeLineAndBodyGroups() == 1) {
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
-	}
-
-	if (InitializePhases() == 1) {
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
-	}
-
-	return 0;
-}
-
-int Simulation::InitializeTimeLineAndBodyGroups()
-{
     // Compute the start time of the main integration phase
     // If the start attribute in the TimeLine tag was not defined in the xml, than it will be computed from the epochs of the BodyGroups
 	if (!settings.timeLine->startTimeDefined)
     {
-		SetStartTimeOfMainPhase();
+		if (SetStartTimeOfMainPhase() == 1) {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
     }
 
 	if (bodyGroupList.SetStartTime(settings.timeLine->start) == 1) {
@@ -70,28 +58,10 @@ int Simulation::InitializeTimeLineAndBodyGroups()
 		return 1;
 	}
 
-	/*
-	* If the enableDistinctStartTimes is false, than the Time and Save
-	* property of the TimeLine class must be set equal to the
-	* startTime of the BodyGroup containing the massive bodies.
-	*/
-	//double time = 0.0;
-	//if (!settings.enableDistinctStartTimes)
-	//{
-	//	std::list<BodyGroup>::iterator it;
-	//	if (!bodyGroupList.GetBodyGroupWithMassiveBodies(it)) {
-	//		binary->Log("None of the BodyGroups contains massive bodies!", true);
-	//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-	//		return 1;
-	//	}
-	//	time = it->startTime;
-	//}
-	//// Because of the sort operation above the time equals to the startTime field of the first BodyGroup
-	//else {
-	//	time = bodyGroupList.items.front().startTime;
-	//}
-	//settings.timeLine->time = time;
-	//settings.timeLine->save = time;
+	if (SetPhasesRadiiDensity() == 1) {
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
 
 	return 0;
 }
@@ -153,33 +123,40 @@ int Simulation::SetTimeAndSaveOfTimeLine()
 	return 0;
 }
 
-int Simulation::InitializePhases()
+/// Computes the phase for each body (if the Keplerian orbital elements were defined in the input xml).
+/// If the body's type is different from SuperPlanetesimal or TestParticle than the radius
+/// will be computed from the mass and density (if defined), or the density will be computed from
+/// the mass and radius (if defined). If only the mass is defined the radius and the density can not
+/// be computed.
+int Simulation::SetPhasesRadiiDensity()
 {
 	Body *centralBody = FindCentralBody();
+	if (centralBody == 0) {
+		Error::_errMsg = "The central body is not defined, the phases cannot be computed!";
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
+
 	for (std::list<BodyGroup>::iterator bgIt = this->bodyGroupList.items.begin(); bgIt != this->bodyGroupList.items.end(); bgIt++) {
 		for (std::list<Body>::iterator bIt = bgIt->items.begin(); bIt != bgIt->items.end(); bIt++) {
 
 			BodyType type = bIt->type;
 			if (type != CentralBody && bIt->phase == 0) {
-				if (centralBody == 0) {
-					Error::_errMsg = "The central body is not defined, the phase cannot be computed!";
-					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-					return 1;
-				}
 				// Compute phase
 				double mu = centralBody->GetGm() + (type != TestParticle ? bIt->GetGm() : 0.0);
 				Phase phase(bIt->GetId());
 				if (Ephemeris::CalculatePhase(mu, bIt->orbitalElement, &phase) == 1) {
 					Error::_errMsg = "The phase could not be computed for body with Id: ";
-					Error::_errMsg += static_cast<std::ostringstream *>(&(std::ostringstream() << bIt->GetId()))->str() + "!";
+					Error::_errMsg+= static_cast<std::ostringstream *>(&(std::ostringstream() << bIt->GetId()))->str() + "!";
 					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 					return 1;
 				}
 				bIt->phase = new Phase(phase);
 			}
 
-			if (type == TestParticle || type == SuperPlanetesimal)
+			if (type == SuperPlanetesimal || type == TestParticle ) {
 				continue;
+			}
 			if (bIt->characteristics->radius == 0.0 && bIt->characteristics->density == 0.0)
 				continue;
 			if (bIt->characteristics->radius == 0.0) {
@@ -192,15 +169,6 @@ int Simulation::InitializePhases()
 	}
 
 	return 0;
-}
-
-// TODO: no calls to this function
-/**
- * Sort the BodyGroups in the BodyGroupList into increasing order
- */
-void Simulation::SortBodyGroupsByStartTime()
-{
-	this->bodyGroupList.items.sort(BodyGroupList::CompareStartTime);
 }
 
 int Simulation::CheckBodyGroupList()
@@ -269,12 +237,7 @@ int Simulation::CheckStartTimes()
 	return 0;
 }
 
-// Calculate the start time of the simulation using the epochs of the BodyGroups.
-//int Simulation::CalculateStartTime(double &start)
-//{
-//	return this->settings->timeLine->Forward() ? this->bodyGroupList.LastEpoch(start) : this->bodyGroupList.FirstEpoch(start);
-//}
-
+/// Returns the body with the specified id.
 Body* Simulation::FindBy(int id)
 {
 	for (std::list<Body *>::iterator it = bodyList.begin(); it != bodyList.end(); it++) {
@@ -285,6 +248,7 @@ Body* Simulation::FindBy(int id)
 	return 0;
 }
 
+/// Returns the body with CentralBody type.
 Body* Simulation::FindCentralBody()
 {
 	std::list<Body *> centralBodyList;

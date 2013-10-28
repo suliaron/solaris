@@ -21,6 +21,7 @@
     <ClInclude Include="Characteristics.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="Counter.h" />
     <ClInclude Include="DateTime.h" />
     <ClInclude Include="DormandPrince.h" />
     <ClInclude Include="DragCoefficient.h" />
@@ -67,6 +68,7 @@
     <ClCompile Include="Calculate.cpp" />
     <ClCompile Include="Characteristics.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="Counter.cpp" />
     <ClCompile Include="DateTime.cpp" />
     <ClCompile Include="DormandPrince.cpp" />
     <ClCompile Include="DragCoefficient.cpp" />

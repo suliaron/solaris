@@ -18,7 +18,6 @@ NBodies::NBodies()
 	threshold		 = 10;
 }
 
-
 int NBodies::NOfMassive()
 {
 	return centralBody + giantPlanet + rockyPlanet + protoPlanet;
@@ -111,4 +110,18 @@ int NBodies::UpdateAfterRemove(BodyType bodyType)
 	removed++;
 
 	return 0;
+}
+
+std::ostream& operator<<(std::ostream& output, NBodies nBodies)
+{
+	output << "     centralBody: " << nBodies.centralBody << std::endl;
+	output << "     giantPlanet: " << nBodies.giantPlanet << std::endl;
+	output << "     rockyPlanet: " << nBodies.rockyPlanet << std::endl;
+	output << "     protoPlanet: " << nBodies.protoPlanet << std::endl;
+	output << "superPlanetsimal: " << nBodies.superPlanetsimal << std::endl;
+	output << "     planetsimal: " << nBodies.planetsimal << std::endl;
+	output << "    testParticle: " << nBodies.testParticle << std::endl;
+	output << "           total: " << nBodies.total << std::endl;
+	output << "         removed: " << nBodies.removed << std::endl;
+	return output;
 }

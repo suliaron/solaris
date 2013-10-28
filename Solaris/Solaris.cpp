@@ -150,12 +150,12 @@ int main(int argc, char* argv[])
 	simulation.binary->Log("Simulation was successfully initialized.", false);
 
 	Simulator		simulator(&simulation);
-    if (simulation.runType == "Continue" ) {
-        if (simulator.Continue() == 1) {
-		    Error::PrintStackTrace();
-		    exit(1);
-	    }
-    }
+    //if (simulation.runType == "Continue" ) {
+    //    if (simulator.Continue() == 1) {
+		  //  Error::PrintStackTrace();
+		  //  exit(1);
+	   // }
+    //}
 
 	if (simulator.Run() == 1) {
 		Error::PrintStackTrace();

@@ -20,8 +20,7 @@ public:
 	int Initialize();
 	int SetStartTimeOfMainPhase();
 	int SetTimeAndSaveOfTimeLine();
-	int InitializeTimeLineAndBodyGroups();
-	int InitializePhases();
+	int SetPhasesRadiiDensity();
 
 	void SortBodyGroupsByStartTime();
 

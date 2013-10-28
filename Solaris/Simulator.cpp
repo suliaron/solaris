@@ -9,6 +9,7 @@
 #include "BodyGroupList.h"
 #include "Calculate.h"
 #include "Constants.h"
+#include "Counter.h"
 #include "DormandPrince.h"
 #include "Error.h"
 #include "EventCondition.h"
@@ -40,14 +41,12 @@ Simulator::Simulator(Simulation *simulation)
 
 	_startTime			= (time_t)0;
 	_acceleration		= 0;
+
 	rungeKuttaFehlberg78= 0;
 	rungeKutta4			= 0;
 	dormandPrince		= 0;
 
-	integratorType  = RUNGE_KUTTA_FEHLBERG78;
-	nAllStep		= 0;
-	nFailedStep		= 0;
-	nSuccededStep	= 0;
+	integratorType		= RUNGE_KUTTA_FEHLBERG78;
 }
 
 int Simulator::Continue()
@@ -66,9 +65,6 @@ int Simulator::Run()
 	else if (_simulation->settings.integrator.name == "rungekutta4") {
 		integratorType = RUNGE_KUTTA4;
 		rungeKutta4 = new RungeKutta4();
-	}
-	else if (_simulation->settings.integrator.name == "rungekutta56") {
-		integratorType = RUNGE_KUTTA56;
 	}
 	else if (_simulation->settings.integrator.name == "dormandprince") {
 		integratorType = DORMAND_PRINCE;
@@ -211,6 +207,138 @@ int Simulator::Integrate(TimeLine* timeLine)
 	return 0;
 }
 
+int Simulator::Integrate2(TimeLine* timeLine)
+{
+	if (BodyListToBodyData() == 1) {
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
+	_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id);
+
+	Calculate::Integrals(&bodyData);
+	_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
+
+	bool stop = false;
+	for ( ; ; ) {
+		switch (integratorType) {
+			case RUNGE_KUTTA_FEHLBERG78:
+				if (rungeKuttaFehlberg78->Driver(&bodyData, _acceleration, timeLine) == 1) {
+					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+					return 1;
+				}
+				break;
+			case RUNGE_KUTTA4:
+				if (rungeKutta4->Driver(&bodyData, _acceleration, timeLine) == 1) {
+					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+					return 1;
+				}
+				break;
+			case DORMAND_PRINCE:
+				if (dormandPrince->Driver(&bodyData, _acceleration, timeLine) == 1) {
+					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+					return 1;
+				}
+				break;
+		}
+		counter.succededStep++;
+		if (DecisionMaking(timeLine, stop) == 1) {
+			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+			return 1;
+		}
+		if (counter.succededStep % Constants::CheckForSM == 0) {
+			int	n = 6*bodyData.nBodies.total;
+			Tools::CheckAgainstSmallestNumber(n, bodyData.y);
+			Tools::CheckAgainstSmallestNumber(n, bodyData.y0);
+            if (_simulation->binary->FileExists("Info")) {
+				std::cout << *timeLine;
+				std::cout << bodyData.nBodies;
+				std::cout << counter;
+            }
+		}
+		if (stop)
+			break;
+	}
+
+	_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id);
+	Calculate::Integrals(&bodyData);
+	_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
+
+	return 0;
+}
+
+#define NSTEP 500
+int	Simulator::DecisionMaking(TimeLine* timeLine, bool& stop)
+{
+	timeLine->elapsedTime	+= timeLine->hDid;
+	timeLine->lastSave		+= timeLine->hDid;
+	timeLine->lastNSteps	+= timeLine->hDid;
+
+#ifdef _DEBUG
+	if ((counter.succededStep) % NSTEP == 0) {
+		int tmp = NSTEP;
+		std::cout << (*timeLine);
+		std::cout << "Average step-size of the last " << tmp << " steps:" << timeLine->lastNSteps/NSTEP << " [day]" << std::endl;
+		std::cout << "Average step-size:" << timeLine->elapsedTime/counter.succededStep << " [day]" << std::endl;
+		timeLine->lastNSteps = 0.0;
+	}
+#endif
+
+	double actualTime = 1000.0*Constants::YearToDay*timeLine->millenium + timeLine->time;
+// NOTE: az alábbi lehetöségek sorrendje fontos. Elöször ez eseményeket ellenörzöm, aztán
+// pedig, hogy elértük-e az integrálás végét, az adatokat el kell-e menteni.
+	if (CheckEvent(timeLine->time) == 1) {
+		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
+		return 1;
+	}
+
+	// TODO: Check if the number of removed bodies exceeds a threshold, than use realloc.
+	// The Acceleration::rm3
+	// must be set to NULL in order to force a new allocation
+	// in the subsequent call to Acceleration::Compute().
+//	if (bodyData.nBodies.removed > 0 && bodyData.nBodies.removed % bodyData.nBodies.threshold == 0) {
+//#ifdef _DEBUG
+//		fprintf(stderr, "File: %40s, Function: %40s, Line: %10d (removed == threshold)\n", __FILE__, __FUNCTION__, __LINE__);
+//#endif
+//		delete[] acceleration.rm3;
+//		delete[] acceleration.accelGasDrag;
+//		delete[] acceleration.accelMigrationTypeI;
+//		delete[] acceleration.accelMigrationTypeII;
+//	}
+
+	if (fabs(actualTime) >= fabs(timeLine->length)) {
+		UpdateBodyListAfterIntegration();
+		stop = true;
+		return 0;
+	}
+
+	if (bodyData.nBodies.total <= 1) {
+		_simulation->binary->Log("The total number of bodies reduced to 1!", true);
+		UpdateBodyListAfterIntegration();
+		stop = true;
+		return 0;
+	}
+
+	if (fabs(actualTime + timeLine->hNext) > fabs(timeLine->length)) {
+		timeLine->hNext = timeLine->length - actualTime;
+	}
+
+	if (fabs(timeLine->lastSave) >= fabs(timeLine->output)) {
+
+		_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id);
+		Calculate::Integrals(&bodyData);
+		_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
+
+		timeLine->lastSave = 0.0;
+	}
+
+	if (fabs(timeLine->lastSave + timeLine->hNext) > fabs(timeLine->output)) {
+		timeLine->hNext = timeLine->output - timeLine->lastSave;
+	}
+
+	return 0;
+}
+#undef NSTEP
+
 #define NSTEP 500
 int	Simulator::DecisionMaking(const long int stepCounter, TimeLine* timeLine, double* hSum, bool& stop)
 {
@@ -333,7 +461,7 @@ int Simulator::Synchronization()
 			//	return 1;
 			//}
 
-			if (Integrate(&syncTimeLine) == 1) {
+			if (Integrate2(&syncTimeLine) == 1) {
 				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 				return 1;
 			}
@@ -375,7 +503,7 @@ int Simulator::PreIntegration()
 		}
 	}
 
-	if (Integrate(&preTimeLine) == 1) {
+	if (Integrate2(&preTimeLine) == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
@@ -400,7 +528,7 @@ int Simulator::MainIntegration()
 		_simulation->settings.timeLine->hNext = _simulation->settings.timeLine->length;
 	}
 
-	if (Integrate(_simulation->settings.timeLine) == 1) {
+	if (Integrate2(_simulation->settings.timeLine) == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}

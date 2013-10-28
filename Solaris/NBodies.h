@@ -1,6 +1,7 @@
 #ifndef NBODIES_H_
 #define NBODIES_H_
 
+#include <iostream>
 #include <list>
 
 #include "Body.h"
@@ -28,6 +29,9 @@ public:
 
 	int removed;
 	int threshold;
+
+	// Output streams
+	friend std::ostream& operator<<( std::ostream&, NBodies nBodies);
 };
 
 #endif

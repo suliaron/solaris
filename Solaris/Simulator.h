@@ -3,6 +3,7 @@
 
 #include <list>
 
+#include "Counter.h"
 #include "IntegratorType.h"
 #include "BodyData.h"
 #include "BodyGroup.h"
@@ -31,16 +32,15 @@ public:
 
 	BodyData				bodyData;
 
-	// TODO: implement these counters
-	unsigned long	nAllStep;
-	unsigned long	nFailedStep;
-	unsigned long	nSuccededStep;
+	Counter					counter;
 
 private:
 	int 	Synchronization();
 	int		PreIntegration();
 	int		MainIntegration();
 	int		Integrate(TimeLine* timeLine);
+	int		Integrate2(TimeLine* timeLine);
+	int		DecisionMaking(TimeLine* timeLine, bool& stop);
 	int		DecisionMaking(const long int stepCounter, TimeLine* timeLine, double* hSum, bool& stop);
 
 	int		Insert(double time, std::list<BodyGroup>::iterator &bgIt);
