@@ -1290,7 +1290,7 @@ int XmlFileAdapter::DeserializeOrbitalElement(TiXmlElement *xmlElement, OrbitalE
 				return 1;
 			}
 		}
-		else if (attributeName == "inclination" || attributeName == "inc") {
+		else if (attributeName == "inclination" || attributeName == "incl") {
 			if (attribute->QueryDoubleValue(&inc) != TIXML_SUCCESS) {
 				_stream << "Invalid value: " << attribute->Name() << "=" << attribute->Value() << " at row: " << attribute->Row() << ", col: " << attribute->Column();
 				Error::_errMsg = _stream.str();

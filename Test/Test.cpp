@@ -12,6 +12,7 @@
 #include "../Solaris/Characteristics.h"
 #include "../Solaris/Component.h"
 #include "../Solaris/Constants.h"
+#include "../Solaris/Counter.h"
 #include "../Solaris/DateTime.h"
 #include "../Solaris/DormandPrince.h"
 #include "../Solaris/DragCoefficient.h"

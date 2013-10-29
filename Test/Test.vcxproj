@@ -84,6 +84,7 @@
     <ClInclude Include="..\Solaris\Characteristics.h" />
     <ClInclude Include="..\Solaris\Component.h" />
     <ClInclude Include="..\Solaris\Constants.h" />
+    <ClInclude Include="..\Solaris\Counter.h" />
     <ClInclude Include="..\Solaris\DateTime.h" />
     <ClInclude Include="..\Solaris\DormandPrince.h" />
     <ClInclude Include="..\Solaris\DragCoefficient.h" />

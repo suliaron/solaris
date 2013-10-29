@@ -35,7 +35,7 @@
             <Velocity x="" y="" z="" unit="au/day"/>
           </Phase>
 
-          <OrbitalElement semiMajorAxis|a="" eccentricity|e="" inclination|inc="" argumentOfPericenter|peri="" 
+          <OrbitalElement semiMajorAxis|a="" eccentricity|e="" inclination|incl="" argumentOfPericenter|peri="" 
 	  		  longitudeOfNode|node="" meanAnomaly|m="" distanceUnit="m|meter|km|kilometer|solarradius|au" angleUnit="degree|radian"/>
 
           <Characteristics absVisMag="" cd="">
