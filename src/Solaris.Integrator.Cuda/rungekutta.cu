@@ -62,7 +62,7 @@ ttt_t rungekutta<RKOrder>::step()
 
 		for (int i = 0; i < forder; i++)
 		{
-			f.calculate_dy(i, ttemp, f.d_p, d_ytemp, d_k[i][r]);
+			f.calculate_dy(i, r, ttemp, f.d_p, d_ytemp, d_k[i][r]);
 		}
 	}
 

@@ -23,7 +23,7 @@ ttt_t euler::step()
 	// Calculate differentials
 	for (int i = 0; i < order; i++)
 	{
-		f.calculate_dy(i, f.t, f.d_p, f.d_y, d_dy[i]);
+		f.calculate_dy(i, 0, f.t, f.d_p, f.d_y, d_dy[i]);
 	}
 
 	// Propagate variables

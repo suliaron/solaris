@@ -10,6 +10,7 @@ typedef double4 vec_t;   // Type of vectors, use 4dim for coalesced memory acces
 typedef bool bool_t;	// Type of booleans
 typedef int int_t;
 typedef int2 int2_t;
+typedef int4 int4_t;
 
 typedef thrust::host_vector<var_t> host_var_t;
 typedef thrust::device_vector<var_t> device_var_t;

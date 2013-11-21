@@ -63,8 +63,6 @@ ttt_t rungekuttanystrom<RKOrder>::step()
 	// d_dytemp: intermediate coordinates (X'^)
 	// d_k: intermediate differentials (f)
 
-	//int forder = f.get_dim();
-
 	var_t max_err;
 	ttt_t dttemp;
 
@@ -88,7 +86,7 @@ ttt_t rungekuttanystrom<RKOrder>::step()
 			}
 
 			// Only calculate acceleration here, not velocities
-			f.calculate_dy(1, ttemp, f.d_p, d_ytemp, d_k[r]);
+			f.calculate_dy(1, r, ttemp, f.d_p, d_ytemp, d_k[r]);
 		}
 
 		// Now the acceleration matrix is done, update variables and
