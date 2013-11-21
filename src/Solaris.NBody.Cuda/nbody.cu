@@ -428,7 +428,7 @@ int nbody::call_detect_collisions_kernel()
 	return h_collisions_end[0];
 }
 
-void nbody::calculate_dy(int i, ttt_t t, const device_var_t& p, const std::vector<device_var_t>& y, device_var_t& dy)
+void nbody::calculate_dy(int i, int r, ttt_t t, const device_var_t& p, const std::vector<device_var_t>& y, device_var_t& dy)
 {
 	switch (i)
 	{

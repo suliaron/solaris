@@ -63,7 +63,7 @@ private:
 	int call_detect_collisions_kernel();
 
 public:
-	void calculate_dy(int i, ttt_t t, const device_var_t& p, const std::vector<device_var_t>& y, device_var_t& dy);
+	void calculate_dy(int i, int r, ttt_t t, const device_var_t& p, const std::vector<device_var_t>& y, device_var_t& dy);
 	int detect_collisions();
 
 	void load(string filename, int n);
