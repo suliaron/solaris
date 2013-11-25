@@ -23,9 +23,11 @@
     <ClInclude Include="nbody.h" />
     <ClInclude Include="nbody_exception.h" />
     <ClInclude Include="options.h" />
+    <ClInclude Include="planets.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="nbody.cu" />
+    <CudaCompile Include="planets.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
