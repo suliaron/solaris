@@ -20,7 +20,7 @@ struct absdiff_vec_functor
 
 
 var_t randf(var_t min, var_t max);
-void copy_vec(device_var_t& xout, const device_var_t& xin);
-void sum_vec(device_var_t& xout, const device_var_t& xin, const device_var_t& yin, var_t a);
-void absdiff_vec(device_var_t& xout, const device_var_t& xin, const device_var_t& yin, var_t a);
-var_t max_vec(const device_var_t& x);
+void copy_vec(d_var_t& xout, const d_var_t& xin);
+void sum_vec(d_var_t& xout, const d_var_t& xin, const d_var_t& yin, var_t a);
+void absdiff_vec(d_var_t& xout, const d_var_t& xin, const d_var_t& yin, var_t a);
+var_t max_vec(const d_var_t& x);

@@ -21,9 +21,6 @@ public:
 		//! Density of body in M_sol AU-3
 		var_t density;
 
-		//! Drag force coefficient ?
-		var_t cD;
-
 		//! Used for the drag force  TODO
 		var_t gamma_stokes;
 

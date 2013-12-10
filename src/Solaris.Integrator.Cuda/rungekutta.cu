@@ -10,7 +10,7 @@ rungekutta<RKOrder>::rungekutta(ode& f, ttt_t dt, bool adaptive, var_t tolerance
 	integrator(f, dt),
 	adaptive(adaptive),
 	tolerance(tolerance),
-	d_ytemp(f.get_order(), device_var_t()),
+	d_ytemp(f.get_order(), d_var_t()),
 	d_k(f.get_order())
 {
 	int forder = f.get_order();

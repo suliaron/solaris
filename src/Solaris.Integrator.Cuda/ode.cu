@@ -2,9 +2,9 @@
 
 ode::ode(int order) :
 	t(0),
-	h_y(order, host_var_t()),
-	d_y(order, device_var_t()),
-	d_yout(order, device_var_t())
+	h_y(order, h_var_t()),
+	d_y(order, d_var_t()),
+	d_yout(order, d_var_t())
 {
 }
 

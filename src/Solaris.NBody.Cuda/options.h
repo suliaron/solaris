@@ -24,17 +24,17 @@ public:
 
 
 public:
-	int n;							// Number of bodies
-	ttt_t timeStart;				// Start time
-	ttt_t timeStop;					// Stop time
-	ttt_t dt;						// Initial time step
-	var_t buffer_radius;			// collision buffer
-	bool printout;					// Printout enabled
-	ttt_t printoutPeriod;			// Printout period
-	ttt_t printoutStep;				// Printout step size	
-	ttt_t printoutLength;			// Printout length
-	bool printoutToFile;			// Printout to file
-	string printoutDir;				// Printout directory
+	int		n;						// Number of bodies
+	ttt_t	timeStart;				// Start time
+	ttt_t	timeStop;				// Stop time
+	ttt_t	dt;						// Initial time step
+	var_t	buffer_radius;			// collision buffer
+	bool	printout;				// Printout enabled
+	bool	printoutToFile;			// Printout to file
+	ttt_t	printoutPeriod;			// Printout period
+	ttt_t	printoutStep;			// Printout step size	
+	ttt_t	printoutLength;			// Printout length
+	string	printoutDir;			// Printout directory
 
 private:
 	integrator_type_t inttype;		// Integrator type
@@ -51,8 +51,8 @@ public:
 
 	static void print_usage();
 
-	ode* create_ode();
-	integrator* create_integrator(ode * f);
+	ode*		create_ode();
+	integrator* create_integrator(ode* f);
 
 private:
 	void create_default_options();

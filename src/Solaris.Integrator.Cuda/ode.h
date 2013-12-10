@@ -16,19 +16,19 @@ public:
 	ttt_t tout;
 
 	//! Host vector of ODE parameters
-	host_var_t h_p;
+	h_var_t h_p;
 
 	//! Device vector of ODE parameters
-	device_var_t d_p;
+	d_var_t d_p;
 
 	//! Host vector of ODE variables
-	std::vector<host_var_t> h_y;
+	std::vector<h_var_t> h_y;
 
 	//! Device vectors of ODE variables at the beginning of the step (at time t)
-	std::vector<device_var_t> d_y;
+	std::vector<d_var_t> d_y;
 
 	//! Device vectors of ODE variables at the end of the step (at time tout)
-	std::vector<device_var_t> d_yout;
+	std::vector<d_var_t> d_yout;
 
 public:
 
@@ -60,7 +60,7 @@ public:
 		\param y Device vector with ODE variables
 		\param dy Device vector that will hold the differentials
 	*/
-	virtual void calculate_dy(int i, int r, ttt_t t, const device_var_t& p, const std::vector<device_var_t>& y, device_var_t& dy) = 0;
+	virtual void calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy) = 0;
 	
 	//! Swaps in and out variables
 	/*!

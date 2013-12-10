@@ -9,7 +9,7 @@
 class euler : public integrator
 {
 private:
-	std::vector<device_var_t> d_dy;		// Differentials on the device
+	std::vector<d_var_t> d_dy;		// Differentials on the device
 
 public:
 	euler(ode& f, ttt_t dt);

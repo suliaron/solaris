@@ -36,7 +36,7 @@ private:
 	// Number of bodies
 	int n;
 	// Temporary storage for accelerations, required between kernel calls
-	device_vec_t d_accelerations;
+	d_vec_t d_accelerations;
 	
 	// Dtorage for intersection detection
 	host_int_t h_interactions_end;
@@ -59,11 +59,11 @@ private:
 
 	void call_calculate_accel_kernel(const param_t* p, const vec_t* c, vec_t* atemp);
 	void call_sum_accel_kernel(const vec_t* atemp, vec_t* a);
-	int call_detect_intersections_kernel(device_var_t& cin, device_var_t& cout);
+	int call_detect_intersections_kernel(d_var_t& cin, d_var_t& cout);
 	int call_detect_collisions_kernel();
 
 public:
-	void calculate_dy(int i, int r, ttt_t t, const device_var_t& p, const std::vector<device_var_t>& y, device_var_t& dy);
+	void calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy);
 	int detect_collisions();
 
 	void load(string filename, int n);

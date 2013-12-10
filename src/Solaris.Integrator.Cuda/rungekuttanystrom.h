@@ -20,11 +20,11 @@ private:
 	bool adaptive;
 	var_t tolerance;
 	
-	std::vector<device_var_t> d_k;		// Differentials on the device
-	std::vector<device_var_t> d_ytemp;
-	device_var_t d_yhtemp;	
-	device_var_t d_dytemp;
-	device_var_t d_err;
+	std::vector<d_var_t> d_k;		// Differentials on the device
+	std::vector<d_var_t> d_ytemp;
+	d_var_t d_yhtemp;	
+	d_var_t d_dytemp;
+	d_var_t d_err;
 
 public:
 	rungekuttanystrom(ode& f, ttt_t dt, bool adaptive, var_t tolerance);

@@ -3,7 +3,7 @@
 
 euler::euler(ode& f, ttt_t dt) :
 	integrator(f, dt),
-	d_dy(f.get_order(), device_var_t())
+	d_dy(f.get_order(), d_var_t())
 {
 	// Allocate storage for differentials on the device
 	for (int i = 0; i < f.h_y.size(); i ++)
