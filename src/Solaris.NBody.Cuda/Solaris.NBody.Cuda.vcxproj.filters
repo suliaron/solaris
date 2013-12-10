@@ -24,6 +24,12 @@
     <ClInclude Include="planets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="InteractionBound.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NumberOfBodies.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="nbody.cu">

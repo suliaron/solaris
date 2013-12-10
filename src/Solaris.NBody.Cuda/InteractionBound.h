@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.h"
+#include "config.h"
 
 struct	InteractionBound {
 	int2_t	sink;

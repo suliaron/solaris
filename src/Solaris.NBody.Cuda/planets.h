@@ -28,12 +28,19 @@ public:
 		var_t gamma_epstein;
 	} param_t;
 
-	typedef thrust::host_vector<param_t> host_param_t;
-	typedef thrust::device_vector<param_t> device_param_t;
+	typedef thrust::host_vector<param_t>	h_param_t;
+	typedef thrust::device_vector<param_t>	d_param_t;
 
 	typedef struct gaspar
 	{
-		var_t gapas1;
+		var_t c_rho;
+		var_t p_rho;
+		var_t c_h;
+		var_t p_h;
+		var_t c_eta;
+		var_t p_eta;
+		var_t c_tau;
+		var_t p_tau;
 	} gaspar_t;
 
 	typedef enum migration
@@ -51,7 +58,8 @@ private:
 		\param bounds Vector of indices limiting the interacting pairs
 		\param atemp Will hold the accelerations for each body per each tile
 	*/
-	void call_calculate_grav_accel_kernel(const param_t* p, const vec_t* c, const int4_t bounds, vec_t* atemp);
+	cudaError_t	call_calculate_grav_accel_kernel(NumberOfBodies nBodies, const planets::param_t* p, const vec_t* c, vec_t* atemp);
+	// void call_calculate_grav_accel_kernel(const param_t* p, const vec_t* c, const int4_t bounds, vec_t* atemp);
 
 	//! Calls the kernel that sums up accelerations by tiles
 	/*
@@ -61,12 +69,10 @@ private:
 	void call_sum_grav_accel_kernel(const vec_t* atemp, vec_t* a);
 
 	//! Calls the kernel that calculates the acceleration due to drag force on bodies
-	void call_calculate_drag_accel_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds, vec_t* atemp);
+	cudaError_t call_calculate_drag_accel_kernel(NumberOfBodies nBodies, ttt_t time, const planets::gaspar_t& gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
 
-	void call_calculate_epheremis_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds);
+	cudaError_t call_calculate_epheremis_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds);
 
-	void call_calculate_migration_accel_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds, gaspar_t gaspar, vec_t* atemp);
-
-
+	cudaError_t call_calculate_migration_accel_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds, gaspar_t gaspar, vec_t* atemp);
 
 };
