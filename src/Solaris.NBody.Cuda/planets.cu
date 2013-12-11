@@ -119,19 +119,19 @@ vec_t circular_velocity(var_t mu, var_t r, var_t alpha)
 	vec_t	result;
 
 	var_t v		= sqrt(mu/r);
-	result.x	= -v*sin(alpha);
-	result.y	=  v*cos(alpha);
+	result.x	=-v*sin(alpha);
+	result.y	= v*cos(alpha);
 	result.z	= 0.0;
 
 	return result;
 }
 
 inline __device__
-vec_t gas_velocity(var_t c_eta, var_t p_eta, var_t mu, var_t r, var_t alpha)
+vec_t gas_velocity(var2_t eta, var_t mu, var_t r, var_t alpha)
 {
-	vec_t	result = circular_velocity(mu, r, alpha);
+	vec_t result = circular_velocity(mu, r, alpha);
 
-	var_t v		= sqrt(1.0 - 2.0*c_eta*pow(r, p_eta));
+	var_t v		 = sqrt(1.0 - 2.0*eta.x * pow(r, eta.y));
 	result.x	*= v;
 	result.y	*= v;
 	
@@ -139,36 +139,37 @@ vec_t gas_velocity(var_t c_eta, var_t p_eta, var_t mu, var_t r, var_t alpha)
 }
 
 // TODO: implemet INNER_EDGE to get it from the input
-// TODO: compute A_CONST
-#define INNER_EDGE 0.001 // AU
-#define A_CONST 1.0
+#define INNER_EDGE 0.046 // AU ~ 10 R_sol
+
 __device__
-var_t	gas_density_at(const planets::gaspar_t& gaspar, var_t r, var_t z)
+var_t	gas_density_at(const planets::gaspar_t* gaspar, var_t r, var_t z)
 {
 	var_t	result = 0.0;
 
-	var_t	h	= gaspar.c_h * pow(r, gaspar.c_h);
+	var_t a = gaspar->rho.x * pow(INNER_EDGE, gaspar->rho.y - 4.0);
+
+	var_t	h	= gaspar->sch.x * pow(r, gaspar->sch.y);
 	var_t	arg	= SQR(z/h);
 	if (r > INNER_EDGE) {
-		result = gaspar.c_rho * pow(r, gaspar.p_rho) * exp(-arg);
+		result = gaspar->rho.x * pow(r, gaspar->rho.y) * exp(-arg);
 	}
 	else {
-		result = A_CONST * SQR(SQR(r)) * exp(-arg);
+		result = a * SQR(SQR(r)) * exp(-arg);
 	}
 
 	return result;
 }
-#undef INNER_EDGE
+
 #undef A_CONST
 
 __global__
-void calculate_drag_accel_kernel(InteractionBound iBound, var_t timeF, const planets::gaspar_t& gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
+void calculate_drag_accel_kernel(InteractionBound iBound, var_t timeF, const planets::gaspar_t* gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
 {
 	int	bodyIdx = iBound.sink.x + blockIdx.x * blockDim.x + threadIdx.x;
 
 	if (bodyIdx < iBound.sink.y) {
 		var_t r		= sqrt(SQR(coor[bodyIdx].x) + SQR(coor[bodyIdx].y) + SQR(coor[bodyIdx].z));
-		vec_t vGas	= gas_velocity(gaspar.c_eta, gaspar.p_eta, K2*params[0].mass, r, atan2(coor[bodyIdx].y, coor[bodyIdx].x));
+		vec_t vGas	= gas_velocity(gaspar->eta, K2*params[0].mass, r, atan2(coor[bodyIdx].y, coor[bodyIdx].x));
 		var_t rhoGas= gas_density_at(gaspar, r, coor[bodyIdx].z) * timeF;
 
 		vec_t u;
@@ -194,7 +195,7 @@ void calculate_drag_accel_kernel(InteractionBound iBound, var_t timeF, const pla
 	}
 }
 
-cudaError_t planets::call_calculate_drag_accel_kernel(NumberOfBodies nBodies, ttt_t time, const planets::gaspar_t& gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
+cudaError_t planets::call_calculate_drag_accel_kernel(NumberOfBodies nBodies, ttt_t time, const planets::gaspar_t* gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
 

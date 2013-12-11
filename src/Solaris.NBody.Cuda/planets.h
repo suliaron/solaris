@@ -31,16 +31,13 @@ public:
 	typedef thrust::host_vector<param_t>	h_param_t;
 	typedef thrust::device_vector<param_t>	d_param_t;
 
+	// TODO: copy this to constant memory
 	typedef struct gaspar
 	{
-		var_t c_rho;
-		var_t p_rho;
-		var_t c_h;
-		var_t p_h;
-		var_t c_eta;
-		var_t p_eta;
-		var_t c_tau;
-		var_t p_tau;
+		var2_t	rho;
+		var2_t	sch;
+		var2_t	eta;
+		var2_t	tau;
 	} gaspar_t;
 
 	typedef enum migration
@@ -69,7 +66,7 @@ private:
 	void call_sum_grav_accel_kernel(const vec_t* atemp, vec_t* a);
 
 	//! Calls the kernel that calculates the acceleration due to drag force on bodies
-	cudaError_t call_calculate_drag_accel_kernel(NumberOfBodies nBodies, ttt_t time, const planets::gaspar_t& gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
+	cudaError_t call_calculate_drag_accel_kernel(NumberOfBodies nBodies, ttt_t time, const planets::gaspar_t* gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
 
 	cudaError_t call_calculate_epheremis_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds);
 

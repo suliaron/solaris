@@ -32,6 +32,7 @@
 
 typedef double		ttt_t;		// Type of time variables
 typedef double		var_t;		// Type of variables
+typedef double2		var2_t;		// Type of tuple
 typedef double4		vec_t;		// Type of vectors
 typedef bool		bool_t;		// Type of boolean variables
 typedef int			int_t;		// Type of integer variables
