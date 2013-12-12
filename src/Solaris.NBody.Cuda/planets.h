@@ -28,6 +28,27 @@ public:
 		var_t gamma_epstein;
 	} param_t;
 
+	typedef struct orbelem
+	{
+		//! Semimajor-axis of the body
+		var_t sma;
+
+		//! Eccentricity of the body
+		var_t ecc;
+
+		//! Inclination of the body
+		var_t inc;
+
+		//! Argument of the pericenter
+		var_t peri;
+
+		//! Longitude of the ascending node
+		var_t node;
+
+		//! Mean anomaly
+		var_t mean;
+	} orbelem_t;
+
 	typedef thrust::host_vector<param_t>	h_param_t;
 	typedef thrust::device_vector<param_t>	d_param_t;
 
