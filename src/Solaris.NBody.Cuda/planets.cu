@@ -2,6 +2,7 @@
 #include "InteractionBound.h"
 #include "NumberOfBodies.h"
 #include "planets.h"
+#include "nbody_exception.h"
 
 #include "thrust\device_vector.h"
 #include "thrust\host_vector.h"
@@ -150,6 +151,7 @@ int		calculate_orbelem(const var_t mu, const vec_t* coor, const vec_t* velo, var
 }
 #undef	sq3
 
+#if FALSE
 #define	sq2 1.0e-14
 #define	sq3	1.0e-14
 __device__
@@ -235,6 +237,7 @@ __device__
 }
 #undef	sq2
 #undef	sq3
+#endif
 
 __global__
 void	calculate_grav_accel_kernel(InteractionBound iBound, const planets::param_t* params, const vec_t* coor, vec_t* acce)
@@ -244,7 +247,7 @@ void	calculate_grav_accel_kernel(InteractionBound iBound, const planets::param_t
 	if (bodyIdx < iBound.sink.y) {
 		for (int j = iBound.source.x; j < iBound.source.y; j++) 
 		{
-			if (bodyIdx == j) {
+			if (j == bodyIdx) {
 				continue;
 			}
 			acce[bodyIdx] = calculate_grav_accel_pair(coor[bodyIdx], coor[j], params[j].mass, acce[bodyIdx]);
@@ -315,10 +318,10 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(NumberOfBodies nBodies, co
 	dim3	block(nThread);
 
 	calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
-	cudaStatus = cudaGetLastError();
-	if (cudaStatus != cudaSuccess) {
-		std::cerr << "calculate_grav_accel_kernel launch failed: " << cudaGetErrorString(cudaStatus) << std::endl;
-		return cudaStatus;
+	if ((cudaStatus = cudaGetLastError()) != cudaSuccess) {
+		//std::cerr << "calculate_grav_accel_kernel launch failed: " << cudaGetErrorString(cudaStatus) << std::endl;
+		//return cudaStatus;
+		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
 	}
 
 	iBound = nBodies.get_nonself_interacting();
