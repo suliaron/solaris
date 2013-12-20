@@ -381,34 +381,22 @@ planets::~planets()
 
 void planets::allocate_vectors()
 {
-	// Allocate vector for acceleration intermediate results
-	d_accelerations.resize(n * n / NTILE);	
-	
-	h_interactions_end.resize(1);
-	d_interactions.resize(n * n);
-	d_interactions_end.resize(1);
-
-	h_collisions.resize(n * n / 2);
-	h_collisions_end.resize(1);
-	d_collisions.resize(n * n / 2);
-	d_collisions_end.resize(1);
-
 	// Parameters
-	h_p.resize(NPAR * n);
+	h_p.resize(NPAR * bodies.total);
 
 	// Aliases to coordinates and velocities
-	h_y[0].resize(NDIM * n);
-	h_y[1].resize(NDIM * n);
+	h_y[0].resize(NDIM * bodies.total);
+	h_y[1].resize(NDIM * bodies.total);
 }
 
-void nbody::round_up_n()
+void planets::round_up_n()
 {
 	// Round up n to the number of bodies per tile
-	int m = ((n + NTILE - 1) / NTILE) * NTILE;
+	int m = ((bodies.total + NTILE - 1) / NTILE) * NTILE;
 
-	if (n != m) {
+	if (bodies.total != m) {
 		cerr << "Number of bodies rounded up to " << m << endl;
 	}
-	n = m;
+	bodies.total_rounded_up = m;
 }
 

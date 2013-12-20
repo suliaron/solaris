@@ -34,6 +34,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="nbody_exception.cpp" />
+    <ClCompile Include="number_of_bodies.cpp" />
     <ClCompile Include="options.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

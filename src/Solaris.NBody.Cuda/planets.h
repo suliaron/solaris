@@ -63,7 +63,7 @@ private:
 	number_of_bodies bodies;
 
 public:
-	planets(number_of_bodies bodies)
+	planets(number_of_bodies bodies);
 	~planets();
 
 	void round_up_n();
