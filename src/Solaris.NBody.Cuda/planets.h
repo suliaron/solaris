@@ -4,6 +4,7 @@
 
 #include "ode.h"
 #include "config.h"
+#include "number_of_bodies.h"
 
 using namespace std;
 
@@ -14,16 +15,12 @@ public:
 	{
 		//! Mass of body in M_sol
 		var_t mass;
-
 		//! Radius of body in AU
 		var_t radius;
-
 		//! Density of body in M_sol AU-3
 		var_t density;
-
 		//! Used for the drag force  TODO
 		var_t gamma_stokes;
-
 		//! Used for the drag force  TODO
 		var_t gamma_epstein;
 	} param_t;
@@ -32,19 +29,14 @@ public:
 	{
 		//! Semimajor-axis of the body
 		var_t sma;
-
 		//! Eccentricity of the body
 		var_t ecc;
-
 		//! Inclination of the body
 		var_t inc;
-
 		//! Argument of the pericenter
 		var_t peri;
-
 		//! Longitude of the ascending node
 		var_t node;
-
 		//! Mean anomaly
 		var_t mean;
 	} orbelem_t;
@@ -68,6 +60,14 @@ public:
 	} migration_t;
 
 private:
+	number_of_bodies bodies;
+
+public:
+	planets(number_of_bodies bodies)
+	~planets();
+
+	void round_up_n();
+	void allocate_vectors();
 
 	//! Calls the kernel that calculates the accelerations from gravitational
 	/*  interactions. Done in tiles.
@@ -76,7 +76,7 @@ private:
 		\param bounds Vector of indices limiting the interacting pairs
 		\param atemp Will hold the accelerations for each body per each tile
 	*/
-	cudaError_t	call_calculate_grav_accel_kernel(NumberOfBodies nBodies, const planets::param_t* p, const vec_t* c, vec_t* atemp);
+	cudaError_t	call_calculate_grav_accel_kernel(number_of_bodies nBodies, const planets::param_t* p, const vec_t* c, vec_t* atemp);
 	// void call_calculate_grav_accel_kernel(const param_t* p, const vec_t* c, const int4_t bounds, vec_t* atemp);
 
 	//! Calls the kernel that sums up accelerations by tiles
@@ -87,7 +87,7 @@ private:
 	void call_sum_grav_accel_kernel(const vec_t* atemp, vec_t* a);
 
 	//! Calls the kernel that calculates the acceleration due to drag force on bodies
-	cudaError_t call_calculate_drag_accel_kernel(NumberOfBodies nBodies, ttt_t time, const planets::gaspar_t* gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
+	cudaError_t call_calculate_drag_accel_kernel(number_of_bodies nBodies, ttt_t time, const planets::gaspar_t* gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
 
 	cudaError_t call_calculate_epheremis_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds);
 

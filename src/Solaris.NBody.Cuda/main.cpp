@@ -120,7 +120,7 @@ int main(int argc, const char** argv)
 
 		delete nb;
 		delete intgr;
-	}
+	} // end try bracket
 	catch (nbody_exception& ex) {
 		cerr << ex.what() << endl;
 		options::print_usage();

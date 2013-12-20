@@ -1,9 +1,8 @@
 #pragma once
 
-#include <thrust/device_vector.h>
 #include "config.h"
-#include "ode.h"
 #include "integrator.h"
+#include "ode.h"
 
 
 class euler : public integrator

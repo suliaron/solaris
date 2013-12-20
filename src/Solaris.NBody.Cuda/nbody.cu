@@ -14,7 +14,7 @@ using namespace std;
 
 // Calculate acceleration caused by one particle on another
 __inline__ __device__ 
-vec_t calculate_accel_pair(const vec_t c1, const vec_t c2, var_t m, vec_t a)
+	vec_t calculate_accel_pair(const vec_t c1, const vec_t c2, var_t m, vec_t a)
 {
 	vec_t d;
 	
@@ -38,7 +38,7 @@ vec_t calculate_accel_pair(const vec_t c1, const vec_t c2, var_t m, vec_t a)
 
 // Calculate and sum up accelerations
 __global__
-void calculate_accel_kernel(const nbody::param_t* p, const vec_t* c, vec_t* a)
+	void calculate_accel_kernel(const nbody::param_t* p, const vec_t* c, vec_t* a)
 {
 	// Index of this particle
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -71,7 +71,7 @@ void calculate_accel_kernel(const nbody::param_t* p, const vec_t* c, vec_t* a)
 }
 
 __global__
-void sum_accel_kernel(const vec_t* a, vec_t* suma)
+	void sum_accel_kernel(const vec_t* a, vec_t* suma)
 {
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -94,7 +94,8 @@ void sum_accel_kernel(const vec_t* a, vec_t* suma)
 }
 
 // Determines if two intervals are disjoint
-__inline__ __device__ bool detect_disjoint_interval(var_t a1, var_t a2, var_t b1, var_t b2, var_t buffer)
+__inline__ __device__ 
+	bool detect_disjoint_interval(var_t a1, var_t a2, var_t b1, var_t b2, var_t buffer)
 {
 	return
 		min(b1, b2) - max(a1, a2) > buffer |
@@ -102,7 +103,8 @@ __inline__ __device__ bool detect_disjoint_interval(var_t a1, var_t a2, var_t b1
 }
 
 // Determines if bounding boxes of trajectory elements are disjoint
-__inline__ __device__ bool detect_disjoint_pair(var_t r1, var_t r2, vec_t c1in, vec_t c1out, vec_t c2in, vec_t c2out, var_t buffer)
+__inline__ __device__ 
+	bool detect_disjoint_pair(var_t r1, var_t r2, vec_t c1in, vec_t c1out, vec_t c2in, vec_t c2out, var_t buffer)
 {
 	return
 		detect_disjoint_interval(c1in.x, c1out.x, c2in.x, c2out.x, (r1 + r2) * buffer) |
@@ -112,7 +114,8 @@ __inline__ __device__ bool detect_disjoint_pair(var_t r1, var_t r2, vec_t c1in, 
 
 // Detect potentially intersecting trajectories
 // Ezt itt lehetne koordinátánként is csinálni!!!
-__global__ void detect_intersections_kernel(const nbody::param_t* p, const vec_t* cin, const vec_t* cout, var_t buffer, int2_t *interactions, int* interactions_end)
+__global__ 
+	void detect_intersections_kernel(const nbody::param_t* p, const vec_t* cin, const vec_t* cout, var_t buffer, int2_t *interactions, int* interactions_end)
 {
 	// Index of this particle
 	int_t i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -181,7 +184,8 @@ __global__ void detect_intersections_kernel(const nbody::param_t* p, const vec_t
 }
 
 // Detect colliding particle pair
-__inline__ __device__ bool detect_collision_pair(nbody::param_t p1, nbody::param_t p2, vec_t c1, vec_t c2, vec_t v1, vec_t v2, var_t buffer)
+__inline__ __device__ 
+	bool detect_collision_pair(nbody::param_t p1, nbody::param_t p2, vec_t c1, vec_t c2, vec_t v1, vec_t v2, var_t buffer)
 {
 	// Assume all intersecting pairs colliding
 	vec_t d;
@@ -198,7 +202,8 @@ __inline__ __device__ bool detect_collision_pair(nbody::param_t p1, nbody::param
 	return d.w < r;
 }
 
-__inline__ __device__ void update_colliding_pair(nbody::param_t* p,	vec_t* c, vec_t* v,	int2_t ii)
+__inline__ __device__ 
+	void update_colliding_pair(nbody::param_t* p,	vec_t* c, vec_t* v,	int2_t ii)
 {
 	var_t M = p[ii.x].mass + p[ii.y].mass;
 		
@@ -221,7 +226,8 @@ __inline__ __device__ void update_colliding_pair(nbody::param_t* p,	vec_t* c, ve
 
 // Detect colliding particles and handle collisins
 // by sticking particles together
-__global__ void detect_collisions_kernel(nbody::param_t* p,	vec_t* c, vec_t* v,	ttt_t time,	var_t buffer, int2_t *interactions, int* interactions_end, nbody::collision_t *collisions, int* collisions_end)
+__global__ 
+	void detect_collisions_kernel(nbody::param_t* p,	vec_t* c, vec_t* v,	ttt_t time,	var_t buffer, int2_t *interactions, int* interactions_end, nbody::collision_t *collisions, int* collisions_end)
 {
 
 	// Each thread will check the collision of one potentially colliding
@@ -291,12 +297,12 @@ nbody::nbody(int n) :
 	ode(2),
 	n(n),
 	d_accelerations(d_vec_t()),
-	d_interactions(device_int2_t()),
-	d_interactions_end(device_int_t()),
-	h_collisions(host_collision_t()),
-	h_collisions_end(host_int_t()),
-	d_collisions(device_collision_t()),
-	d_collisions_end(device_int_t())
+	d_interactions(d_int2_t()),
+	d_interactions_end(d_int_t()),
+	h_collisions(h_collision_t()),
+	h_collisions_end(h_int_t()),
+	d_collisions(d_collision_t()),
+	d_collisions_end(d_int_t())
 {
 	round_up_n();
 	allocate_vectors();
@@ -309,7 +315,7 @@ nbody::~nbody()
 void nbody::allocate_vectors()
 {
 	// Allocate vector for acceleration intermediate results
-	d_accelerations.resize(this->n * this->n / NTILE);	
+	d_accelerations.resize(n * n / NTILE);	
 	
 	h_interactions_end.resize(1);
 	d_interactions.resize(n * n);

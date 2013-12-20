@@ -20,10 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config\config.h" />
-    <ClInclude Include="InteractionBound.h" />
+    <ClInclude Include="interaction_bound.h" />
     <ClInclude Include="nbody.h" />
     <ClInclude Include="nbody_exception.h" />
-    <ClInclude Include="NumberOfBodies.h" />
+    <ClInclude Include="number_of_bodies.h" />
     <ClInclude Include="options.h" />
     <ClInclude Include="planets.h" />
   </ItemGroup>

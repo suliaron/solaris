@@ -11,26 +11,18 @@ public:
 	
 	//! Current time
 	ttt_t t;
-
 	//! Time at the end of step
 	ttt_t tout;
-
 	//! Host vector of ODE parameters
 	h_var_t h_p;
-
 	//! Device vector of ODE parameters
 	d_var_t d_p;
-
 	//! Host vector of ODE variables
 	std::vector<h_var_t> h_y;
-
 	//! Device vectors of ODE variables at the beginning of the step (at time t)
 	std::vector<d_var_t> d_y;
-
 	//! Device vectors of ODE variables at the end of the step (at time tout)
 	std::vector<d_var_t> d_yout;
-
-public:
 
 	//! Constructs an ordinary differential equation.
 	/*!
@@ -50,6 +42,13 @@ public:
 	//! Copies ODE parameters and variables from the host to the cuda device
 	void copy_to_device();
 
+	//! Swaps in and out variables
+	/*!
+		To preserve memory, two sets of variables are used when calculating values
+		of variables for the next iteration.
+	*/
+	void swap_in_out();
+
 	//! Calculates the differentials of variables
 	/*!
 		This function is called by the integrator when calculation of the differentials is necessary
@@ -62,10 +61,4 @@ public:
 	*/
 	virtual void calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy) = 0;
 	
-	//! Swaps in and out variables
-	/*!
-		To preserve memory, two sets of variables are used when calculating values
-		of variables for the next iteration.
-	*/
-	void swap_in_out();
 };

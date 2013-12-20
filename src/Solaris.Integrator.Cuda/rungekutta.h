@@ -1,7 +1,6 @@
 #pragma once
 
 #include "config.h"
-
 #include "integrator.h"
 #include "ode.h"
 
@@ -14,7 +13,7 @@ public:
 	static ttt_t c[];
 
 private:
-	bool adaptive;
+	bool_t adaptive;
 	var_t tolerance;
 	
 	std::vector<d_var_t> d_ytemp;				// Values on the device

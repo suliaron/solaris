@@ -24,11 +24,11 @@ public:
 				int_t y;
 			} collision_t;
 
-	typedef thrust::host_vector<param_t> host_param_t;
-	typedef thrust::device_vector<param_t> device_param_t;
+	typedef thrust::host_vector<param_t>		h_param_t;
+	typedef thrust::device_vector<param_t>		d_param_t;
 	
-	typedef thrust::host_vector<collision_t> host_collision_t;
-	typedef thrust::device_vector<collision_t> device_collision_t;
+	typedef thrust::host_vector<collision_t>	h_collision_t;
+	typedef thrust::device_vector<collision_t>	d_collision_t;
 
 	var_t buffer_radius;
 
@@ -36,18 +36,18 @@ private:
 	// Number of bodies
 	int n;
 	// Temporary storage for accelerations, required between kernel calls
-	d_vec_t d_accelerations;
+	d_vec_t			d_accelerations;
 	
 	// Dtorage for intersection detection
-	host_int_t h_interactions_end;
-	device_int2_t d_interactions;
-	device_int_t d_interactions_end;
+	h_int_t			h_interactions_end;
+	d_int2_t		d_interactions;
+	d_int_t			d_interactions_end;
 	
 	// Storage for collisions
-	host_collision_t h_collisions;
-	host_int_t h_collisions_end;
-	device_collision_t d_collisions;
-	device_int_t d_collisions_end;
+	h_collision_t	h_collisions;
+	h_int_t			h_collisions_end;
+	d_collision_t	d_collisions;
+	d_int_t			d_collisions_end;
 
 public:
 	nbody(int n);

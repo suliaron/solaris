@@ -23,7 +23,7 @@ void copy_vec(d_var_t& xout, const d_var_t& xin)
 	thrust::copy(xin.begin(), xin.end(), xout.begin());
 }
 
-// Compute x += c * y
+// Compute xout = x + a * y
 void sum_vec(d_var_t& xout, const d_var_t& xin, const d_var_t& yin, var_t a)
 {
 	thrust::transform(
@@ -34,7 +34,7 @@ void sum_vec(d_var_t& xout, const d_var_t& xin, const d_var_t& yin, var_t a)
 }
 
 
-// Compute x += c * y
+// Compute xout = a * |x - y|
 void absdiff_vec(d_var_t& xout, const d_var_t& xin, const d_var_t& yin, var_t a)
 {
 	thrust::transform(
