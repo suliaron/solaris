@@ -32,9 +32,20 @@ public:
 
 	var_t buffer_radius;
 
+	nbody(int n);
+	~nbody();
+
+	void calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy);
+
+	int detect_collisions();
+
+	void load(string filename, int n);
+	int print_positions(ostream& sout);
+	int print_collisions(ostream& sout, int start);
+
 private:
 	// Number of bodies
-	int n;
+	int				n;
 	// Temporary storage for accelerations, required between kernel calls
 	d_vec_t			d_accelerations;
 	
@@ -49,11 +60,6 @@ private:
 	d_collision_t	d_collisions;
 	d_int_t			d_collisions_end;
 
-public:
-	nbody(int n);
-	~nbody();
-
-private:
 	void round_up_n();
 	void allocate_vectors();
 
@@ -62,11 +68,4 @@ private:
 	int call_detect_intersections_kernel(d_var_t& cin, d_var_t& cout);
 	int call_detect_collisions_kernel();
 
-public:
-	void calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy);
-	int detect_collisions();
-
-	void load(string filename, int n);
-	int print_positions(ostream& sout);
-	int print_collisions(ostream& sout, int start);
 };
