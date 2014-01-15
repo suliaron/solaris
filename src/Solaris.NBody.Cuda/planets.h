@@ -69,6 +69,11 @@ public:
 	void round_up_n();
 	void allocate_vectors();
 
+	void calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy);
+
+	void load(string filename);
+	int print_positions(ostream& sout);
+private:
 	//! Calls the kernel that calculates the accelerations from gravitational
 	/*  interactions. Done in tiles.
 		\param p Vector of parameters of the bodies
@@ -77,14 +82,6 @@ public:
 		\param atemp Will hold the accelerations for each body per each tile
 	*/
 	cudaError_t	call_calculate_grav_accel_kernel(number_of_bodies nBodies, const planets::param_t* p, const vec_t* c, vec_t* atemp);
-	// void call_calculate_grav_accel_kernel(const param_t* p, const vec_t* c, const int4_t bounds, vec_t* atemp);
-
-	//! Calls the kernel that sums up accelerations by tiles
-	/*
-		\param atemp Vector of accelerations for each body for each tile
-		\param a Will hold the summed acceleration for each body
-	*/
-	void call_sum_grav_accel_kernel(const vec_t* atemp, vec_t* a);
 
 	//! Calls the kernel that calculates the acceleration due to drag force on bodies
 	cudaError_t call_calculate_drag_accel_kernel(number_of_bodies nBodies, ttt_t time, const planets::gaspar_t* gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);

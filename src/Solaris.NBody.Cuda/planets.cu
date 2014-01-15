@@ -1,52 +1,30 @@
-#include "config.h"
-#include "interaction_bound.h"
-#include "number_of_bodies.h"
-#include "planets.h"
-#include "nbody_exception.h"
+// includes system 
+#include <iostream>
+#include <fstream>
 
+// includes CUDA
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
+// includes Thrust
 #include "thrust\device_vector.h"
 #include "thrust\host_vector.h"
 #include "thrust\generate.h"
 #include "thrust\copy.h"
 
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+// includes project's header
+#include "config.h"
+#include "interaction_bound.h"
+#include "number_of_bodies.h"
+#include "nbody_exception.h"
+#include "planets.h"
+#include "nbody_util.h"
 
 #define THREADS_PER_BLOCK	256
 
-// General 3D vector routines
-__device__
-vec_t	cross_product(const vec_t* v, const vec_t* u)
-{
-	vec_t result;
 
-	result.x = v->y*u->z - v->z*u->y;
-    result.y = v->z*u->x - v->x*u->z;
-    result.z = v->x*u->y - v->y*u->x;
-
-	return result;
-}
-
-inline __device__
-var_t	dot_product(const vec_t* v, const vec_t* u)
-{
-	return v->x * u->x + v->y * u->y + v->z * u->z;
-}
-
-inline __device__
-var_t	norm2(const vec_t* v)
-{
-	return SQR(v->x) + SQR(v->y) + SQR(v->z);
-}
-
-inline __device__
-var_t	norm(const vec_t* v)
-{
-	return sqrt(norm2(v));
-}
-
-// Calculate acceleration caused by particle j on parrticle i 
-__device__ 
+// Calculate acceleration caused by particle j on particle i 
+__host__ __device__ 
 vec_t calculate_grav_accel_pair(const vec_t ci, const vec_t cj, var_t mass, vec_t a)
 {
 	vec_t d;
@@ -57,7 +35,7 @@ vec_t calculate_grav_accel_pair(const vec_t ci, const vec_t cj, var_t mass, vec_
 
 	d.w = SQR(d.x) + SQR(d.y) + SQR(d.z);
 	d.w = d.w * d.w * d.w;
-	d.w =-K2 * mass / sqrt(d.w);
+	d.w = K2 * mass / sqrt(d.w);
 
 	a.x += d.x * d.w;
 	a.y += d.y * d.w;
@@ -66,190 +44,16 @@ vec_t calculate_grav_accel_pair(const vec_t ci, const vec_t cj, var_t mass, vec_
 	return a;
 }
 
-__device__ 
-vec_t circular_velocity(var_t mu, var_t r, var_t alpha)
-{
-	vec_t	result;
-
-	var_t v		= sqrt(mu/r);
-	result.x	=-v*sin(alpha);
-	result.y	= v*cos(alpha);
-	result.z	= 0.0;
-
-	return result;
-}
-
-__device__
-vec_t gas_velocity(var2_t eta, var_t mu, var_t r, var_t alpha)
-{
-	vec_t result = circular_velocity(mu, r, alpha);
-
-	var_t v		 = sqrt(1.0 - 2.0*eta.x * pow(r, eta.y));
-	result.x	*= v;
-	result.y	*= v;
-	
-	return result;
-}
-
-// TODO: implemet INNER_EDGE to get it from the input
-#define INNER_EDGE 0.046 // AU ~ 10 R_sol
-__device__
-var_t	gas_density_at(const planets::gaspar_t* gaspar, var_t r, var_t z)
-{
-	var_t result = 0.0;
-
-	var_t h		= gaspar->sch.x * pow(r, gaspar->sch.y);
-	var_t arg	= SQR(z/h);
-	if (r > INNER_EDGE) {
-		result	= gaspar->rho.x * pow(r, gaspar->rho.y) * exp(-arg);
-	}
-	else {
-		var_t a	= gaspar->rho.x * pow(INNER_EDGE, gaspar->rho.y - 4.0);
-		result	= a * SQR(SQR(r)) * exp(-arg);
-	}
-
-	return result;
-}
-#undef INNER_EDGE
-
-inline __device__
-var_t	calculate_kinetic_energy(const vec_t* velo)
-{
-	return 0.5 * norm2(velo);
-}
-
-inline __device__
-var_t	calculate_potential_energy(var_t mu, const vec_t* coor)
-{
-	return -mu / norm(coor);
-}
-
-__device__
-var_t	calculate_energy(const var_t mu, const vec_t* coor, const vec_t* velo)
-{
-	return calculate_kinetic_energy(velo) + calculate_potential_energy(mu, coor);
-}
-
-#define	sq3	1.0e-14
-__device__
-int		calculate_orbelem(const var_t mu, const vec_t* coor, const vec_t* velo, var_t* sma, var_t* ecc)
-{
-	// Calculate energy, h
-    var_t h = calculate_energy(mu, coor, velo);
-    if (h >= 0.0) {
-        return 1;
-    }
-
-    vec_t c = cross_product(coor, velo);
-	var_t cNorm2 = norm2(&c);
-    /*
-    * Calculate eccentricity, e
-    */
-    var_t e2 = 1.0 + 2.0 * cNorm2 * h / SQR(mu);
-	*ecc = abs(e2) < sq3 ? 0.0 : sqrt(e2); 
-    /*
-    * Calculate semi-major axis, a
-    */
-    *sma = -mu / (2.0 * h);
-
-    return 0;
-}
-#undef	sq3
-
-#if FALSE
-#define	sq2 1.0e-14
-#define	sq3	1.0e-14
-__device__
-	int		calculate_orbelem(const var_t mu, const vec_t* coor, const vec_t* velo, planets::orbelem_t* orbelem)
-{
-	// Calculate energy, h
-    var_t h = calculate_energy(mu, coor, velo);
-    if (h >= 0.0) {
-        return 1;
-    }
-
-    vec_t c = cross_product(coor, velo);
-	var_t cNorm2 = norm2(&c);
-    /*
-    * Calculate eccentricity, e
-    */
-    var_t e2 = 1.0 + 2.0*cNorm2*h/SQR(mu);
-	orbelem->ecc = abs(e2) < sq3 ? 0.0 : sqrt(e2); 
-    /*
-    * Calculate semi-major axis, a
-    */
-    orbelem->sma = -mu / (2.0 * h);
-
-    /*
-    * Calculate inclination, incl
-    */
-	cNorm2 = 2(&c);
-    var_t cosi = c.z / cNorm;
-    var_t sini = sqrt(c.x * c.x + c.y * c.y) / c.Length();
-    var_t incl = acos(cosi);
-    if (incl < sq2)
-    {
-        incl = 0.0;
-    }
-    /*
-    * Calculate longitude of node, O
-    */
-    double node = 0.0;
-    if (incl != 0.0)
-    {
-        double tmpx = -c.y / (c.Length() * sini);
-        double tmpy = c.x / (c.Length() * sini);
-		node = atan2(tmpy, tmpx);
-		ShiftIntoRange(0.0, 2.0*Constants::Pi, node);
-    }
-    /*
-    * Calculate argument of pericenter, w
-    */
-    double E = 0.0;
-    double peri = 0.0;
-    if (e2 != 0.0)
-    {
-        double tmpx = (l.x * cos(node) + l.y * sin(node)) / l.Length();
-        double tmpy = (-l.x * sin(node) + l.y * cos(node)) / (l.Length() * cosi);
-        peri = atan2(tmpy, tmpx);
-        ShiftIntoRange(0.0, 2.0*Constants::Pi, peri);
-
-        tmpx = 1.0 / e * (1.0 - r.Length() / a);
-        tmpy = rv / (sqrt(mu * a) * e);
-        E = atan2(tmpy, tmpx);
-        ShiftIntoRange(0.0, 2.0*Constants::Pi, E);
-    }
-    else
-    {
-        peri = 0.0;
-        E = atan2(r.y, r.x);
-        ShiftIntoRange(0, 2.0*Constants::Pi, E);
-    }
-    /*
-    * Calculate mean anomaly, M
-    */
-    double M = E - e * sin(E);
-    ShiftIntoRange(0, 2.0*Constants::Pi, M);
-
-	orbitalElement->semiMajorAxis			= a;
-	orbitalElement->eccentricity			= e;
-	orbitalElement->inclination				= incl;
-	orbitalElement->argumentOfPericenter	= peri;
-	orbitalElement->longitudeOfNode			= node;
-	orbitalElement->meanAnomaly				= M;
-
-	return 0;
-}
-#undef	sq2
-#undef	sq3
-#endif
-
 __global__
 void	calculate_grav_accel_kernel(interaction_bound iBound, const planets::param_t* params, const vec_t* coor, vec_t* acce)
 {
 	int	bodyIdx = iBound.sink.x + blockIdx.x * blockDim.x + threadIdx.x;
 
 	if (bodyIdx < iBound.sink.y) {
+		acce[bodyIdx].x = 0.0;
+		acce[bodyIdx].y = 0.0;
+		acce[bodyIdx].z = 0.0;
+		acce[bodyIdx].w = 0.0;
 		for (int j = iBound.source.x; j < iBound.source.y; j++) 
 		{
 			if (j == bodyIdx) {
@@ -271,9 +75,9 @@ void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const pl
 		var_t rhoGas= gas_density_at(gaspar, r, coor[bodyIdx].z) * timeF;
 
 		vec_t u;
-		u.x			= velo[bodyIdx].x -vGas.x;
-		u.y			= velo[bodyIdx].y -vGas.y;
-		u.z			= velo[bodyIdx].z -vGas.z;
+		u.x			= velo[bodyIdx].x - vGas.x;
+		u.y			= velo[bodyIdx].y - vGas.y;
+		u.z			= velo[bodyIdx].z - vGas.z;
 
 		var_t C		= 0.0;
 		// TODO: implement the different regimes according to the mean free path of the gas molecules
@@ -283,7 +87,7 @@ void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const pl
 		}
 		// Stokes-regime:
 		{
-			var_t uLength = sqrt(SQR(vGas.x) + SQR(vGas.y) + SQR(vGas.z));
+			var_t uLength = norm(&u);
 			C = params[bodyIdx].gamma_stokes * uLength * rhoGas;
 		}
 		// Transition regime:
@@ -316,28 +120,32 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(number_of_bodies nBodies, 
 
 	iBound = nBodies.get_nonself_interacting();
 	nBodyToCalculate = nBodies.super_planetesimal + nBodies.planetesimal;
-	nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
-	nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
-	grid.x		= nBlock;
-	block.x		= nThread;
+	if (nBodyToCalculate > 0) {
+		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
+		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
+		grid.x		= nBlock;
+		block.x		= nThread;
 
-	calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
-	cudaStatus = cudaGetLastError();
-	if (cudaStatus != cudaSuccess) {
-		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
+		cudaStatus = cudaGetLastError();
+		if (cudaStatus != cudaSuccess) {
+			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+		}
 	}
 
 	iBound = nBodies.get_non_interacting();
 	nBodyToCalculate = nBodies.test_particle;
-	nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
-	nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
-	grid.x		= nBlock;
-	block.x		= nThread;
+	if (nBodyToCalculate > 0) {
+		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
+		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
+		grid.x		= nBlock;
+		block.x		= nThread;
 
-	calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
-	cudaStatus = cudaGetLastError();
-	if (cudaStatus != cudaSuccess) {
-		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
+		cudaStatus = cudaGetLastError();
+		if (cudaStatus != cudaSuccess) {
+			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+		}
 	}
 
 	return cudaStatus;
@@ -371,7 +179,7 @@ planets::planets(number_of_bodies bodies) :
 	ode(2),
 	bodies(bodies)
 {
-	round_up_n();
+	//round_up_n();
 	allocate_vectors();
 }
 
@@ -382,11 +190,13 @@ planets::~planets()
 void planets::allocate_vectors()
 {
 	// Parameters
-	h_p.resize(NPAR * bodies.total);
+	int	npar = sizeof(planets::param_t) / sizeof(var_t);
+	h_p.resize(npar * bodies.total);
 
 	// Aliases to coordinates and velocities
-	h_y[0].resize(NDIM * bodies.total);
-	h_y[1].resize(NDIM * bodies.total);
+	int ndim = sizeof(vec_t) / sizeof(var_t);
+	h_y[0].resize(ndim * bodies.total);
+	h_y[1].resize(ndim * bodies.total);
 }
 
 void planets::round_up_n()
@@ -400,3 +210,94 @@ void planets::round_up_n()
 	bodies.total_rounded_up = m;
 }
 
+void planets::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy)
+{
+	switch (i)
+	{
+	case 0:
+		// Copy velocities from previous step
+		thrust::copy(y[1].begin(), y[1].end(), dy.begin());
+		break;
+	case 1:
+		// Calculate accelerations originated from gravity
+		call_calculate_grav_accel_kernel(bodies, (param_t*)p.data().get(), (vec_t*)d_y[0].data().get(), (vec_t*)dy.data().get());
+
+		// Calculate accelerations originated from gas drag
+
+		// Calculate accelerations originated from migration
+
+		// Calculate accelerations originated from other forces
+
+		break;
+	}
+}
+
+void planets::load(string filename)
+{
+	if (bodies.total > this->bodies.total) {
+		throw nbody_exception("Too many lines in file.");
+	}
+
+	vec_t* h_coord = (vec_t*)h_y[0].data();
+	vec_t* h_veloc = (vec_t*)h_y[1].data();
+	param_t* h_param = (param_t*)h_p.data();
+
+	ifstream input(filename.c_str());
+
+	if (input) {
+        int		id;
+		ttt_t	time;
+        
+		for (int i = 0; i < this->bodies.total; i++) { 
+            input >> id;
+			input >> time;
+
+			input >> h_param[i].mass;
+			input >> h_param[i].radius;
+
+			input >> h_coord[i].x;
+			input >> h_coord[i].y;
+			input >> h_coord[i].z;
+
+			input >> h_veloc[i].x;
+			input >> h_veloc[i].y;
+			input >> h_veloc[i].z;
+        }
+        input.close();
+	}
+	else {
+		throw nbody_exception("Cannot open file.");
+	}
+}
+
+// Print body positions
+int planets::print_positions(ostream& sout)
+{
+	param_t* h_param = (param_t*)h_p.data();
+	vec_t* h_coord = (vec_t*)h_y[0].data();
+	vec_t* h_veloc = (vec_t*)h_y[1].data();
+	
+	for (int i = 0; i < bodies.total; i ++)
+	{
+		if (h_param[i].mass == 0)
+		{
+			continue;
+		}
+
+		sout << i << '\t';
+		sout << t << '\t';
+		sout << h_param[i].mass << '\t';
+		sout << h_param[i].radius << '\t';
+
+		sout << h_coord[i].x << '\t';
+		sout << h_coord[i].y << '\t';
+		sout << h_coord[i].z << '\t';
+		sout << h_veloc[i].x << '\t';
+		sout << h_veloc[i].y << '\t';
+		sout << h_veloc[i].z;
+
+		sout << endl;
+	}
+
+	return bodies.total;
+}

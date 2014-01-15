@@ -504,12 +504,20 @@ int nbody::print_positions(ostream& sout)
 		sout << t << '\t';
 		sout << h_param[i].mass << '\t';
 		sout << h_param[i].radius << '\t';
-		sout << h_coord[i].x - h_coord[0].x << '\t';
-		sout << h_coord[i].y - h_coord[0].y << '\t';
-		sout << h_coord[i].z - h_coord[0].z << '\t';
-		sout << h_veloc[i].x - h_veloc[0].x << '\t';
-		sout << h_veloc[i].y - h_veloc[0].y << '\t';
-		sout << h_veloc[i].z - h_veloc[0].z;
+		//sout << h_coord[i].x - h_coord[0].x << '\t';
+		//sout << h_coord[i].y - h_coord[0].y << '\t';
+		//sout << h_coord[i].z - h_coord[0].z << '\t';
+		//sout << h_veloc[i].x - h_veloc[0].x << '\t';
+		//sout << h_veloc[i].y - h_veloc[0].y << '\t';
+		//sout << h_veloc[i].z - h_veloc[0].z;
+
+		sout << h_coord[i].x << '\t';
+		sout << h_coord[i].y << '\t';
+		sout << h_coord[i].z << '\t';
+		sout << h_veloc[i].x << '\t';
+		sout << h_veloc[i].y << '\t';
+		sout << h_veloc[i].z;
+
 		sout << endl;
 	}
 

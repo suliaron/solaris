@@ -49,7 +49,7 @@ private:
 	// Temporary storage for accelerations, required between kernel calls
 	d_vec_t			d_accelerations;
 	
-	// Dtorage for intersection detection
+	// Storage for intersection detection
 	h_int_t			h_interactions_end;
 	d_int2_t		d_interactions;
 	d_int_t			d_interactions_end;

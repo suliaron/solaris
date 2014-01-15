@@ -30,12 +30,18 @@
     <ClInclude Include="interaction_bound.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nbody_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="nbody.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
     <CudaCompile Include="planets.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="nbody_util.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>

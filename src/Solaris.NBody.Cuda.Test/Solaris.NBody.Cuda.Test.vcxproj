@@ -69,6 +69,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>solnbcutest</TargetName>
+    <IncludePath>$(SolutionDir)/src/Solaris.NBody.Cuda;$(SolutionDir)/src/Solaris.Integrator.Cuda;$(SolutionDir)config\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -154,6 +155,11 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config\config.h" />
+    <ClInclude Include="..\Solaris.NBody.Cuda\interaction_bound.h" />
+    <ClInclude Include="..\Solaris.NBody.Cuda\nbody.h" />
+    <ClInclude Include="..\Solaris.NBody.Cuda\nbody_exception.h" />
+    <ClInclude Include="..\Solaris.NBody.Cuda\number_of_bodies.h" />
+    <ClInclude Include="..\Solaris.NBody.Cuda\planets.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
