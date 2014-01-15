@@ -45,4 +45,6 @@ typedef thrust::device_vector<int2_t>	d_int2_t;
 #define K			(var_t)0.01720209895
 #define K2			(var_t)0.0002959122082855911025
 
+#define	PI			(var_t)3.1415926535897932384626
+
 #define	SQR(x)		(x)*(x)
