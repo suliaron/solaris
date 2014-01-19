@@ -45,22 +45,42 @@ var_t	norm(const vec_t* v)
 }
 
 __host__ __device__ 
-vec_t circular_velocity(var_t mu, var_t r, var_t alpha)
+vec_t	circular_velocity(var_t mu, vec_t* rVec)
 {
-	vec_t	result;
+	vec_t result = {0.0, 0.0, 0.0, 0.0};
 
-	var_t v		= sqrt(mu/r);
-	result.x	=-v*sin(alpha);
-	result.y	= v*cos(alpha);
-	result.z	= 0.0;
+	var_t r		= sqrt(SQR(rVec->x) + SQR(rVec->y));
+	var_t vc	= sqrt(mu/r);
+
+	var_t p;
+	if (rVec->x == 0.0 && rVec->y == 0.0) {
+		return result;
+	}
+	else if (rVec->y == 0.0) {
+		result.y = rVec->x > 0.0 ? vc : -vc;
+	}
+	else if (rVec->x == 0.0) {
+		result.x = rVec->y > 0.0 ? -vc : vc;
+	}
+	else if (rVec->x >= rVec->y) {
+		p = rVec->y / rVec->x;
+		result.y = rVec->x >= 0 ? vc/sqrt(1.0 + SQR(p)) : -vc/sqrt(1.0 + SQR(p));
+		result.x = -result.y*p;
+	}
+	else {
+		p = rVec->x / rVec->y;
+		result.x = rVec->y >= 0 ? -vc/sqrt(1.0 + SQR(p)) : vc/sqrt(1.0 + SQR(p));
+		result.y = -result.x*p;
+	}
 
 	return result;
 }
 
 __host__ __device__
-vec_t gas_velocity(var2_t eta, var_t mu, var_t r, var_t alpha)
+vec_t	gas_velocity(var2_t eta, var_t mu, vec_t* rVec)
 {
-	vec_t result = circular_velocity(mu, r, alpha);
+	vec_t result = circular_velocity(mu, rVec);
+	var_t r		= sqrt(SQR(rVec->x) + SQR(rVec->y));
 
 	var_t v		 = sqrt(1.0 - 2.0*eta.x * pow(r, eta.y));
 	result.x	*= v;
@@ -72,13 +92,14 @@ vec_t gas_velocity(var2_t eta, var_t mu, var_t r, var_t alpha)
 // TODO: implemet INNER_EDGE to get it from the input
 #define INNER_EDGE 0.046 // AU ~ 10 R_sol
 __host__ __device__
-var_t	gas_density_at(const planets::gaspar_t* gaspar, var_t r, var_t z)
+var_t	gas_density_at(const planets::gaspar_t* gaspar, const vec_t* rVec)
 {
 	var_t result = 0.0;
 
+	var_t r		= sqrt(SQR(rVec->x) + SQR(rVec->y));
 	var_t h		= gaspar->sch.x * pow(r, gaspar->sch.y);
-	var_t arg	= SQR(z/h);
-	if (r > INNER_EDGE) {
+	var_t arg	= SQR(rVec->z/h);
+	if (INNER_EDGE < r) {
 		result	= gaspar->rho.x * pow(r, gaspar->rho.y) * exp(-arg);
 	}
 	else {
@@ -91,28 +112,27 @@ var_t	gas_density_at(const planets::gaspar_t* gaspar, var_t r, var_t z)
 #undef INNER_EDGE
 
 __host__ __device__
-var_t	calculate_kinetic_energy(const vec_t* velo)
+var_t	calculate_kinetic_energy(const vec_t* vVec)
 {
-	return 0.5 * norm2(velo);
+	return 0.5 * norm2(vVec);
 }
 
 __host__ __device__
-var_t	calculate_potential_energy(var_t mu, const vec_t* coor)
+var_t	calculate_potential_energy(var_t mu, const vec_t* rVec)
 {
-	return -mu / norm(coor);
+	return -mu / norm(rVec);
 }
 
 __host__ __device__
-var_t	calculate_energy(var_t mu, const vec_t* coor, const vec_t* velo)
+var_t	calculate_energy(var_t mu, const vec_t* rVec, const vec_t* vVec)
 {
-	return calculate_kinetic_energy(velo) + calculate_potential_energy(mu, coor);
+	return calculate_kinetic_energy(vVec) + calculate_potential_energy(mu, rVec);
 }
 
 __host__ __device__
-int_t kepler_equation_solver(var_t ecc, var_t mean, var_t eps, var_t* E)
+int_t	kepler_equation_solver(var_t ecc, var_t mean, var_t eps, var_t* E)
 {
-	if (ecc == 0.0 || mean == 0.0 || mean == PI)
-    {
+	if (ecc == 0.0 || mean == 0.0 || mean == PI) {
         *E = mean;
 		return 0;
     }
@@ -122,11 +142,10 @@ int_t kepler_equation_solver(var_t ecc, var_t mean, var_t eps, var_t* E)
     int_t step = 0;
     do {
         E1 = *E - (*E - ecc * sin(*E) - mean) / (1.0 - ecc * cos(*E));
-        error = abs(E1 - *E);
+        error = fabs(E1 - *E);
         *E = E1;
-        step++;
-    } while (error > eps && step <= 25);
-	if (step > 25 ) {
+    } while (error > eps && step++ <= 15);
+	if (step > 15 ) {
 		return 1;
 	}
 
@@ -134,7 +153,7 @@ int_t kepler_equation_solver(var_t ecc, var_t mean, var_t eps, var_t* E)
 }
 
 __host__ __device__
-int_t calculate_phase(var_t mu, const planets::orbelem_t* oe, vec_t* coor, vec_t* velo)
+int_t	calculate_phase(var_t mu, const planets::orbelem_t* oe, vec_t* rVec, vec_t* vVec)
 {
     var_t ecc = oe->ecc;
 	var_t E = 0.0;
@@ -166,23 +185,23 @@ int_t calculate_phase(var_t mu, const planets::orbelem_t* oe, vec_t* coor, vec_t
 	Q.y = -sw * sO + cw * cO * ci;
 	Q.z = cw * si;
 
-	coor->x = kszi * P.x + eta * Q.x;
-	coor->y = kszi * P.y + eta * Q.y;
-	coor->z = kszi * P.z + eta * Q.z;
+	rVec->x = kszi * P.x + eta * Q.x;
+	rVec->y = kszi * P.y + eta * Q.y;
+	rVec->z = kszi * P.z + eta * Q.z;
 
-	velo->x = vKszi * P.x + vEta * Q.x;
-	velo->y = vKszi * P.y + vEta * Q.y;
-	velo->z = vKszi * P.z + vEta * Q.z;
+	vVec->x = vKszi * P.x + vEta * Q.x;
+	vVec->y = vKszi * P.y + vEta * Q.y;
+	vVec->z = vKszi * P.z + vEta * Q.z;
 
 	return 0;
 }
 
 #define	sq3	1.0e-14
 __host__ __device__
-int_t	calculate_sma_ecc(var_t mu, const vec_t* coor, const vec_t* velo, var_t* sma, var_t* ecc)
+int_t	calculate_sma_ecc(var_t mu, const vec_t* rVec, const vec_t* vVec, var_t* sma, var_t* ecc)
 {
 	// Calculate energy, h
-    var_t h = calculate_energy(mu, coor, velo);
+    var_t h = calculate_energy(mu, rVec, vVec);
     if (h >= 0.0) {
         return 1;
     }
@@ -190,12 +209,12 @@ int_t	calculate_sma_ecc(var_t mu, const vec_t* coor, const vec_t* velo, var_t* s
 	// Calculate semi-major axis, a
     *sma = -mu / (2.0 * h);
 
-    vec_t cVec = cross_product(coor, velo);
+    vec_t cVec = cross_product(rVec, vVec);
 	cVec.w = norm2(&cVec);		// cVec.w = c2
 
 	// Calculate eccentricity, e
-    *ecc = 1.0 + 2.0 * cVec.w * h / SQR(mu);
-	*ecc = abs(*ecc) < sq3 ? 0.0 : sqrt(*ecc); 
+    var_t e2 = 1.0 + 2.0 * h * cVec.w / (mu*mu);
+	*ecc = fabs(e2) < sq3 ? 0.0 : sqrt(e2); 
 
     return 0;
 }

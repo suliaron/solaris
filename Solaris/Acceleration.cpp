@@ -444,7 +444,7 @@ int Acceleration::MigrationTypeIAC(double t, double *y, double *accel)
 		Tools::ToPhase(&y[i0], &phase);
 		double mu = Constants::Gauss2*(mc + m);
 		Ephemeris::CalculateOrbitalElement(mu, &phase, &a, &e);
-		// Orbital frequency:
+		// Orbital frequency: (note, that this differs from the formula of Fogg & Nelson 2005)
 		double O = Constants::Gauss * sqrt((mc + m)/CUBE(a));
 		double C = SQR(mc)/(m*this->nebula->gasComponent.MidplaneDensity(r)*a*a);
 		// Aspect ratio:
@@ -506,7 +506,7 @@ int Acceleration::MigrationTypeIIAC(double t, double *y, double *accel)
 		Tools::ToPhase(&y[i0], &phase);
 		double mu = Constants::Gauss2*(mc + m);
 		Ephemeris::CalculateOrbitalElement(mu, &phase, &a, &e);
-		// Orbital frequency:
+		// Orbital frequency: (note, that this differs from the formula of Fogg & Nelson 2005)
 		double O = Constants::Gauss * sqrt((mc + m)/CUBE(a));
 
 		double c0 = 1.0/TauNu(r, O);
@@ -671,7 +671,7 @@ int	Acceleration::MigrationTypeIBC(double t, double *y, double *accel)
 		double a = 0.0, e = 0.0;
 		double mu = Constants::Gauss2*(mc + m);
 		Ephemeris::CalculateOrbitalElement(mu, &phase, &a, &e);
-		// Orbital frequency:
+		// Orbital frequency: (note, that this differs from the formula of Fogg & Nelson 2005)
 		double O = Constants::Gauss * sqrt((mc + m)/CUBE(a));
 		double C = SQR(mc)/(m*this->nebula->gasComponent.MidplaneDensity(r)*a*a);
 		// Aspect ratio:
@@ -742,7 +742,7 @@ int	Acceleration::MigrationTypeIIBC(double t, double *y, double *accel)
 		double a = 0.0, e = 0.0;
 		double mu = Constants::Gauss2*(mc + m);
 		Ephemeris::CalculateOrbitalElement(mu, &phase, &a, &e);
-		// Orbital frequency:
+		// Orbital frequency: (note, that this differs from the formula of Fogg & Nelson 2005)
 		double O = Constants::Gauss * sqrt((mc + m)/CUBE(a));
 
 		double c0 = TauNu(r, O);

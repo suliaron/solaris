@@ -23,14 +23,18 @@
     <ClInclude Include="interaction_bound.h" />
     <ClInclude Include="nbody.h" />
     <ClInclude Include="nbody_exception.h" />
-    <ClInclude Include="nbody_util.h" />
+    <ClInclude Include="nbody_util.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="number_of_bodies.h" />
     <ClInclude Include="options.h" />
     <ClInclude Include="planets.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="nbody.cu" />
-    <CudaCompile Include="nbody_util.cu" />
+    <CudaCompile Include="nbody_util.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </CudaCompile>
     <CudaCompile Include="planets.cu" />
   </ItemGroup>
   <ItemGroup>

@@ -16,6 +16,7 @@
 #include "config.h"
 #include "nbody.h"
 #include "nbody_exception.h"
+#include "nbody_util.h"
 #include "ode.h"
 #include "options.h"
 
@@ -110,7 +111,10 @@ string get_printout_file(options& opt, int pcount)
 
 int main(int argc, const char** argv)
 {
-	cout << "Solaris.NBody.Cuda.Test started" << endl;
+	char	func_name[256];
+	char	err_msg[1024];
+
+	cout << "Solaris.NBody.Cuda.Test main.cu started" << endl;
 
 	time_t start = time(NULL);
 

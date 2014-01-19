@@ -6,26 +6,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\config\config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Solaris.NBody.Cuda\nbody.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Solaris.NBody.Cuda\planets.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Solaris.NBody.Cuda\nbody_exception.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Solaris.NBody.Cuda\interaction_bound.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Solaris.NBody.Cuda\number_of_bodies.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <CudaCompile Include="main.cu" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="main.cu" />
+    <ClCompile Include="unit_test.cpp" />
   </ItemGroup>
 </Project>

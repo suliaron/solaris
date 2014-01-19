@@ -18,6 +18,14 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="main.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="unit_test.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E522BC66-21ED-427E-AD31-453296D118E7}</ProjectGuid>
     <RootNamespace>Solaris.NBody.Cuda.Test</RootNamespace>
@@ -105,6 +113,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <Include>$(SolutionDir)config;$(SolutionDir)src\Solaris.Integrator.Cuda;$(SolutionDir)src\Solaris.NBody.Cuda;%(Include)</Include>
+      <CodeGeneration>compute_20,sm_20</CodeGeneration>
     </CudaCompile>
     <CudaLink>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -150,17 +159,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
 copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <CudaCompile Include="main.cu" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\config\config.h" />
-    <ClInclude Include="..\Solaris.NBody.Cuda\interaction_bound.h" />
-    <ClInclude Include="..\Solaris.NBody.Cuda\nbody.h" />
-    <ClInclude Include="..\Solaris.NBody.Cuda\nbody_exception.h" />
-    <ClInclude Include="..\Solaris.NBody.Cuda\number_of_bodies.h" />
-    <ClInclude Include="..\Solaris.NBody.Cuda\planets.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 5.5.targets" />

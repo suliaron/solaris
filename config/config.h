@@ -46,5 +46,11 @@ typedef thrust::device_vector<int2_t>	d_int2_t;
 #define K2			(var_t)0.0002959122082855911025
 
 #define	PI			(var_t)3.1415926535897932384626
+#define	TWOPI		(var_t)6.2831853071795864769253
+#define	TORAD		(var_t)0.0174532925199432957692
+#define TODEG		(var_t)57.295779513082320876798
 
-#define	SQR(x)		(x)*(x)
+// These macro functions must be enclosed in parentheses in order to give
+// correct results in the case of a division i.e. 1/SQR(x) -> 1/((x)*(x))
+#define	SQR(x)		((x)*(x))
+#define	CUBE(x)		((x)*(x)*(x))
