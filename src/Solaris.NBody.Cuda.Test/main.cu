@@ -16,7 +16,6 @@
 #include "config.h"
 #include "nbody.h"
 #include "nbody_exception.h"
-#include "nbody_util.h"
 #include "ode.h"
 #include "options.h"
 
@@ -111,9 +110,6 @@ string get_printout_file(options& opt, int pcount)
 
 int main(int argc, const char** argv)
 {
-	char	func_name[256];
-	char	err_msg[1024];
-
 	cout << "Solaris.NBody.Cuda.Test main.cu started" << endl;
 
 	time_t start = time(NULL);
@@ -131,7 +127,7 @@ int main(int argc, const char** argv)
 
 	//	ostream* positionsf = 0;
 	//	ostream* collisionsf= 0;
-	//	int pcount			= 0;
+		int pcount			= 0;
 	//	int ccount			= 0;
 
 	//	if (!opt.printoutToFile) {
@@ -199,31 +195,32 @@ int main(int argc, const char** argv)
 		int pcount			= 1;
 		int ccount			= 0;
 
+		string filename;
 		if (!opt.printoutToFile) {
 			positionsf = &cout;
 			collisionsf = &cerr;
 		}
 		else {
 			//collisionsf = new ofstream(combine_path(opt.printoutDir, "col.txt").c_str());
-			string filename = get_filename_without_ext(opt.filename) + ".nBodies.";
-			int i = 1;
-			while (i < argc) {
-				string p = argv[i];
-				if (p == "-nBodies") {
-					i++;
-					string number;
-					for (int k = i; k < i + 6; k++ ) {
-						number = argv[k];
-						filename += number + '_';
-					}
-					number = argv[i+6];
-					filename += number;
-					break;
-				}
-			}
-			filename += '.' + get_extension(opt.filename);
+			//filename = get_filename_without_ext(opt.filename) + ".nBodies.";
+			//int i = 1;
+			//while (i < argc) {
+			//	string p = argv[i];
+			//	if (p == "-nBodies") {
+			//		i++;
+			//		string number;
+			//		for (int k = i; k < i + 6; k++ ) {
+			//			number = argv[k];
+			//			filename += number + '_';
+			//		}
+			//		number = argv[i+6];
+			//		filename += number;
+			//		break;
+			//	}
+			//}
+			//string filenameWithExt = filename + '.' + get_extension(opt.filename);
 			//positionsf = new ofstream(get_printout_file(opt, pcount++).c_str());
-			positionsf = new ofstream(combine_path(opt.printoutDir, filename), std::ios::app);
+			//positionsf = new ofstream(combine_path(opt.printoutDir, filename), std::ios::app);
 		}
 
 		while (pl->t < opt.timeStop) {
@@ -234,9 +231,6 @@ int main(int argc, const char** argv)
 				}
 
 				// Start of a print-out period, create new file if necessary
-				if (pp == 0) {
-					cerr << setprecision(5) << setw(6) << (pl->t / opt.timeStop * 100) << " %" << endl;
-				}
 
 				if (0 <= pp && pp <= opt.printoutLength) {
 					if (ps >= opt.printoutStep) {
@@ -246,15 +240,23 @@ int main(int argc, const char** argv)
 					if (ps == 0) {
 						// Print out positions
 						pl->copy_to_host();
+
+						if (positionsf) {
+							delete positionsf;
+						}
+						positionsf = new ofstream(get_printout_file(opt, pcount++).c_str());
 						pl->print_positions(*positionsf);
+						positionsf->flush();
 					}
 				}
 			}
 			dt = intgr->step();
+			cerr << setprecision(6) << setw(7) << (pl->t / opt.timeStop * 100) << " %" << endl;
 
 			pp += dt;
 			ps += dt;
 		}
+		cerr << setprecision(6) << setw(7) << (pl->t / opt.timeStop * 100) << " %" << endl;
 
 		delete pl;
 		delete intgr;

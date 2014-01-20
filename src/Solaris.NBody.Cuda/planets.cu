@@ -21,6 +21,9 @@
 
 #define THREADS_PER_BLOCK	256
 
+
+
+
 __host__ __device__
 void shift_into_range(var_t lower, var_t upper, var_t* value)
 {
@@ -333,7 +336,7 @@ var_t	orbital_period(var_t mu, var_t sma)
 __host__ __device__
 var_t	orbital_frequency(var_t mu, var_t sma) 
 {
-	return 1.0 / orbital_period(mu, sma);;
+	return 1.0 / orbital_period(mu, sma);
 }
 
 
@@ -595,11 +598,6 @@ int planets::print_positions(ostream& sout)
 	
 	for (int i = 0; i < bodies.total; i ++)
 	{
-		if (h_param[i].mass == 0)
-		{
-			continue;
-		}
-
 		sout << i << '\t';
 		sout << t << '\t';
 		sout << h_param[i].mass << '\t';
