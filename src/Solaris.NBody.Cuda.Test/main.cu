@@ -107,6 +107,8 @@ string get_printout_file(options& opt, int pcount)
 	return combine_path(opt.printoutDir, string(buffer));
 }
 
+// -nBodies 1 1 0 0 0 0 19998 -i RK -dt 200 -t 3652500 -p 36525 36525 36525 -o C:\Work\2MStar_5MJupiter_Disc65-270_01 -f C:\Work\2MStar_5MJupiter_Disc65-270_01\Rezso.txt
+// -nBodies 1 1 0 0 0 0 0 -i RKN -dt 200 -t 3652500 -p 36525 36525 36525 -o C:\Work\Cuda.Solaris.TestRuns\2_Body -f C:\Work\Cuda.Solaris.TestRuns\2_Body\TwoBody.txt
 
 int main(int argc, const char** argv)
 {
