@@ -12,6 +12,8 @@
 #include "rungekutta.h"
 #include "rungekuttanystrom.h"
 
+class gas_disc;
+
 using namespace std;
 
 class options
@@ -48,11 +50,11 @@ private:
 	bool_t random;					// Generate random data
 
 	number_of_bodies*	bodies;
+	gas_disc*			gasDisc;
 
 public:
 	options(int argc, const char** argv);
 	~options();
-
 
 	static void print_usage();
 

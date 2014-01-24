@@ -4,6 +4,7 @@
 
 #include "ode.h"
 #include "config.h"
+#include "gas_disc.h"
 #include "number_of_bodies.h"
 
 using namespace std;
@@ -45,15 +46,6 @@ public:
 	typedef thrust::host_vector<param_t>	h_param_t;
 	typedef thrust::device_vector<param_t>	d_param_t;
 
-	// TODO: copy this to constant memory
-	typedef struct gaspar
-	{
-		var2_t	rho;
-		var2_t	sch;
-		var2_t	eta;
-		var2_t	tau;
-	} gaspar_t;
-
 	typedef enum migration
 	{
 		type1,
@@ -61,10 +53,13 @@ public:
 	} migration_t;
 
 private:
-	number_of_bodies bodies;
+	number_of_bodies	bodies;
+	gas_disc			*gasDisc;
+	gas_disc			*d_gasDisc;
+	d_vec_t				acceGasDrag;
 
 public:
-	planets(number_of_bodies bodies);
+	planets(number_of_bodies bodies, gas_disc* gasDisc);
 	~planets();
 
 	void round_up_n();
@@ -82,14 +77,14 @@ private:
 		\param bounds Vector of indices limiting the interacting pairs
 		\param atemp Will hold the accelerations for each body per each tile
 	*/
-	cudaError_t	call_calculate_grav_accel_kernel(number_of_bodies nBodies, const planets::param_t* p, const vec_t* c, vec_t* atemp);
+	cudaError_t	call_calculate_grav_accel_kernel(const planets::param_t* p, const vec_t* c, vec_t* atemp);
 
 	//! Calls the kernel that calculates the acceleration due to drag force on bodies
-	cudaError_t call_calculate_drag_accel_kernel(number_of_bodies nBodies, ttt_t time, const planets::gaspar_t* gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
+	cudaError_t call_calculate_drag_accel_kernel(ttt_t time, const gas_disc* gasDisc, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
 
-	cudaError_t call_calculate_epheremis_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds);
+	//cudaError_t call_calculate_epheremis_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds);
 
-	cudaError_t call_calculate_migration_accel_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds, gaspar_t gaspar, vec_t* atemp);
+	//cudaError_t call_calculate_migration_accel_kernel(const param_t* p, const vec_t* c, const vec_t* v, int2_t bounds, gas_disc* gasDisc, vec_t* atemp);
 
 };
 
@@ -100,7 +95,7 @@ __host__ __device__ var_t	norm2(const vec_t* v);
 __host__ __device__ var_t	norm(const vec_t* v);
 __host__ __device__ vec_t	circular_velocity(var_t mu, const vec_t* rVec);
 __host__ __device__ vec_t	gas_velocity(var2_t eta, var_t mu, const vec_t* rVec);
-__host__ __device__ var_t	gas_density_at(const planets::gaspar_t* gaspar, const vec_t* rVec);
+__host__ __device__ var_t	gas_density_at(const gas_disc* gasDisc, const vec_t* rVec);
 __host__ __device__ var_t	calculate_kinetic_energy(const vec_t* vVec);
 __host__ __device__ var_t	calculate_potential_energy(var_t mu, const vec_t* rVec);
 __host__ __device__ var_t	calculate_energy(var_t mu, const vec_t* rVec, const vec_t* vVec);

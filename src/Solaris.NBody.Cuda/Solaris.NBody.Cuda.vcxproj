@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config\config.h" />
+    <ClInclude Include="..\..\config\Constants.h" />
+    <ClInclude Include="gas_disc.h" />
     <ClInclude Include="interaction_bound.h" />
     <ClInclude Include="nbody.h" />
     <ClInclude Include="nbody_exception.h" />
@@ -38,6 +40,7 @@
     <CudaCompile Include="planets.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="gas_disc.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="nbody_exception.cpp" />
     <ClCompile Include="number_of_bodies.cpp" />

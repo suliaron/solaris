@@ -11,6 +11,7 @@
 #include "thrust\host_vector.h"
 #include "thrust\generate.h"
 #include "thrust\copy.h"
+#include "thrust\transform.h"
 
 // includes project's header
 #include "config.h"
@@ -114,18 +115,18 @@ vec_t	gas_velocity(var2_t eta, var_t mu, const vec_t* rVec)
 // TODO: implemet INNER_EDGE to get it from the input
 #define INNER_EDGE 0.1 // AU
 __host__ __device__
-var_t	gas_density_at(const planets::gaspar_t* gaspar, const vec_t* rVec)
+var_t	gas_density_at(const gas_disc* gasDisc, const vec_t* rVec)
 {
 	var_t result = 0.0;
 
 	var_t r		= sqrt(SQR(rVec->x) + SQR(rVec->y));
-	var_t h		= gaspar->sch.x * pow(r, gaspar->sch.y);
+	var_t h		= gasDisc->sch.x * pow(r, gasDisc->sch.y);
 	var_t arg	= SQR(rVec->z/h);
 	if (INNER_EDGE < r) {
-		result	= gaspar->rho.x * pow(r, gaspar->rho.y) * exp(-arg);
+		result	= gasDisc->rho.x * pow(r, gasDisc->rho.y) * exp(-arg);
 	}
 	else {
-		var_t a	= gaspar->rho.x * pow(INNER_EDGE, gaspar->rho.y - 4.0);
+		var_t a	= gasDisc->rho.x * pow(INNER_EDGE, gasDisc->rho.y - 4.0);
 		result	= a * SQR(SQR(r)) * exp(-arg);
 	}
 
@@ -383,15 +384,15 @@ void	calculate_grav_accel_kernel(interaction_bound iBound, const planets::param_
 }
 
 __global__
-void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const planets::gaspar_t* gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
+void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const gas_disc* gasDisc, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
 {
 	int	bodyIdx = iBound.sink.x + blockIdx.x * blockDim.x + threadIdx.x;
 
 	if (bodyIdx < iBound.sink.y) {
 		// TODO: ask Laci, why coor[bodyIdx] does not work?
-		vec_t rVec  = coor[bodyIdx];
-		vec_t vGas	= gas_velocity(gaspar->eta, K2*params[0].mass, &rVec);
-		var_t rhoGas= gas_density_at(gaspar,  &rVec) * timeF;
+		//vec_t rVec  = coor[bodyIdx];
+		vec_t vGas	= gas_velocity(gasDisc->eta, K2*params[0].mass, (vec_t*)&coor[bodyIdx]);
+		var_t rhoGas= gas_density_at(gasDisc, (vec_t*)&coor[bodyIdx]) * timeF;
 
 		vec_t u;
 		u.x			= velo[bodyIdx].x - vGas.x;
@@ -417,16 +418,27 @@ void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const pl
 		acce[bodyIdx].x = -C * u.x;
 		acce[bodyIdx].y = -C * u.y;
 		acce[bodyIdx].z = -C * u.z;
+		acce[bodyIdx].w = 0.0;
 	}
 }
 
-cudaError_t	planets::call_calculate_grav_accel_kernel(number_of_bodies nBodies, const planets::param_t* params, const vec_t* coor, vec_t* acce)
+// a = a + b
+__global__
+void add_two_vector(int_t n, var_t *a, const var_t *b)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (n > tid) {
+		a[tid] += b[tid];
+	}
+}
+
+cudaError_t	planets::call_calculate_grav_accel_kernel(const planets::param_t* params, const vec_t* coor, vec_t* acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
 	
-	interaction_bound iBound = nBodies.get_self_interacting();
+	interaction_bound iBound = bodies.get_self_interacting();
 
-	int		nBodyToCalculate = nBodies.n_self_interacting();
+	int		nBodyToCalculate = bodies.n_self_interacting();
 	int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 	int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
 	dim3	grid(nBlock);
@@ -437,8 +449,8 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(number_of_bodies nBodies, 
 		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
 	}
 
-	iBound = nBodies.get_nonself_interacting();
-	nBodyToCalculate = nBodies.super_planetesimal + nBodies.planetesimal;
+	iBound = bodies.get_nonself_interacting();
+	nBodyToCalculate = bodies.super_planetesimal + bodies.planetesimal;
 	if (nBodyToCalculate > 0) {
 		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
@@ -452,8 +464,8 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(number_of_bodies nBodies, 
 		}
 	}
 
-	iBound = nBodies.get_non_interacting();
-	nBodyToCalculate = nBodies.test_particle;
+	iBound = bodies.get_non_interacting();
+	nBodyToCalculate = bodies.test_particle;
 	if (nBodyToCalculate > 0) {
 		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
@@ -470,22 +482,22 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(number_of_bodies nBodies, 
 	return cudaStatus;
 }
 
-cudaError_t planets::call_calculate_drag_accel_kernel(number_of_bodies nBodies, ttt_t time, const planets::gaspar_t* gaspar, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
+cudaError_t planets::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc* gasDisc, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
 
 	// TODO: calculate it using the value of the time
 	var_t timeF = 1.0;
 	
-	interaction_bound iBound = nBodies.get_bodies_gasdrag();
+	interaction_bound iBound = bodies.get_bodies_gasdrag();
 
-	int		nBodyToCalculate = nBodies.super_planetesimal + nBodies.planetesimal;
+	int		nBodyToCalculate = bodies.super_planetesimal + bodies.planetesimal;
 	int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 	int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
 	dim3	grid(nBlock);
 	dim3	block(nThread);
 
-	calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, gaspar, params, coor, velo, acce);
+	calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, gasDisc, params, coor, velo, acce);
 	cudaStatus = cudaGetLastError();
 	if (cudaStatus != cudaSuccess) {
 		throw nbody_exception("calculate_drag_accel_kernel launch failed", cudaStatus);
@@ -494,16 +506,24 @@ cudaError_t planets::call_calculate_drag_accel_kernel(number_of_bodies nBodies, 
 	return cudaStatus;
 }
 
-planets::planets(number_of_bodies bodies) :
+planets::planets(number_of_bodies bodies, gas_disc* gasDisc) :
 	ode(2),
-	bodies(bodies)
+	bodies(bodies),
+	gasDisc(gasDisc)
 {
 	//round_up_n();
 	allocate_vectors();
+
+	// TODO:
+	// ask Laci, how to find out if there was an error during these 2 cuda function calls
+	cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc));
+	cudaMemcpy(d_gasDisc, gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice );
 }
 
 planets::~planets()
 {
+	cudaFree(d_gasDisc);
+	free(gasDisc);
 }
 
 void planets::allocate_vectors()
@@ -516,6 +536,10 @@ void planets::allocate_vectors()
 	int ndim = sizeof(vec_t) / sizeof(var_t);
 	h_y[0].resize(ndim * bodies.total);
 	h_y[1].resize(ndim * bodies.total);
+
+	if (0 != gasDisc) {
+		acceGasDrag.resize(ndim * (bodies.super_planetesimal + bodies.planetesimal));
+	}
 }
 
 void planets::round_up_n()
@@ -539,9 +563,33 @@ void planets::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::v
 		break;
 	case 1:
 		// Calculate accelerations originated from gravity
-		call_calculate_grav_accel_kernel(bodies, (param_t*)p.data().get(), (vec_t*)d_y[0].data().get(), (vec_t*)dy.data().get());
+		call_calculate_grav_accel_kernel((param_t*)p.data().get(), (vec_t*)d_y[0].data().get(), (vec_t*)dy.data().get());
 
-		// Calculate accelerations originated from gas drag
+		if (0 != gasDisc) {
+			if (0 == r) {
+			// Calculate accelerations originated from gas drag
+				call_calculate_drag_accel_kernel(t, d_gasDisc, (param_t*)p.data().get(), (vec_t*)d_y[0].data().get(), (vec_t*)d_y[1].data().get(), acceGasDrag.data().get());
+			}
+			// Add acceGasDrag to dy
+			int_t offset = bodies.n_self_interacting() * 4;
+			int nBodyToCalculate = bodies.super_planetesimal + bodies.planetesimal;
+			int_t nData = (nBodyToCalculate) * 4;
+
+			var_t* a = (var_t*)(dy.data().get() + offset);
+			var_t* aGD = (var_t*)acceGasDrag.data().get();
+
+			int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
+			int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
+			dim3	grid(nBlock);
+			dim3	block(nThread);
+
+			add_two_vector<<<grid, block>>>(nData, a, aGD);
+			cudaError_t cudaStatus = cudaGetLastError();
+			if (cudaStatus != cudaSuccess) {
+				throw nbody_exception("add_two_vector kernel failed", cudaStatus);
+			}
+		}
+
 
 		// Calculate accelerations originated from migration
 

@@ -1,3 +1,5 @@
+#include "Constants.h"
+#include "gas_disc.h"
 #include "options.h"
 #include "nbody_exception.h"
 
@@ -31,6 +33,7 @@ void options::create_default_options()
 	filen			= 0;
 	filename		= "";
 	random			= true;
+	gasDisc			= 0;
 }
 
 void options::print_usage()
@@ -79,6 +82,15 @@ void options::parse_options(int argc, const char** argv)
 			int	planetesimal		= atoi(argv[i++]);
 			int	test_particle		= atoi(argv[i]);
 			this->bodies = new number_of_bodies(star, giant_planet, rocky_planet, proto_planet, super_planetesimal, planetesimal, test_particle);
+		}
+		// Initialize a gas_disc object with default values
+		else if (p == "-gas") {
+			var2_t eta = {2.0e-3, 1.0/2.0	};
+			var2_t rho = {1.0e-9, -11.0/4.0	};		// g / cm^3
+			var2_t sch = {5.0e-2, 5.0/4.0	};
+			var2_t tau = {2.0/3.0, 2.0		};
+			rho.x	*= Constants::GramPerCm3ToSolarPerAu3; // M_sun / AU^3
+			gasDisc = new gas_disc(rho, sch, eta, tau);
 		}
 		// Integrator type
 		else if (p == "-i") {
@@ -358,7 +370,7 @@ nbody*	options::create_nbody()
 
 planets*	options::create_planets()
 {
-	planets* pl = new planets(*bodies);
+	planets* pl = new planets(*bodies, gasDisc);
 
 	pl->t = timeStart;
 

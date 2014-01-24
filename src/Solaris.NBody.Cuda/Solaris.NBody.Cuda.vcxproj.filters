@@ -33,6 +33,12 @@
     <ClInclude Include="nbody_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\config\Constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gas_disc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="nbody.cu">
@@ -56,6 +62,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="number_of_bodies.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gas_disc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
