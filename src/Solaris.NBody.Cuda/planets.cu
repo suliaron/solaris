@@ -445,7 +445,8 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(const planets::param_t* pa
 	dim3	block(nThread);
 
 	calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
-	if ((cudaStatus = cudaGetLastError()) != cudaSuccess) {
+	cudaStatus = cudaGetLastError();
+	if (cudaSuccess != cudaStatus) {
 		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
 	}
 
@@ -459,7 +460,7 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(const planets::param_t* pa
 
 		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
 		cudaStatus = cudaGetLastError();
-		if (cudaStatus != cudaSuccess) {
+		if (cudaSuccess != cudaStatus) {
 			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
 		}
 	}
@@ -474,7 +475,7 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(const planets::param_t* pa
 
 		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
 		cudaStatus = cudaGetLastError();
-		if (cudaStatus != cudaSuccess) {
+		if (cudaSuccess != cudaStatus) {
 			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
 		}
 	}
