@@ -120,7 +120,7 @@ ttt_t rungekuttanystrom<RKOrder>::step()
 			max_err = max_vec(d_err);
 
 			// Update step size
-			dt *= 0.9 * pow(tolerance / max_err, (var_t)1.0 / RKOrder);
+			dt *= 1.0e-15 > max_err ? 2.0 : 0.9 * pow(tolerance / max_err, (var_t)1.0 / RKOrder);
 		}
 	}
 	while (adaptive && max_err > tolerance);

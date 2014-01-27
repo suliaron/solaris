@@ -23,6 +23,15 @@
 #define THREADS_PER_BLOCK	256
 
 
+static cudaError_t HandleError(cudaError_t cudaStatus, const char *file, int line)
+{
+    if (cudaSuccess != cudaStatus) {
+        printf( "%s in %s at line %d\n", cudaGetErrorString( cudaStatus ), file, line );
+        return cudaStatus;
+    }
+	return cudaStatus;
+}
+#define HANDLE_ERROR(cudaStatus) (HandleError(cudaStatus, __FILE__, __LINE__))
 
 
 __host__ __device__
@@ -340,6 +349,11 @@ var_t	orbital_frequency(var_t mu, var_t sma)
 	return 1.0 / orbital_period(mu, sma);
 }
 
+__host__ __device__ var_t	calculate_gamma_stokes(var_t stokes, var_t density, var_t radius)
+{
+    return (3.0/8.0)*stokes/(density*radius);
+}
+
 
 
 // Calculate acceleration caused by particle j on particle i 
@@ -386,18 +400,24 @@ void	calculate_grav_accel_kernel(interaction_bound iBound, const planets::param_
 __global__
 void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const gas_disc* gasDisc, const planets::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
 {
-	int	bodyIdx = iBound.sink.x + blockIdx.x * blockDim.x + threadIdx.x;
+	int tid		= blockIdx.x * blockDim.x + threadIdx.x;
+	int	bodyIdx = iBound.sink.x + tid;
 
 	if (bodyIdx < iBound.sink.y) {
 		// TODO: ask Laci, why coor[bodyIdx] does not work?
 		//vec_t rVec  = coor[bodyIdx];
 		vec_t vGas	= gas_velocity(gasDisc->eta, K2*params[0].mass, (vec_t*)&coor[bodyIdx]);
 		var_t rhoGas= gas_density_at(gasDisc, (vec_t*)&coor[bodyIdx]) * timeF;
+		//printf("rhoGas: %.15lf\n", rhoGas);
+		//printf("vGas: %.15lf, %.15lf, %.15lf\n", vGas.x, vGas.y, vGas.z);
+		//printf("velo[%d]: %.15lf, %.15lf, %.15lf\n", bodyIdx, velo[bodyIdx].x, velo[bodyIdx].y, velo[bodyIdx].z);
 
 		vec_t u;
-		u.x			= velo[bodyIdx].x - vGas.x;
-		u.y			= velo[bodyIdx].y - vGas.y;
-		u.z			= velo[bodyIdx].z - vGas.z;
+		u.x	= velo[bodyIdx].x - vGas.x;
+		u.y	= velo[bodyIdx].y - vGas.y;
+		u.z	= velo[bodyIdx].z - vGas.z;
+
+		//printf("u: %.15lf, %.15lf, %.15lf\n", u.x, u.y, u.z);
 
 		var_t C		= 0.0;
 		// TODO: implement the different regimes according to the mean free path of the gas molecules
@@ -409,16 +429,21 @@ void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const ga
 		{
 			//var_t uLength = norm(&u);
 			C = params[bodyIdx].gamma_stokes * norm(&u) * rhoGas;
+			//printf("params[bodyIdx].gamma_stokes: %.15lf\n", params[bodyIdx].gamma_stokes);
+			//printf("norm(&u): %.15lf\n", norm(&u));
+			//printf("C: %.15lf\n", C);
 		}
 		// Transition regime:
 		{
 
 		}
 
-		acce[bodyIdx].x = -C * u.x;
-		acce[bodyIdx].y = -C * u.y;
-		acce[bodyIdx].z = -C * u.z;
-		acce[bodyIdx].w = 0.0;
+		acce[tid].x = -C * u.x;
+		acce[tid].y = -C * u.y;
+		acce[tid].z = -C * u.z;
+		acce[tid].w = 0.0;
+
+		//printf("acce[%d]: %.15lf, %.15lf, %.15lf\n", tid, acce[tid].x, acce[tid].y, acce[tid].z);
 	}
 }
 
@@ -445,21 +470,21 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(const planets::param_t* pa
 	dim3	block(nThread);
 
 	calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
-	cudaStatus = cudaGetLastError();
+	cudaStatus = HANDLE_ERROR(cudaGetLastError());
 	if (cudaSuccess != cudaStatus) {
 		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
 	}
 
 	iBound = bodies.get_nonself_interacting();
 	nBodyToCalculate = bodies.super_planetesimal + bodies.planetesimal;
-	if (nBodyToCalculate > 0) {
+	if (0 < nBodyToCalculate) {
 		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
 		grid.x		= nBlock;
 		block.x		= nThread;
 
 		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
-		cudaStatus = cudaGetLastError();
+		cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
 			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
 		}
@@ -467,14 +492,14 @@ cudaError_t	planets::call_calculate_grav_accel_kernel(const planets::param_t* pa
 
 	iBound = bodies.get_non_interacting();
 	nBodyToCalculate = bodies.test_particle;
-	if (nBodyToCalculate > 0) {
+	if (0 < nBodyToCalculate) {
 		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
 		grid.x		= nBlock;
 		block.x		= nThread;
 
 		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
-		cudaStatus = cudaGetLastError();
+		cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
 			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
 		}
@@ -499,9 +524,9 @@ cudaError_t planets::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc
 	dim3	block(nThread);
 
 	calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, gasDisc, params, coor, velo, acce);
-	cudaStatus = cudaGetLastError();
-	if (cudaStatus != cudaSuccess) {
-		throw nbody_exception("calculate_drag_accel_kernel launch failed", cudaStatus);
+	cudaStatus = HANDLE_ERROR(cudaGetLastError());
+	if (cudaSuccess != cudaStatus) {
+		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
 	}
 
 	return cudaStatus;
@@ -510,15 +535,13 @@ cudaError_t planets::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc
 planets::planets(number_of_bodies bodies, gas_disc* gasDisc) :
 	ode(2),
 	bodies(bodies),
-	gasDisc(gasDisc)
+	gasDisc(gasDisc),
+	d_gasDisc(0),
+	acceGasDrag(d_vec_t())
 {
 	//round_up_n();
 	allocate_vectors();
 
-	// TODO:
-	// ask Laci, how to find out if there was an error during these 2 cuda function calls
-	cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc));
-	cudaMemcpy(d_gasDisc, gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice );
 }
 
 planets::~planets()
@@ -540,6 +563,10 @@ void planets::allocate_vectors()
 
 	if (0 != gasDisc) {
 		acceGasDrag.resize(ndim * (bodies.super_planetesimal + bodies.planetesimal));
+		// TODO:
+		// ask Laci, how to find out if there was an error during these 2 cuda function calls
+		cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc));
+		cudaMemcpy(d_gasDisc, gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice );
 	}
 }
 
