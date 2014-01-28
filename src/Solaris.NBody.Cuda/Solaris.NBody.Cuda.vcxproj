@@ -34,7 +34,9 @@
     <ClInclude Include="planets.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="nbody.cu" />
+    <CudaCompile Include="nbody.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </CudaCompile>
     <CudaCompile Include="nbody_util.cu">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -43,7 +45,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gas_disc.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="nbody_exception.cpp" />
     <ClCompile Include="number_of_bodies.cpp" />
     <ClCompile Include="options.cpp" />

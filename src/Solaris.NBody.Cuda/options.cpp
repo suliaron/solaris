@@ -336,37 +336,37 @@ void options::initial_condition(planets* pl)
 	}
 }
 
-ode* options::create_ode()
-{
-	nbody* nb = new nbody(n);
-
-	nb->t = timeStart;
-	
-	if (file) {
-		nb->load(filename, n);
-	}
-
-	nb->copy_to_device();
-
-	return nb;
-}
-
-nbody*	options::create_nbody()
-{
-	nbody*	nb = new nbody(n);
-
-	nb->t = timeStart;
-
-	if (file) {
-		nb->load(filename, n);
-	}
-	else {
-		initial_condition(nb);
-	}
-	nb->copy_to_device();
-
-	return nb;
-}
+//ode* options::create_ode()
+//{
+//	nbody* nb = new nbody(n);
+//
+//	nb->t = timeStart;
+//	
+//	if (file) {
+//		nb->load(filename, n);
+//	}
+//
+//	nb->copy_to_device();
+//
+//	return nb;
+//}
+//
+//nbody*	options::create_nbody()
+//{
+//	nbody*	nb = new nbody(n);
+//
+//	nb->t = timeStart;
+//
+//	if (file) {
+//		nb->load(filename, n);
+//	}
+//	else {
+//		initial_condition(nb);
+//	}
+//	nb->copy_to_device();
+//
+//	return nb;
+//}
 
 planets*	options::create_planets()
 {

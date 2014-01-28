@@ -1,5 +1,6 @@
 // includes system 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
 // includes CUDA
@@ -583,15 +584,27 @@ void planets::round_up_n()
 
 void planets::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy)
 {
+	//h_var_t coor = y[0];
+	//for (int i = 0; i < coor.size(); i++)
+	//	cout << "coor[" << i << "] = " << setprecision(20) << coor[i] << endl;
+	//
+	//h_var_t velo;
+	//h_var_t acce;
 	switch (i)
 	{
 	case 0:
 		// Copy velocities from previous step
 		thrust::copy(y[1].begin(), y[1].end(), dy.begin());
+		//velo = dy;
+		//for (int i = 0; i < coor.size(); i++)
+		//	cout << "velo[" << i << "] = " << setprecision(20) << velo[i] << endl;
 		break;
 	case 1:
 		// Calculate accelerations originated from gravity
 		call_calculate_grav_accel_kernel((param_t*)p.data().get(), (vec_t*)d_y[0].data().get(), (vec_t*)dy.data().get());
+		//acce = dy;
+		//for (int i = 0; i < coor.size(); i++)
+		//	cout << "acce[" << i << "] = " << setprecision(20) << acce[i] << endl;
 
 		if (0 != gasDisc) {
 			if (0 == r) {
@@ -617,7 +630,6 @@ void planets::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::v
 				throw nbody_exception("add_two_vector kernel failed", cudaStatus);
 			}
 		}
-
 
 		// Calculate accelerations originated from migration
 

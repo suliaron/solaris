@@ -58,8 +58,8 @@ public:
 
 	static void print_usage();
 
-	ode*		create_ode();
-	nbody*		create_nbody();
+	//ode*		create_ode();
+	//nbody*		create_nbody();
 	planets*	create_planets();
 	integrator* create_integrator(ode* f);
 

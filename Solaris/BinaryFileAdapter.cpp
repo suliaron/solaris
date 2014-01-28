@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -16,6 +17,8 @@
 #include "Tools.h"
 #include "TwoBodyAffair.h"
 
+using namespace std;
+
 int BinaryFileAdapter::_propertyId = 0;
 int BinaryFileAdapter::_compositionId = 0;
 
@@ -24,9 +27,9 @@ BinaryFileAdapter::BinaryFileAdapter(Output *output)
 	this->output = output;
 }
 
-bool BinaryFileAdapter::FileExists(const std::string& name) {
+bool BinaryFileAdapter::FileExists(const string& name) {
     struct stat buffer;
-    std::string path = output->GetPath(name);
+    string path = output->GetPath(name);
     return (stat (path.c_str(), &buffer) == 0); 
 }
 
@@ -37,28 +40,28 @@ bool BinaryFileAdapter::FileExists(const std::string& name) {
  * @param msg message to write into the log file
  * @param printToScreen if true the message will be also printed to the screen
  */
-void BinaryFileAdapter::Log(std::string msg, bool printToScreen)
+void BinaryFileAdapter::Log(string msg, bool printToScreen)
 {
 	char dateTime[20];
 	time_t now = time(0);
 	strftime(dateTime, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
 
-	std::string path = output->GetPath(output->log);
-	std::ofstream logger(path.c_str(), std::ios::out | std::ios::app);
+	string path = output->GetPath(output->log);
+	ofstream logger(path.c_str(), ios::out | ios::app);
 	if (logger) {
-		logger << dateTime << " " << msg << std::endl;
+		logger << dateTime << " " << msg << endl;
 		if (logger.bad()) {
 			perror(("error while reading file " + path).c_str());
 		}
 		logger.close();
 	}
 	else {
-		std::cerr << "The file '" << path << "' could not opened!\r\nExiting to system!" << std::endl;
+		cerr << "The file '" << path << "' could not opened!\r\nExiting to system!" << endl;
 		exit(1);
 	}
 
 	if (printToScreen) {
-		std::cerr << dateTime << " " << msg << std::endl;
+		cerr << dateTime << " " << msg << endl;
 	}
 }
 
@@ -71,7 +74,7 @@ void BinaryFileAdapter::Log(std::string msg, bool printToScreen)
  */
 void BinaryFileAdapter::LogStartParameters(int argc, char* argv[])
 {
-	std::string commandLine = "CommandLine:";
+	string commandLine = "CommandLine:";
 	for (int i=0; i<argc; i++) {
 		commandLine += ' ';
 		commandLine += argv[i];
@@ -85,11 +88,11 @@ void BinaryFileAdapter::LogStartParameters(int argc, char* argv[])
  * @param msg the message to write to the log file
  * @param t0 the reference wall time from wgich the elapsed time is calculated
  */
-void BinaryFileAdapter::LogTimeSpan(std::string msg, time_t t0)
+void BinaryFileAdapter::LogTimeSpan(string msg, time_t t0)
 {
 	int diff = (int)(time(0) - t0);
 
-	std::string diffTime;
+	string diffTime;
 	Tools::TimeDifference(diff, diffTime);
 	msg += diffTime;
 	Log(msg, true);
@@ -101,29 +104,73 @@ void BinaryFileAdapter::LogTimeSpan(std::string msg, time_t t0)
 /// </summary>
 /// <param name="path">The path of the output file</param>
 /// <param name="list">The list of the bodies whose phases will be saved</param>
-void BinaryFileAdapter::SavePhases(double time, int n, double *y, int *id)
+void BinaryFileAdapter::SavePhases(double time, int n, double *y, int *id, OutputType type)
 {
-	std::string path = output->GetPath(output->phases);
-	std::ofstream writer(path.c_str(), std::ios::out | std::ios::app | std::ios::binary);
-	if (writer) {
-		writer.write(reinterpret_cast<char*>(&time), sizeof(time));
-		writer.write(reinterpret_cast<char*>(&n),    sizeof(n));
-		for (register int i=0; i<n; i++) {
-			SavePhase(writer, &(y[6*i]), &(id[i]));
+	switch (type) 
+	{
+		case BINARY:
+		{
+			string path = output->GetPath(output->phases);
+			ofstream writer(path.c_str(), ios::out | ios::app | ios::binary);
+			if (writer) {
+				writer.write(reinterpret_cast<char*>(&time), sizeof(time));
+				writer.write(reinterpret_cast<char*>(&n),    sizeof(n));
+				for (register int i=0; i<n; i++) {
+					SavePhase(writer, &(y[6*i]), &(id[i]), type);
+				}
+				writer.flush();
+				writer.close();
+			}
+			else {
+				Log("The file '" + path + "' could not opened!", true);
+				exit(1);
+			}
+			break;
 		}
-		writer.close();
-	}
-	else {
-		Log("The file '" + path + "' could not opened!", true);
+	case TEXT:
+		{
+			string path = output->GetPath(output->GetFilenameWithoutExt(output->phases) + ".txt");
+			ofstream writer(path.c_str(), ios::out | ios::app);
+			if (writer) {
+				writer << setw(15) << setprecision(10) << time;
+				writer << setw(8) << n;
+				for (register int i=0; i<n; i++) {
+					SavePhase(writer, &(y[6*i]), &(id[i]), type);
+				}
+				writer << endl;
+				writer.flush();
+				writer.close();
+			}
+			else {
+				Log("The file '" + path + "' could not opened!", true);
+				exit(1);
+			}
+			break;
+		}
+	default:
+		Log("Unknown OutputType.", true);
 		exit(1);
+		break;
 	}
-    std::cout << "At " << time * Constants::DayToYear << " [yr] phases were saved" << std::endl;
+
+    cout << "At " << setw(10) << time * Constants::DayToYear << " [yr] phases were saved" << endl;
 }
 
-void BinaryFileAdapter::SavePhase(std::ofstream& writer, double *y, int *id)
+void BinaryFileAdapter::SavePhase(ofstream& writer, double *y, int *id, OutputType type)
 {
-	writer.write(reinterpret_cast<char*>(id), sizeof(*id));
-	writer.write(reinterpret_cast<char*>(y),  6*sizeof(*y));
+	switch(type)
+	{
+	case BINARY:
+		writer.write(reinterpret_cast<char*>(id), sizeof(*id));
+		writer.write(reinterpret_cast<char*>(y),  6*sizeof(*y));
+		break;
+	case TEXT:
+		writer << setw(8) << *id;
+		for (int i = 0; i < 6; i++) {
+			writer << setw(15) << setprecision(6) << y[i];
+		}
+		break;
+	}
 	if (writer.bad()) {
 		_errMsg = "An error occurred during writing the phase!";
 		Log(_errMsg, true);
@@ -140,8 +187,8 @@ void BinaryFileAdapter::SaveIntegrals(double time, int n, double *integrals)
 {
 	static bool firstCall = true;
 
-	std::string path = output->GetPath(output->integrals);
-	std::ofstream writer(path.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+	string path = output->GetPath(output->integrals);
+	ofstream writer(path.c_str(), ios::out | ios::app | ios::binary);
 	if (writer) {
 		if (firstCall)
 		{
@@ -176,10 +223,10 @@ void BinaryFileAdapter::SaveIntegrals(double time, int n, double *integrals)
 /// </summary>
 /// <param name="path">The path of the output file</param>
 /// <param name="list">The data of the TwoBodyAffairs</param>
-void BinaryFileAdapter::SaveTwoBodyAffairs(std::list<TwoBodyAffair>& list)
+void BinaryFileAdapter::SaveTwoBodyAffairs(list<TwoBodyAffair>& list)
 {
-	std::string path = output->GetPath(output->twoBodyAffair);
-	std::ofstream writer(path.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+	string path = output->GetPath(output->twoBodyAffair);
+	ofstream writer(path.c_str(), ios::out | ios::app | ios::binary);
 	if (writer) {
 		for (std::list<TwoBodyAffair>::iterator it = list.begin(); it != list.end(); it++) {
 			SaveTwoBodyAffair(writer, *it);
@@ -194,7 +241,7 @@ void BinaryFileAdapter::SaveTwoBodyAffairs(std::list<TwoBodyAffair>& list)
 	}
 }
 
-void BinaryFileAdapter::SaveTwoBodyAffair(std::ofstream& writer, TwoBodyAffair& affair)
+void BinaryFileAdapter::SaveTwoBodyAffair(ofstream& writer, TwoBodyAffair& affair)
 {
 	writer.write(reinterpret_cast<char*>(&(affair.id)), sizeof(int));
 	writer.write(reinterpret_cast<char*>(&(affair.type)), sizeof(int));
@@ -213,10 +260,10 @@ void BinaryFileAdapter::SaveTwoBodyAffair(std::ofstream& writer, TwoBodyAffair& 
 	}
 }
 
-void BinaryFileAdapter::SaveBodyProperties(double time, std::list<Body* >& bodyList)
+void BinaryFileAdapter::SaveBodyProperties(double time, list<Body* >& bodyList)
 {
-	std::string constPropPath = output->GetPath(output->constantProperties);
-	std::ofstream constPropWriter(constPropPath.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+	string constPropPath = output->GetPath(output->constantProperties);
+	ofstream constPropWriter(constPropPath.c_str(), ios::out | ios::app | ios::binary);
 	if (!constPropWriter) {
 		_errMsg = "The file '" + constPropPath + "' could not opened!";
 		Log(_errMsg, true);
@@ -224,8 +271,8 @@ void BinaryFileAdapter::SaveBodyProperties(double time, std::list<Body* >& bodyL
 		exit(1);
 	}
 
-	std::string varPropPath = output->GetPath(output->variableProperties);
-	std::ofstream varPropWriter(varPropPath.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+	string varPropPath = output->GetPath(output->variableProperties);
+	ofstream varPropWriter(varPropPath.c_str(), ios::out | ios::app | ios::binary);
 	if (!varPropWriter) {
 		_errMsg = "The file '" + varPropPath + "' could not opened!";
 		Log(_errMsg, true);
@@ -234,7 +281,7 @@ void BinaryFileAdapter::SaveBodyProperties(double time, std::list<Body* >& bodyL
 		exit(1);
 	}
 
-	for (std::list<Body* >::iterator it = bodyList.begin(); it != bodyList.end(); it++) {
+	for (list<Body* >::iterator it = bodyList.begin(); it != bodyList.end(); it++) {
 		SaveConstantProperty(constPropWriter, *it);
 		SaveVariableProperty(varPropWriter, *it, time);
 	}
@@ -244,8 +291,8 @@ void BinaryFileAdapter::SaveBodyProperties(double time, std::list<Body* >& bodyL
 
 void BinaryFileAdapter::SaveConstantProperty(Body* body)
 {
-	std::string constPropPath = output->GetPath(output->constantProperties);
-	std::ofstream constPropWriter(constPropPath.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+	string constPropPath = output->GetPath(output->constantProperties);
+	ofstream constPropWriter(constPropPath.c_str(), ios::out | ios::app | ios::binary);
 	if (!constPropWriter) {
 		_errMsg = "The file '" + constPropPath + "' could not opened!";
 		Log(_errMsg, true);
@@ -256,12 +303,12 @@ void BinaryFileAdapter::SaveConstantProperty(Body* body)
 	constPropWriter.close();
 }
 
-void BinaryFileAdapter::SaveConstantProperty(std::ofstream& writer, Body* body)
+void BinaryFileAdapter::SaveConstantProperty(ofstream& writer, Body* body)
 {
 	int i = body->GetId();
 	writer.write(reinterpret_cast<char *>(&i), sizeof(i));
 
-	std::string s = body->guid;
+	string s = body->guid;
 	char *guid = new char[16];
 	Tools::GuidToCharArray(s, guid);
 
@@ -340,8 +387,8 @@ void BinaryFileAdapter::SaveConstantProperty(std::ofstream& writer, Body* body)
 
 void BinaryFileAdapter::SaveVariableProperty(Body* body, double time)
 {
-	std::string varPropPath = output->GetPath(output->variableProperties);
-	std::ofstream varPropWriter(varPropPath.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+	string varPropPath = output->GetPath(output->variableProperties);
+	ofstream varPropWriter(varPropPath.c_str(), ios::out | ios::app | ios::binary);
 	if (!varPropWriter) {
 		_errMsg = "The file '" + varPropPath + "' could not opened!";
 		Log(_errMsg, true);
@@ -352,7 +399,7 @@ void BinaryFileAdapter::SaveVariableProperty(Body* body, double time)
 	varPropWriter.close();
 }
 
-void BinaryFileAdapter::SaveVariableProperty(std::ofstream& writer, Body* body, double time)
+void BinaryFileAdapter::SaveVariableProperty(ofstream& writer, Body* body, double time)
 {
 	int id = _propertyId++;
 	writer.write(reinterpret_cast<char *>(&id), sizeof(id));
@@ -373,8 +420,8 @@ void BinaryFileAdapter::SaveVariableProperty(std::ofstream& writer, Body* body, 
 		d = body->characteristics->density;
 		writer.write(reinterpret_cast<char *>(&d), sizeof(d));
 		if (body->characteristics->componentList.size() > 0) {
-			std::string compPropPath = output->GetPath(output->compositionProperties);
-			std::ofstream compPropWriter(compPropPath.c_str(), std::ios::out | std::ios::app | std::ios::binary);
+			string compPropPath = output->GetPath(output->compositionProperties);
+			ofstream compPropWriter(compPropPath.c_str(), ios::out | ios::app | ios::binary);
 			if (!compPropWriter) {
 				_errMsg = "The file '" + compPropPath + "' could not opened!";
 				Log(_errMsg, true);
@@ -399,9 +446,9 @@ void BinaryFileAdapter::SaveVariableProperty(std::ofstream& writer, Body* body, 
 	}
 }
 
-void BinaryFileAdapter::SaveCompositionProperty(std::ofstream& writer, Body* body, int propertyId)
+void BinaryFileAdapter::SaveCompositionProperty(ofstream& writer, Body* body, int propertyId)
 {
-	for (std::list<Component>::iterator it = body->characteristics->componentList.begin(); 
+	for (list<Component>::iterator it = body->characteristics->componentList.begin(); 
 		it != body->characteristics->componentList.end(); it++) {
 
 		int id = _compositionId++;

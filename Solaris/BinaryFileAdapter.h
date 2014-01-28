@@ -10,6 +10,11 @@ class TwoBodyAffair;
 class BinaryFileAdapter
 {
 public:
+	enum OutputType {
+		BINARY,
+		TEXT
+	};
+
 	BinaryFileAdapter(Output *output);
 
     bool    FileExists(const std::string& name);
@@ -18,8 +23,8 @@ public:
 	void	LogStartParameters(int argc, char* argv[]);
 	void	LogTimeSpan(std::string msg, time_t startTime);
 
-	void	SavePhases(double time, int n, double *y, int *id);
-	void	SavePhase(std::ofstream& writer, double *y, int *id);
+	void	SavePhases(double time, int n, double *y, int *id, OutputType type);
+	void	SavePhase(std::ofstream& writer, double *y, int *id, OutputType type);
 
 	void	SaveIntegrals(double time, int n, double *integrals);
 

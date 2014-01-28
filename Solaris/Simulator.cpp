@@ -47,6 +47,8 @@ Simulator::Simulator(Simulation *simulation)
 	dormandPrince		= 0;
 
 	integratorType		= RUNGE_KUTTA_FEHLBERG78;
+
+	outputType			= BinaryFileAdapter::OutputType::TEXT;
 }
 
 int Simulator::Continue()
@@ -117,103 +119,11 @@ int Simulator::Run()
 
 int Simulator::Integrate(TimeLine* timeLine)
 {
-	long int		stepCounter = 0;
-	double			hSum[3] = { 0.0, 0.0, 0.0 };
-
 	if (BodyListToBodyData() == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
-	_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id);
-	Calculate::Integrals(&bodyData);
-	_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
-
-	bool stop = false;
-	switch (integratorType) {
-		case RUNGE_KUTTA_FEHLBERG78:
-			for ( ; ; ) {
-				if (rungeKuttaFehlberg78->Driver(&bodyData, _acceleration, timeLine) == 1) {
-					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-					return 1;
-				}
-				stepCounter++;
-				if (DecisionMaking(stepCounter, timeLine, hSum, stop) == 1) {
-					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-					return 1;
-				}
-				if (stepCounter % Constants::CheckForSM == 0) {
-					int	n = 6*bodyData.nBodies.total;
-					Tools::CheckAgainstSmallestNumber(n, bodyData.y);
-					Tools::CheckAgainstSmallestNumber(n, bodyData.y0);
-                    if (_simulation->binary->FileExists("Info"))
-                    {
-                        std::cout << "Time: " << timeLine->time * Constants::DayToYear << std::endl;
-                    }
-				}
-				if (stop)
-					break;
-			}
-			break;
-		case RUNGE_KUTTA4:
-			for ( ; ; ) {
-				if (rungeKutta4->Driver(&bodyData, _acceleration, timeLine) == 1) {
-					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-					return 1;
-				}
-				stepCounter++;
-				if (DecisionMaking(stepCounter, timeLine, hSum, stop) == 1) {
-					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-					return 1;
-				}
-				if (stepCounter % Constants::CheckForSM == 0) {
-					int	n = 6*bodyData.nBodies.total;
-					Tools::CheckAgainstSmallestNumber(n, bodyData.y);
-					Tools::CheckAgainstSmallestNumber(n, bodyData.y0);
-				}
-				if (stop)
-					break;
-			}
-			break;
-		case DORMAND_PRINCE:
-			for ( ; ; ) {
-				if (dormandPrince->Driver(&bodyData, _acceleration, timeLine) == 1) {
-					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-					return 1;
-				}
-				stepCounter++;
-				if (DecisionMaking(stepCounter, timeLine, hSum, stop) == 1) {
-					Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-					return 1;
-				}
-				if (stepCounter % Constants::CheckForSM == 0) {
-					int	n = 6*bodyData.nBodies.total;
-					Tools::CheckAgainstSmallestNumber(n, bodyData.y);
-					Tools::CheckAgainstSmallestNumber(n, bodyData.y0);
-				}
-				if (stop)
-					break;
-			}
-			break;
-		default:
-			Error::_errMsg = "The integrator type is currently not supported!";
-			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-			return 1;
-			break;
-	}
-	_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id);
-	Calculate::Integrals(&bodyData);
-	_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
-
-	return 0;
-}
-
-int Simulator::Integrate2(TimeLine* timeLine)
-{
-	if (BodyListToBodyData() == 1) {
-		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-		return 1;
-	}
-	_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id);
+	_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id, outputType);
 
 	Calculate::Integrals(&bodyData);
 	_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
@@ -259,7 +169,7 @@ int Simulator::Integrate2(TimeLine* timeLine)
 			break;
 	}
 
-	_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id);
+	_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id, outputType);
 	Calculate::Integrals(&bodyData);
 	_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
 
@@ -324,7 +234,7 @@ int	Simulator::DecisionMaking(TimeLine* timeLine, bool& stop)
 
 	if (fabs(timeLine->lastSave) >= fabs(timeLine->output)) {
 
-		_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id);
+		_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id, outputType);
 		Calculate::Integrals(&bodyData);
 		_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
 
@@ -394,7 +304,7 @@ int	Simulator::DecisionMaking(const long int stepCounter, TimeLine* timeLine, do
 
 	if (fabs(hSum[LAST_SAVE]) >= fabs(timeLine->output)) {
 
-		_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id);
+		_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id, outputType);
 		Calculate::Integrals(&bodyData);
 		_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
 
@@ -461,7 +371,7 @@ int Simulator::Synchronization()
 			//	return 1;
 			//}
 
-			if (Integrate2(&syncTimeLine) == 1) {
+			if (Integrate(&syncTimeLine) == 1) {
 				Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 				return 1;
 			}
@@ -503,7 +413,7 @@ int Simulator::PreIntegration()
 		}
 	}
 
-	if (Integrate2(&preTimeLine) == 1) {
+	if (Integrate(&preTimeLine) == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}
@@ -528,7 +438,7 @@ int Simulator::MainIntegration()
 		_simulation->settings.timeLine->hNext = _simulation->settings.timeLine->length;
 	}
 
-	if (Integrate2(_simulation->settings.timeLine) == 1) {
+	if (Integrate(_simulation->settings.timeLine) == 1) {
 		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
 		return 1;
 	}

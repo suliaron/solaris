@@ -8,9 +8,12 @@ public:
 	Output();
 
 	std::string GetPath(const std::string fileName);
+	std::string GetFilenameWithoutExt(const std::string& path);
+	std::string CombinePath(std::string dir, std::string filename);
 
 	static std::string directory;
 	static char directorySeparator;
+
 
 	std::string phases;
 	std::string integrals;

@@ -5,6 +5,7 @@
 
 #include "Counter.h"
 #include "IntegratorType.h"
+#include "BinaryFileAdapter.h"
 #include "BodyData.h"
 #include "BodyGroup.h"
 #include "Event.h"
@@ -31,15 +32,14 @@ public:
 	DormandPrince			*dormandPrince;
 
 	BodyData				bodyData;
-
 	Counter					counter;
+	BinaryFileAdapter::OutputType outputType;
 
 private:
 	int 	Synchronization();
 	int		PreIntegration();
 	int		MainIntegration();
 	int		Integrate(TimeLine* timeLine);
-	int		Integrate2(TimeLine* timeLine);
 	int		DecisionMaking(TimeLine* timeLine, bool& stop);
 	int		DecisionMaking(const long int stepCounter, TimeLine* timeLine, double* hSum, bool& stop);
 
