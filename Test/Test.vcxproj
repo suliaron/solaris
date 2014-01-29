@@ -81,10 +81,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\Solaris.NBody.Cuda;$(SolutionDir)Solaris;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)Solaris\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Acceleration.obj;BinaryFileAdapter.obj;Body.obj;BodyData.obj;BodyGroup.obj;BodyGroupList.obj;Calculate.obj;Characteristics.obj;Component.obj;Counter.obj;DateTime.obj;DormandPrince.obj;DragCoefficient.obj;Ephemeris.obj;Error.obj;Event.obj;EventCondition.obj;FargoParameters.obj;GasComponent.obj;Integrator.obj;NBodies.obj;Nebula.obj;OrbitalElement.obj;Output.obj;Phase.obj;PowerLaw.obj;RungeKutta4.obj;RungeKuttaFehlberg78.obj;Settings.obj;Simulation.obj;Simulator.obj;SolidsComponent.obj;TimeLine.obj;tinystr.obj;tinyxml.obj;tinyxmlerror.obj;tinyxmlparser.obj;Tokenizer.obj;Tools.obj;TwoBodyAffair.obj;Units.obj;Validator.obj;Vector.obj;XmlFileAdapter.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
