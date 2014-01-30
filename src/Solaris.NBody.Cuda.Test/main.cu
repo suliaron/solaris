@@ -21,18 +21,18 @@
 
 using namespace std;
 
-string combine_path(string dir, string path)
+string combine_path(string dir, string filename)
 {
 	if (dir.size() > 0) {
 		if (*(dir.end() - 1) != '/' && *(dir.end() - 1) != '\\') {
-			return dir + '/' + path;
+			return dir + '/' + filename;
 		}
 		else {
-			return dir + path;
+			return dir + filename;
 		}
 	}
 	else {
-		return path;
+		return filename;
 	}
 }
 
