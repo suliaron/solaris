@@ -350,32 +350,40 @@ var_t	orbital_frequency(var_t mu, var_t sma)
 	return 1.0 / orbital_period(mu, sma);
 }
 
-__host__ __device__ var_t	calculate_gamma_stokes(var_t stokes, var_t density, var_t radius)
+__host__ __device__ 
+var_t	calculate_gamma_stokes(var_t stokes, var_t density, var_t radius)
 {
-    return (3.0/8.0)*stokes/(density*radius);
+	if (density == 0.0 || radius == 0.0)
+		return 0.0;
+	else
+		return (3.0/8.0)*stokes/(density*radius);
 }
 
 
 
 // Calculate acceleration caused by particle j on particle i 
 __host__ __device__ 
-vec_t calculate_grav_accel_pair(const vec_t ci, const vec_t cj, var_t mass, vec_t a)
+vec_t calculate_grav_accel_pair(const vec_t ci, const vec_t cj, var_t mass, vec_t ai)
 {
-	vec_t d;
+	vec_t dVec;
 	
-	d.x = cj.x - ci.x;
-	d.y = cj.y - ci.y;
-	d.z = cj.z - ci.z;
+	dVec.x = cj.x - ci.x;
+	dVec.y = cj.y - ci.y;
+	dVec.z = cj.z - ci.z;
+	//printf("calculate_grav_accel_pair():\n\td: (%20.16lf, %20.16lf, %20.16lf)\tmass: %20.16lf\n", d.x, d.y, d.z, mass);
 
-	d.w = SQR(d.x) + SQR(d.y) + SQR(d.z);
-	d.w = d.w * d.w * d.w;
-	d.w = K2 * mass / sqrt(d.w);
+	dVec.w = SQR(dVec.x) + SQR(dVec.y) + SQR(dVec.z);	// = r2
+	var_t r = sqrt(dVec.w);								// = r
 
-	a.x += d.x * d.w;
-	a.y += d.y * d.w;
-	a.z += d.z * d.w;
+	//printf("\tr3: %20.16lf\n", sqrt(d.w));
+	dVec.w = mass / (r*dVec.w);
+	//printf("\tmass / (r*dVec.w): %20.16lf\n", d.w);
 
-	return a;
+	ai.x += dVec.w * dVec.x;
+	ai.y += dVec.w * dVec.y;
+	ai.z += dVec.w * dVec.z;
+
+	return ai;
 }
 
 __global__
@@ -388,14 +396,20 @@ void	calculate_grav_accel_kernel(interaction_bound iBound, const planets::param_
 		acce[bodyIdx].y = 0.0;
 		acce[bodyIdx].z = 0.0;
 		acce[bodyIdx].w = 0.0;
+		//printf("calculate_grav_accel_kernel():\nbodyIdx: %6d\tcoor: (%20.16lf, %20.16lf, %20.16lf)\tmass: %20.16lf\n", bodyIdx, coor[bodyIdx].x, coor[bodyIdx].y, coor[bodyIdx].z, params[bodyIdx].mass);
 		for (int j = iBound.source.x; j < iBound.source.y; j++) 
 		{
 			if (j == bodyIdx) {
 				continue;
 			}
+			//printf("\tj: %d\tcoor: (%20.16lf, %20.16lf, %20.16lf)\tmass: %20.16lf\n", j, coor[j].x, coor[j].y, coor[j].z, params[j].mass);
 			acce[bodyIdx] = calculate_grav_accel_pair(coor[bodyIdx], coor[j], params[j].mass, acce[bodyIdx]);
 		}
 	}
+	acce[bodyIdx].x *= K2;
+	acce[bodyIdx].y *= K2;
+	acce[bodyIdx].z *= K2;
+	//printf("\tacce: (%20.16lf, %20.16lf, %20.16lf)\n", acce[bodyIdx].x, acce[bodyIdx].y, acce[bodyIdx].z);
 }
 
 __global__
@@ -702,4 +716,51 @@ int planets::print_positions(ostream& sout)
 	}
 
 	return bodies.total;
+}
+
+void planets::transform_to_barycentric()
+{
+	vec_t*	coor = (vec_t*)h_y[0].data();
+	vec_t*	velo = (vec_t*)h_y[1].data();
+	param_t* param = (param_t*)h_p.data();
+
+	// Transform the variables to the barycentric system
+	// Compute the total mass of the system
+	var_t totalMass = 0.0;
+	for (int j = 0; j < bodies.n_massive(); j++ ) {
+		totalMass += param[j].mass;
+	}
+
+	// Position and velocity of the system's barycenter
+	vec_t R0 = {0.0, 0.0, 0.0, 0.0};
+	vec_t V0 = {0.0, 0.0, 0.0, 0.0};
+
+	// Compute the position and velocity of the barycenter of the system
+	for (int j = 0; j < bodies.n_massive(); j++ ) {
+		R0.x += param[j].mass * coor[j].x;
+		R0.y += param[j].mass * coor[j].y;
+		R0.z += param[j].mass * coor[j].z;
+
+		V0.x += param[j].mass * velo[j].x;
+		V0.y += param[j].mass * velo[j].y;
+		V0.z += param[j].mass * velo[j].z;
+	}
+	R0.x /= totalMass;
+	R0.y /= totalMass;
+	R0.z /= totalMass;
+
+	V0.x /= totalMass;
+	V0.y /= totalMass;
+	V0.z /= totalMass;
+
+	// Transform the bodies coordinates and velocities
+	for (int j = 0; j < bodies.total; j++ ) {
+		coor[j].x -= R0.x;
+		coor[j].y -= R0.y;
+		coor[j].z -= R0.z;
+
+		velo[j].x -= V0.x;
+		velo[j].y -= V0.y;
+		velo[j].z -= V0.z;
+	}
 }

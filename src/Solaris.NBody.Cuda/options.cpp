@@ -376,19 +376,22 @@ planets*	options::create_planets()
 
 	if (file) {
 		pl->load(filename);
+		pl->transform_to_barycentric();
 	}
 	else {
 		initial_condition(pl);
 	}
 
-	// alias to the parameters of the planets
-	planets::param_t* h_param = (planets::param_t*)(pl->h_p.data());
-	for (int i = 0; i < bodies->super_planetesimal + bodies->planetesimal; i++) {
-		int idx = bodies->n_self_interacting() + i;
-		var_t c_stokes = 1.0;
-		var_t density = 2.0;		// gm/cm3;
-		density *= Constants::GramPerCm3ToSolarPerAu3;
-		h_param[idx].gamma_stokes = calculate_gamma_stokes(c_stokes, density, h_param[idx].radius);
+	if (0 != gasDisc) {
+		// alias to the parameters of the planets
+		planets::param_t* h_param = (planets::param_t*)(pl->h_p.data());
+		for (int i = 0; i < bodies->super_planetesimal + bodies->planetesimal; i++) {
+			int idx = bodies->n_self_interacting() + i;
+			var_t c_stokes = 1.0;
+			var_t density = 2.0;		// gm/cm3;
+			h_param[idx].density = density * Constants::GramPerCm3ToSolarPerAu3; // M_sun/AU3
+			h_param[idx].gamma_stokes = calculate_gamma_stokes(c_stokes, density, h_param[idx].radius);
+		}
 	}
 
 	pl->copy_to_device();

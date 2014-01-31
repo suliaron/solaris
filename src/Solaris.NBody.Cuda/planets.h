@@ -65,6 +65,9 @@ public:
 	void round_up_n();
 	void allocate_vectors();
 
+	void transform_to_barycentric();
+	void transform_to_objectcentric();
+
 	void calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy);
 
 	void load(string filename);
