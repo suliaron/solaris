@@ -23,6 +23,7 @@
     <ClInclude Include="..\..\config\Constants.h" />
     <ClInclude Include="gas_disc.h" />
     <ClInclude Include="interaction_bound.h" />
+    <ClInclude Include="pp_disk.h" />
     <ClInclude Include="nbody.h" />
     <ClInclude Include="nbody_exception.h" />
     <ClInclude Include="nbody_util.h">
@@ -34,9 +35,9 @@
     <ClInclude Include="planets.h" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="pp_disk.cu" />
     <CudaCompile Include="nbody.cu">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </CudaCompile>
     <CudaCompile Include="nbody_util.cu">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

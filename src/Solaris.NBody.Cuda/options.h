@@ -6,13 +6,14 @@
 #include "euler.h"
 #include "integrator.h"
 #include "nbody.h"
-#include "number_of_bodies.h"
 #include "ode.h"
 #include "planets.h"
+#include "pp_disk.h"
 #include "rungekutta.h"
 #include "rungekuttanystrom.h"
 
 class gas_disc;
+class number_of_bodies;
 
 using namespace std;
 
@@ -49,8 +50,8 @@ private:
 	int filen;						// Number of entries in input file
 	bool_t random;					// Generate random data
 
-	number_of_bodies*	bodies;
-	gas_disc*			gasDisc;
+	number_of_bodies	*nBodies;
+	gas_disc			*gasDisc;
 
 public:
 	options(int argc, const char** argv);
@@ -58,8 +59,9 @@ public:
 
 	static void print_usage();
 
-	//ode*		create_ode();
-	//nbody*		create_nbody();
+	ode*		create_ode();
+	nbody*		create_nbody();
+	pp_disk*	create_pp_disk();
 	planets*	create_planets();
 	integrator* create_integrator(ode* f);
 

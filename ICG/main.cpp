@@ -318,6 +318,60 @@ int generate_nbody_Rezso(string filename, int n)
 	return 0;
 }
 
+int generate_nbody2(string filename, int n)
+{
+	var_t m, m0, m1;
+	var_t r;
+
+	char sep = ' ';
+
+	std::ofstream	output;
+	output.open(filename, std::ios_base::app);
+
+	// Output central mass
+	m0 = MASS_STAR;
+	output << 0 << sep;
+	output << 0.0 << sep;
+	output << m0 << sep << RAD_STAR << sep;
+	output << 0.0 << sep << 0.0 << sep << 0.0 << sep;
+	output << 0.0 << sep << 0.0 << sep << 0.0;
+	output << endl;
+
+	srand (time(0));
+	orbelem oe;
+	vec_t	rVec, vVec;
+	// Output planets
+	for (int i = 1; i < n; i ++)
+	{
+		oe.sma = generate_random(0.5, 10.0, pdf_const);
+		oe.ecc = 0.0;
+		oe.inc = atan(0.05); // tan(i) = h/r = 5.0e-2
+		oe.peri = generate_random(0.0, 2.0*PI, pdf_const);
+		oe.node = generate_random(0.0, 2.0*PI, pdf_const);
+		oe.mean = generate_random(0.0, 2.0*PI, pdf_const);
+
+		var_t mu = K2*(m0 + 0.0);
+		int_t ret_code = calculate_phase(mu, &oe, &rVec, &vVec);
+		if (ret_code == 1) {
+			cerr << "Could not calculate the phase." << endl;
+			return ret_code;
+		}
+
+		m = 1.0e-6;
+		r = 1.0e-6;
+
+		output << i << sep;
+		output << 0 << sep;
+		output << m << sep << r << sep;
+		output << rVec.x << sep << rVec.y << sep << rVec.z << sep;
+		output << vVec.x << sep << vVec.y << sep << vVec.z << sep;
+		output << endl;
+	}
+
+	return 0;
+}
+
+
 int generate_2_body(string filename, int n)
 {
 	var_t m, m0, m1;
@@ -366,14 +420,14 @@ int main(int argc, char* argv[])
 	int ret_code = 0;
 
 	const string baseDir = "C:\\Work\\Solaris.Cuda.TestRuns";
-	const string subDir = "2_Body";
+	const string subDir = "256_Body";
 	string curDir = combine_path(baseDir, subDir);
 	
 	srand(time(NULL));
 
-	//ret_code = generate_nbody("E:\\Work\\VSSolutions\\solaris\\src\\Solaris.NBody.Cuda.Test\\TestRun\\16384_Body\\PlanetGen02.txt", n);
+	ret_code = generate_nbody2(combine_path(curDir, "256_Body.txt"), 256);
 	//ret_code = generate_nbody_Rezso("E:\\Work\\VSSolutions\\solaris\\src\\Solaris.NBody.Cuda.Test\\TestRun\\Rezso\\Rezso.txt", n);
-	ret_code = generate_2_body(combine_path(curDir, "TwoBody.txt"), 2);
+	//ret_code = generate_2_body(combine_path(curDir, "TwoBody.txt"), 2);
 
 	return ret_code;
 }

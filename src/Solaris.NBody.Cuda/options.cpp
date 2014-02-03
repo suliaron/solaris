@@ -2,6 +2,7 @@
 #include "gas_disc.h"
 #include "options.h"
 #include "nbody_exception.h"
+#include "number_of_bodies.h"
 
 options::options(int argc, const char** argv)
 {
@@ -16,6 +17,7 @@ options::~options()
 void options::create_default_options()
 {
 	n				= 256;
+	nBodies			= 0;
 	inttype			= INTEGRATOR_EULER;
 	adaptive		= false;
 	tolerance		= 0;
@@ -81,7 +83,7 @@ void options::parse_options(int argc, const char** argv)
 			int	super_planetesimal	= atoi(argv[i++]);
 			int	planetesimal		= atoi(argv[i++]);
 			int	test_particle		= atoi(argv[i]);
-			this->bodies = new number_of_bodies(star, giant_planet, rocky_planet, proto_planet, super_planetesimal, planetesimal, test_particle);
+			this->nBodies = new number_of_bodies(star, giant_planet, rocky_planet, proto_planet, super_planetesimal, planetesimal, test_particle);
 		}
 		// Initialize a gas_disc object with default values
 		else if (p == "-gas") {
@@ -273,7 +275,7 @@ void options::initial_condition(planets* pl)
 		velo[i].w = 0.0;
 
 		// Planet 0, 1, 2, ..., n_massive
-		for (i = 1; i < bodies->n_massive(); i++) {
+		for (i = 1; i < nBodies->n_massive(); i++) {
 			param[i].mass = 1.0e-7;			// M_sun
 			param[i].radius = 0.000014;		// AU
 
@@ -297,7 +299,7 @@ void options::initial_condition(planets* pl)
 	{
 		// Compute the total mass of the system
 		var_t totalMass = 0.0;
-		for (int j = 0; j < bodies->n_massive(); j++ ) {
+		for (int j = 0; j < nBodies->n_massive(); j++ ) {
 			totalMass += param[j].mass;
 		}
 
@@ -306,7 +308,7 @@ void options::initial_condition(planets* pl)
 		vec_t V0 = {0.0, 0.0, 0.0, 0.0};
 
 		// Compute the position and velocity of the barycenter of the system
-		for (int j = 0; j < bodies->n_massive(); j++ ) {
+		for (int j = 0; j < nBodies->n_massive(); j++ ) {
 			R0.x += param[j].mass * coor[j].x;
 			R0.y += param[j].mass * coor[j].y;
 			R0.z += param[j].mass * coor[j].z;
@@ -324,7 +326,7 @@ void options::initial_condition(planets* pl)
 		V0.z /= totalMass;
 
 		// Transform the bodies coordinates and velocities
-		for (int j = 0; j < bodies->total; j++ ) {
+		for (int j = 0; j < nBodies->total; j++ ) {
 			coor[j].x -= R0.x;
 			coor[j].y -= R0.y;
 			coor[j].z -= R0.z;
@@ -336,41 +338,58 @@ void options::initial_condition(planets* pl)
 	}
 }
 
-//ode* options::create_ode()
-//{
-//	nbody* nb = new nbody(n);
-//
-//	nb->t = timeStart;
-//	
-//	if (file) {
-//		nb->load(filename, n);
-//	}
-//
-//	nb->copy_to_device();
-//
-//	return nb;
-//}
-//
-//nbody*	options::create_nbody()
-//{
-//	nbody*	nb = new nbody(n);
-//
-//	nb->t = timeStart;
-//
-//	if (file) {
-//		nb->load(filename, n);
-//	}
-//	else {
-//		initial_condition(nb);
-//	}
-//	nb->copy_to_device();
-//
-//	return nb;
-//}
+ode* options::create_ode()
+{
+	nbody* nb = new nbody(n);
+
+	nb->t = timeStart;
+	
+	if (file) {
+		nb->load(filename, n);
+	}
+
+	nb->copy_to_device();
+
+	return nb;
+}
+
+nbody*	options::create_nbody()
+{
+	nbody*	nb = new nbody(n);
+
+	nb->t = timeStart;
+
+	if (file) {
+		nb->load(filename, n);
+	}
+	else {
+		initial_condition(nb);
+	}
+	nb->copy_to_device();
+
+	return nb;
+}
+
+pp_disk*	options::create_pp_disk()
+{
+	pp_disk *ppd = new pp_disk(nBodies);
+
+	ppd->t = timeStart;
+
+	if (file) {
+		ppd->load(filename, nBodies->total);
+	}
+	else {
+		;
+	}
+	ppd->copy_to_device();
+
+	return ppd;
+}
 
 planets*	options::create_planets()
 {
-	planets* pl = new planets(*bodies, gasDisc);
+	planets* pl = new planets(*nBodies, gasDisc);
 
 	pl->t = timeStart;
 
@@ -385,8 +404,8 @@ planets*	options::create_planets()
 	if (0 != gasDisc) {
 		// alias to the parameters of the planets
 		planets::param_t* h_param = (planets::param_t*)(pl->h_p.data());
-		for (int i = 0; i < bodies->super_planetesimal + bodies->planetesimal; i++) {
-			int idx = bodies->n_self_interacting() + i;
+		for (int i = 0; i < nBodies->super_planetesimal + nBodies->planetesimal; i++) {
+			int idx = nBodies->n_self_interacting() + i;
 			var_t c_stokes = 1.0;
 			var_t density = 2.0;		// gm/cm3;
 			h_param[idx].density = density * Constants::GramPerCm3ToSolarPerAu3; // M_sun/AU3
