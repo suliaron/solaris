@@ -409,7 +409,7 @@ planets*	options::create_planets()
 			var_t c_stokes = 1.0;
 			var_t density = 2.0;		// gm/cm3;
 			h_param[idx].density = density * Constants::GramPerCm3ToSolarPerAu3; // M_sun/AU3
-			h_param[idx].gamma_stokes = calculate_gamma_stokes(c_stokes, density, h_param[idx].radius);
+			//h_param[idx].gamma_stokes = calculate_gamma_stokes(c_stokes, density, h_param[idx].radius);
 		}
 	}
 

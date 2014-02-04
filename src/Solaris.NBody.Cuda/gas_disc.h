@@ -2,7 +2,7 @@
 
 #include "config.h"
 
-class gas_disc 
+class gas_disc
 {
 public:
 	gas_disc();

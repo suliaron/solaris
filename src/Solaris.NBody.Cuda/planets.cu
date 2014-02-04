@@ -35,7 +35,7 @@ static cudaError_t HandleError(cudaError_t cudaStatus, const char *file, int lin
 #define HANDLE_ERROR(cudaStatus) (HandleError(cudaStatus, __FILE__, __LINE__))
 
 
-__host__ __device__
+static __host__ __device__
 void shift_into_range(var_t lower, var_t upper, var_t* value)
 {
     var_t range = upper - lower;
@@ -47,7 +47,7 @@ void shift_into_range(var_t lower, var_t upper, var_t* value)
     }
 }
 
-__host__ __device__
+static __host__ __device__
 vec_t	cross_product(const vec_t* v, const vec_t* u)
 {
 	vec_t result;
@@ -59,25 +59,25 @@ vec_t	cross_product(const vec_t* v, const vec_t* u)
 	return result;
 }
 
-__host__ __device__
+static __host__ __device__
 var_t	dot_product(const vec_t* v, const vec_t* u)
 {
 	return v->x * u->x + v->y * u->y + v->z * u->z;
 }
 
-__host__ __device__
+static __host__ __device__
 var_t	norm2(const vec_t* v)
 {
 	return SQR(v->x) + SQR(v->y) + SQR(v->z);
 }
 
-__host__ __device__
+static __host__ __device__
 var_t	norm(const vec_t* v)
 {
 	return sqrt(norm2(v));
 }
 
-__host__ __device__
+static __host__ __device__
 vec_t	circular_velocity(var_t mu, const vec_t* rVec)
 {
 	vec_t result = {0.0, 0.0, 0.0, 0.0};
@@ -109,7 +109,7 @@ vec_t	circular_velocity(var_t mu, const vec_t* rVec)
 	return result;
 }
 
-__host__ __device__
+static __host__ __device__
 vec_t	gas_velocity(var2_t eta, var_t mu, const vec_t* rVec)
 {
 	vec_t result = circular_velocity(mu, rVec);
@@ -124,7 +124,7 @@ vec_t	gas_velocity(var2_t eta, var_t mu, const vec_t* rVec)
 
 // TODO: implemet INNER_EDGE to get it from the input
 #define INNER_EDGE 0.1 // AU
-__host__ __device__
+static __host__ __device__
 var_t	gas_density_at(const gas_disc* gasDisc, const vec_t* rVec)
 {
 	var_t result = 0.0;
@@ -144,25 +144,25 @@ var_t	gas_density_at(const gas_disc* gasDisc, const vec_t* rVec)
 }
 #undef INNER_EDGE
 
-__host__ __device__
+static __host__ __device__
 var_t	calculate_kinetic_energy(const vec_t* vVec)
 {
 	return 0.5 * norm2(vVec);
 }
 
-__host__ __device__
+static __host__ __device__
 var_t	calculate_potential_energy(var_t mu, const vec_t* rVec)
 {
 	return -mu / norm(rVec);
 }
 
-__host__ __device__
+static __host__ __device__
 var_t	calculate_energy(var_t mu, const vec_t* rVec, const vec_t* vVec)
 {
 	return calculate_kinetic_energy(vVec) + calculate_potential_energy(mu, rVec);
 }
 
-__host__ __device__
+static __host__ __device__
 int_t	kepler_equation_solver(var_t ecc, var_t mean, var_t eps, var_t* E)
 {
 	if (ecc == 0.0 || mean == 0.0 || mean == PI) {
@@ -185,7 +185,7 @@ int_t	kepler_equation_solver(var_t ecc, var_t mean, var_t eps, var_t* E)
 	return 0;
 }
 
-__host__ __device__
+static __host__ __device__
 int_t	calculate_phase(var_t mu, const planets::orbelem_t* oe, vec_t* rVec, vec_t* vVec)
 {
     var_t ecc = oe->ecc;
@@ -230,7 +230,7 @@ int_t	calculate_phase(var_t mu, const planets::orbelem_t* oe, vec_t* rVec, vec_t
 }
 
 #define	sq3	1.0e-14
-__host__ __device__
+static __host__ __device__
 int_t	calculate_sma_ecc(var_t mu, const vec_t* rVec, const vec_t* vVec, var_t* sma, var_t* ecc)
 {
 	// Calculate energy, h
@@ -255,7 +255,7 @@ int_t	calculate_sma_ecc(var_t mu, const vec_t* rVec, const vec_t* vVec, var_t* s
 
 #define	sq2 1.0e-14
 #define	sq3	1.0e-14
-__host__ __device__
+static __host__ __device__
 int_t	calculate_orbelem(var_t mu, const vec_t* rVec, const vec_t* vVec, planets::orbelem_t* oe)
 {
 	// Calculate energy, h
@@ -338,26 +338,26 @@ int_t	calculate_orbelem(var_t mu, const vec_t* rVec, const vec_t* vVec, planets:
 #undef	sq2
 #undef	sq3
 
-__host__ __device__
+static __host__ __device__
 var_t	orbital_period(var_t mu, var_t sma)
 {
 	return TWOPI * sqrt(CUBE(sma)/mu);
 }
 
-__host__ __device__
+static __host__ __device__
 var_t	orbital_frequency(var_t mu, var_t sma) 
 {
 	return 1.0 / orbital_period(mu, sma);
 }
 
-__host__ __device__ 
-var_t	calculate_gamma_stokes(var_t stokes, var_t density, var_t radius)
-{
-	if (density == 0.0 || radius == 0.0)
-		return 0.0;
-	else
-		return (3.0/8.0)*stokes/(density*radius);
-}
+//static __host__ __device__
+//var_t	calculate_gamma_stokes(var_t stokes, var_t density, var_t radius)
+//{
+//	if (density == 0.0 || radius == 0.0)
+//		return 0.0;
+//	else
+//		return (3.0/8.0)*stokes/(density*radius);
+//}
 
 
 

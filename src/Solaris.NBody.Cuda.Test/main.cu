@@ -131,19 +131,21 @@ int main(int argc, const char** argv)
 		ttt_t dt			= 0;
 
 		ostream* positionsf = 0;
-		ostream* collisionsf= 0;
+		ostream* orbelemf	= 0;
+		//ostream* collisionsf= 0;
 		int pcount			= 0;
 		int ccount			= 0;
 
 		string filename;
 		if (!opt.printoutToFile) {
 			positionsf = &cout;
-			collisionsf = &cerr;
+			orbelemf   = &cout;
+			//collisionsf = &cerr;
 		}
 		else {
 			//collisionsf = new ofstream(combine_path(opt.printoutDir, "col.txt").c_str());
 			//positionsf = new ofstream(get_printout_file(opt, pcount++).c_str());
-			filename = get_filename_without_ext(opt.filename) + ".ppd.nBodies.";
+			filename = '_' + get_filename_without_ext(opt.filename) + ".ppd.nBodies.";
 			int i = 1;
 			while (i < argc) {
 				string p = argv[i];
@@ -161,6 +163,8 @@ int main(int argc, const char** argv)
 			}
 			string filenameWithExt = filename + '.' + get_extension(opt.filename);
 			positionsf = new ofstream(combine_path(opt.printoutDir, filenameWithExt), std::ios::app);
+			filenameWithExt = filename + ".oe." + get_extension(opt.filename);
+			orbelemf = new ofstream(combine_path(opt.printoutDir, filenameWithExt), std::ios::app);
 		}
 
 		while (ppd->t < opt.timeStop) {
@@ -184,6 +188,9 @@ int main(int argc, const char** argv)
 						// Print out positions
 						ppd->copy_to_host();
 						ppd->print_positions(*positionsf);
+						ppd->calculate_orbelem(0);
+						ppd->h_orbelem = ppd->d_orbelem;
+						ppd->print_orbelem(*orbelemf);
 					}
 				}
 			}
@@ -195,6 +202,8 @@ int main(int argc, const char** argv)
 
 		delete ppd;
 		delete intgr;
+		delete positionsf;
+		delete orbelemf;
 	}	// end try bracket
 	catch (nbody_exception& ex) {
 		cerr << "Error: " << ex.what() << endl;
@@ -215,13 +224,13 @@ int main(int argc, const char** argv)
 		ttt_t dt			= 0;
 
 		ostream* positionsf = 0;
-		ostream* collisionsf= 0;
+		//ostream* collisionsf= 0;
 		int pcount			= 0;
 		int ccount			= 0;
 
 		if (!opt.printoutToFile) {
 			positionsf = &cout;
-			collisionsf = &cerr;
+			//collisionsf = &cerr;
 		}
 		else {
 			//collisionsf = new ofstream(combine_path(opt.printoutDir, "col.txt").c_str());
@@ -260,6 +269,7 @@ int main(int argc, const char** argv)
 
 		delete nb;
 		delete intgr;
+		delete positionsf;
 	}	// end try bracket
 	catch (nbody_exception& ex) {
 		cerr << "Error: " << ex.what() << endl;
@@ -350,6 +360,7 @@ int main(int argc, const char** argv)
 
 		delete pl;
 		delete intgr;
+		delete positionsf;
 	}	// end try bracket
 	catch (nbody_exception& ex) {
 		cerr << "Error: " << ex.what() << endl;
