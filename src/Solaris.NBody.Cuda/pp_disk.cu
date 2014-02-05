@@ -569,6 +569,7 @@ void pp_disk::load(string filename, int n)
 
 	ifstream input(filename.c_str());
 
+	var_t dummy;
 	if (input) {
         int		id;
 		ttt_t	time;
@@ -577,8 +578,16 @@ void pp_disk::load(string filename, int n)
             input >> id;
 			input >> time;
 
-			input >> h_param[i].mass;
-			input >> h_param[i].radius;
+			if (nBodies->n_massive() <= i) {
+				input >> dummy;			// advance reader and discard mass
+				input >> dummy;			// advance reader and discard radius
+				h_param[i].mass = 0.0;
+				h_param[i].radius = 0.0;
+			}
+			else {
+				input >> h_param[i].mass;
+				input >> h_param[i].radius;
+			}
 
 			input >> h_coord[i].x;
 			input >> h_coord[i].y;

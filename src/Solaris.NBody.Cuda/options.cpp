@@ -48,8 +48,8 @@ void options::print_usage()
 	cout << "                          E : Euler" << endl;
 	cout << "                          RK : Runge-Kutta" << endl;
 	cout << "                          RKN : Runge-Kutta-Nystrom" << endl;
-	cout << "     -a            : Adaptive time step" << endl;
-	cout << "     -t <number>   : Tolerance" << endl;
+	cout << "     -a <number>   : Use adaptive time step with <number> as tolerance" << endl;
+	cout << "     -t <number>   : Stop time " << endl;
 	cout << "     -dt <number>  : Initial time step" << endl;
 	cout << "     -b <number>   : Buffer factor for collisions" << endl;
 	cout << "     -p <period> <length> <stepsize>" << endl;

@@ -145,7 +145,7 @@ int main(int argc, const char** argv)
 		else {
 			//collisionsf = new ofstream(combine_path(opt.printoutDir, "col.txt").c_str());
 			//positionsf = new ofstream(get_printout_file(opt, pcount++).c_str());
-			filename = '_' + get_filename_without_ext(opt.filename) + ".ppd.nBodies.";
+			filename = "RKNa_" + get_filename_without_ext(opt.filename) + ".ppd.nBodies.";
 			int i = 1;
 			while (i < argc) {
 				string p = argv[i];
@@ -176,6 +176,7 @@ int main(int argc, const char** argv)
 
 				// Start of a print-out period, create new file if necessary
 				if (pp == 0) {
+					cerr << setprecision(10) << setw(16) << dt << " [d], ";
 					cerr << setprecision(5) << setw(6) << (ppd->t / opt.timeStop * 100) << " %" << endl;
 				}
 
