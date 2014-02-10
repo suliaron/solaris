@@ -90,4 +90,5 @@ static __host__ __device__ int_t	calculate_sma_ecc(var_t mu, const vec_t* coor, 
 static __host__ __device__ int_t	calculate_orbelem(var_t mu, const vec_t* coor, const vec_t* velo, pp_disk::orbelem_t* orbelem);
 static __host__ __device__ var_t	orbital_period(var_t mu, var_t sma);
 static __host__ __device__ var_t	orbital_frequency(var_t mu, var_t sma);
-//static __host__ __device__ var_t	calculate_gamma_stokes(var_t stokes, var_t density, var_t radius);
+static __host__ __device__ var_t	calculate_gamma_stokes(var_t cd, var_t density, var_t radius);
+static __host__ __device__ var_t	calculate_gamma_epstein(var_t density, var_t radius);

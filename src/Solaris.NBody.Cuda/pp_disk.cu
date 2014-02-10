@@ -362,15 +362,27 @@ var_t	orbital_frequency(var_t mu, var_t sma)
 	return 1.0 / orbital_period(mu, sma);
 }
 
-//static __host__ __device__
-//var_t	calculate_gamma_stokes(var_t stokes, var_t density, var_t radius)
-//{
-//	if (density == 0.0 || radius == 0.0)
-//		return 0.0;
-//	else
-//		return (3.0/8.0)*stokes/(density*radius);
-//}
+static __host__ __device__ 
+var_t	calculate_gamma_stokes(var_t cd, var_t density, var_t radius)
+{
+	if (density == 0.0 || radius == 0.0) {
+		return 0.0;
+	}
+	else {
+		return (3.0/8.0)*cd/(density*radius);
+	}
+}
 
+static __host__ __device__ 
+var_t	calculate_gamma_epstein(var_t density, var_t radius)
+{
+	if (density == 0.0 || radius == 0.0) {
+		return 0.0;
+	}
+	else {
+		return 1.0/(density*radius);
+	}
+}
 
 // Calculate acceleration caused by particle j on particle i 
 static __host__ __device__ 
@@ -428,6 +440,7 @@ void	calculate_orbelem_kernel(
 		var_t mu = K2 * (params[refBodyId].mass + params[bodyIdx].mass);
 		vec_t rVec = vector_subtract((vec_t*)(&coor[bodyIdx]), (vec_t*)(&coor[refBodyId]));
 		vec_t vVec = vector_subtract((vec_t*)(&velo[bodyIdx]), (vec_t*)(&velo[refBodyId]));
+
 		calculate_orbelem(mu, &rVec, &vVec, (pp_disk::orbelem_t*)(&orbelem[bodyIdx]));
 	}
 }
@@ -436,7 +449,6 @@ pp_disk::pp_disk(number_of_bodies *nBodies) :
 	ode(2),
 	nBodies(nBodies)
 {
-	//round_up_n();
 	allocate_vectors();
 }
 
@@ -563,39 +575,35 @@ void pp_disk::calculate_orbelem(int_t refBodyId)
 
 void pp_disk::load(string filename, int n)
 {
-	vec_t* h_coord = (vec_t*)h_y[0].data();
-	vec_t* h_veloc = (vec_t*)h_y[1].data();
-	param_t* h_param = (param_t*)h_p.data();
+	vec_t* coor = (vec_t*)h_y[0].data();
+	vec_t* velo = (vec_t*)h_y[1].data();
+	param_t* param = (param_t*)h_p.data();
 
 	ifstream input(filename.c_str());
 
-	var_t dummy;
+	var_t cd;
 	if (input) {
         int		id;
 		ttt_t	time;
-        
-        for (int i = 0; i < n; i++) { 
+        		
+		for (int i = 0; i < n; i++) { 
             input >> id;
 			input >> time;
 
-			if (nBodies->n_massive() <= i) {
-				input >> dummy;			// advance reader and discard mass
-				input >> dummy;			// advance reader and discard radius
-				h_param[i].mass = 0.0;
-				h_param[i].radius = 0.0;
-			}
-			else {
-				input >> h_param[i].mass;
-				input >> h_param[i].radius;
-			}
+			input >> param[i].mass;
+			input >> param[i].radius;
+			input >> param[i].density;
+			input >> cd;
+			param[i].gamma_stokes = calculate_gamma_stokes(cd, param[i].density, param[i].radius);
+			param[i].gamma_epstein = calculate_gamma_epstein(param[i].density, param[i].radius);
 
-			input >> h_coord[i].x;
-			input >> h_coord[i].y;
-			input >> h_coord[i].z;
+			input >> coor[i].x;
+			input >> coor[i].y;
+			input >> coor[i].z;
 
-			input >> h_veloc[i].x;
-			input >> h_veloc[i].y;
-			input >> h_veloc[i].z;
+			input >> velo[i].x;
+			input >> velo[i].y;
+			input >> velo[i].z;
         }
         input.close();
 	}

@@ -10,9 +10,6 @@
 #include "Constants.h"
 #include "number_of_bodies.h"
 
-#define PI 3.1415926535897932384626
-#define K2 0.0002959122082855911025
-
 #define MASS_STAR		1.0			// M_sol
 #define MASS_JUPITER	1.0e-3		// M_sol
 #define RAD_STAR		0.005		// AU
@@ -36,23 +33,6 @@
 #define	CUBE(x)			((x)*(x)*(x))
 
 using namespace std;
-
-typedef double	var_t;
-typedef int		int_t;
-
-typedef struct double2
-{
-	var_t	x;
-	var_t	y;
-} var2_t;
-
-typedef struct double4
-{
-	var_t	x;
-	var_t	y;
-	var_t	z;
-	var_t	w;
-} vec_t;
 
 typedef struct orbelem
 {
@@ -356,7 +336,7 @@ int generate_nbody_Rezso(string filename, int n)
 
 int generate_nbody2(string filename, int n)
 {
-	var_t m, m0, m1;
+	var_t m, m0;
 	var_t r;
 
 	char sep = ' ';
@@ -418,7 +398,7 @@ void print_body_record(std::ofstream &output, int_t bodyId, var_t t, param_t *pa
 	output << endl;
 }
 
-int generate_pp_disk(string filename, var2_t disk, number_of_bodies *nBodies)
+int generate_pp_disk(string path, var2_t disk, number_of_bodies *nBodies)
 {
 	var_t t = 0.0;
 	int_t bodyId = 0;
@@ -429,7 +409,7 @@ int generate_pp_disk(string filename, var2_t disk, number_of_bodies *nBodies)
 	vec_t	vVec = {0.0, 0.0, 0.0, 0.0};
 
 	std::ofstream	output;
-	output.open(filename, std::ios_base::app);
+	output.open(path, std::ios_base::app);
 
 	// Output central mass
 	for (int i = 0; i < nBodies->star; i++, bodyId++)
@@ -527,8 +507,8 @@ int generate_pp_disk(string filename, var2_t disk, number_of_bodies *nBodies)
 
 		param.mass = generate_random(0.0001, 0.01, pdf_const) * Constants::EarthToSolar;
 		param.density = generate_random(1.0, 2.0, pdf_const) * Constants::GramPerCm3ToSolarPerAu3;
-		param.radius = generate_random(5.0, 15.0) * Constants::KilometerToAu;
-		param.cd = generate_random(0.5, 4.0);
+		param.radius = generate_random(5.0, 15.0, pdf_const) * Constants::KilometerToAu;
+		param.cd = generate_random(0.5, 4.0, pdf_const);
 
 		var_t mu = K2*(param0.mass + param.mass);
 		int_t ret_code = calculate_phase(mu, &oe, &rVec, &vVec);
@@ -550,9 +530,9 @@ int generate_pp_disk(string filename, var2_t disk, number_of_bodies *nBodies)
 		oe.mean = generate_random(0.0, 2.0*PI, pdf_const);
 
 		param.density = generate_random(1.0, 2.0, pdf_const) * Constants::GramPerCm3ToSolarPerAu3;
-		param.radius = generate_random(5.0, 15.0) * Constants::KilometerToAu;
+		param.radius = generate_random(5.0, 15.0, pdf_const) * Constants::KilometerToAu;
 		param.mass = caclulate_mass(param.radius, param.density);
-		param.cd = generate_random(0.5, 4.0);
+		param.cd = generate_random(0.5, 4.0, pdf_const);
 
 		var_t mu = K2*(param0.mass + param.mass);
 		int_t ret_code = calculate_phase(mu, &oe, &rVec, &vVec);
@@ -586,14 +566,15 @@ int generate_pp_disk(string filename, var2_t disk, number_of_bodies *nBodies)
 		}
 		print_body_record(output, bodyId, t, &param, &rVec, &vVec);
 	}
+	output.flush();
+	output.close();
 
 	return 0;
 }
 
 int generate_2_body(string filename, int n)
 {
-	var_t m, m0, m1;
-	var_t r;
+	var_t m0, m1;
 
 	char sep = ' ';
 
@@ -632,7 +613,7 @@ int generate_2_body(string filename, int n)
 	return 0;
 }
 
-int parse_options(int argc, const char** argv, number_of_bodies *nBodies, int *n, string &nBodies_str)
+int parse_options(int argc, const char **argv, number_of_bodies **nBodies, int *n, string &nBodies_str)
 {
 	int i = 1;
 
@@ -658,16 +639,15 @@ int parse_options(int argc, const char** argv, number_of_bodies *nBodies, int *n
 			int	super_planetesimal	= atoi(argv[i++]);
 			int	planetesimal		= atoi(argv[i++]);
 			int	test_particle		= atoi(argv[i]);
-			nBodies = new number_of_bodies(star, giant_planet, rocky_planet, proto_planet, super_planetesimal, planetesimal, test_particle);
+			*nBodies = new number_of_bodies(star, giant_planet, rocky_planet, proto_planet, super_planetesimal, planetesimal, test_particle);
 
 			string number;
-			for (int k = iSav; k < iSav + 6; iSav++) {
+			for (int k = iSav; k < iSav + 6; k++) {
 				number = argv[k];
 				nBodies_str += number + '_';
 			}
-			number = argv[i+6];
+			number = argv[iSav+6];
 			nBodies_str += number;
-			break;
 		}
 		else {
 			cerr << "Invalid switch on command-line.";
@@ -679,13 +659,13 @@ int parse_options(int argc, const char** argv, number_of_bodies *nBodies, int *n
 	return 0;
 }
 
-int main(int argc, char* argv[])
+int main(int argc, const char **argv)
 {
 	int n = 0;
 	number_of_bodies *nBodies = 0;
 	string nBodies_str;
 
-	int retCode = parse_options(argc, argv, nBodies, &n, nBodies_str);
+	int retCode = parse_options(argc, argv, &nBodies, &n, nBodies_str);
 	if (0 != retCode) {
 		exit(retCode);
 	}
@@ -701,7 +681,8 @@ int main(int argc, char* argv[])
 	//retCode = generate_nbody_Rezso("E:\\Work\\VSSolutions\\solaris\\src\\Solaris.NBody.Cuda.Test\\TestRun\\Rezso\\Rezso.txt", n);
 	//retCode = generate_2_body(combine_path(curDir, "TwoBody.txt"), 2);
 
-	retCode = generate_pp_disk(combine_path(curDir, ("nBodies_" + nBodies_str + ".txt")), nBodies);
+	var2_t disk = {1.0, 10.0};	// AU
+	retCode = generate_pp_disk(combine_path(curDir, ("nBodies_" + nBodies_str + ".txt")), disk, nBodies);
 
 	return retCode;
 }
