@@ -430,6 +430,66 @@ void	calculate_grav_accel_kernel(interaction_bound iBound, const pp_disk::param_
 }
 
 static __global__
+void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const gas_disc* gasDisc, 
+		const pp_disk::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
+{
+	int tid		= blockIdx.x * blockDim.x + threadIdx.x;
+	int	bodyIdx = iBound.sink.x + tid;
+
+	if (bodyIdx < iBound.sink.y) {
+		vec_t vGas	= gas_velocity(gasDisc->eta, K2*params[0].mass, (vec_t*)&coor[bodyIdx]);
+		var_t rhoGas= gas_density_at(gasDisc, (vec_t*)&coor[bodyIdx]) * timeF;
+		//printf("rhoGas: %.15lf\n", rhoGas);
+		//printf("vGas: %.15lf, %.15lf, %.15lf\n", vGas.x, vGas.y, vGas.z);
+		//printf("velo[%d]: %.15lf, %.15lf, %.15lf\n", bodyIdx, velo[bodyIdx].x, velo[bodyIdx].y, velo[bodyIdx].z);
+
+		vec_t u;
+		u.x	= velo[bodyIdx].x - vGas.x;
+		u.y	= velo[bodyIdx].y - vGas.y;
+		u.z	= velo[bodyIdx].z - vGas.z;
+
+		//printf("u: %.15lf, %.15lf, %.15lf\n", u.x, u.y, u.z);
+
+		var_t C		= 0.0;
+		// TODO: implement the different regimes according to the mean free path of the gas molecules
+		// Epstein-regime:
+		{
+
+		}
+		// Stokes-regime:
+		{
+			//var_t uLength = norm(&u);
+			C = params[bodyIdx].gamma_stokes * norm(&u) * rhoGas;
+			//printf("params[bodyIdx].gamma_stokes: %.15lf\n", params[bodyIdx].gamma_stokes);
+			//printf("norm(&u): %.15lf\n", norm(&u));
+			//printf("C: %.15lf\n", C);
+		}
+		// Transition regime:
+		{
+
+		}
+
+		acce[tid].x = -C * u.x;
+		acce[tid].y = -C * u.y;
+		acce[tid].z = -C * u.z;
+		acce[tid].w = 0.0;
+
+		//printf("acce[%d]: %.15lf, %.15lf, %.15lf\n", tid, acce[tid].x, acce[tid].y, acce[tid].z);
+	}
+}
+
+// a = a + b
+static __global__
+void add_two_vector(int_t n, var_t *a, const var_t *b)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (n > tid) {
+		a[tid] += b[tid];
+	}
+}
+
+
+static __global__
 void	calculate_orbelem_kernel(
 		int_t total, int_t refBodyId, 
 		const pp_disk::param_t *params, const vec_t *coor, const vec_t *velo, 
@@ -445,9 +505,12 @@ void	calculate_orbelem_kernel(
 	}
 }
 
-pp_disk::pp_disk(number_of_bodies *nBodies) :
+pp_disk::pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc) :
 	ode(2),
-	nBodies(nBodies)
+	nBodies(nBodies),
+	gasDisc(gasDisc),
+	d_gasDisc(0),
+	acceGasDrag(d_vec_t())
 {
 	allocate_vectors();
 }
@@ -455,6 +518,8 @@ pp_disk::pp_disk(number_of_bodies *nBodies) :
 pp_disk::~pp_disk()
 {
 	delete nBodies;
+	delete gasDisc;
+	cudaFree(d_gasDisc);
 }
 
 void pp_disk::allocate_vectors()
@@ -468,16 +533,16 @@ void pp_disk::allocate_vectors()
 	h_y[0].resize(ndim * nBodies->total);
 	h_y[1].resize(ndim * nBodies->total);
 
-	//if (0 != gasDisc) {
-	//	acceGasDrag.resize(ndim * (bodies.super_planetesimal + bodies.planetesimal));
-	//	// TODO:
-	//	// ask Laci, how to find out if there was an error during these 2 cuda function calls
-	//	cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc));
-	//	cudaMemcpy(d_gasDisc, gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice );
-	//}
+	if (0 != gasDisc) {
+		acceGasDrag.resize(ndim * (nBodies->super_planetesimal + nBodies->planetesimal));
+		// TODO:
+		// ask Laci, how to find out if there was an error during these 2 cuda function calls
+		cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc));
+		cudaMemcpy(d_gasDisc, gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice );
+	}
 }
 
-cudaError_t pp_disk::call_calculate_accel_kernel(const param_t* params, const vec_t* coor, vec_t* acce)
+cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t* params, const vec_t* coor, vec_t* acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
 	
@@ -527,6 +592,31 @@ cudaError_t pp_disk::call_calculate_accel_kernel(const param_t* params, const ve
 	return cudaStatus;
 }
 
+cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc* gasDisc, const param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
+{
+	cudaError_t cudaStatus = cudaSuccess;
+
+	// TODO: calculate it using the value of the time
+	var_t timeF = 1.0;
+	
+	interaction_bound iBound = nBodies->get_bodies_gasdrag();
+
+	int		nBodyToCalculate = nBodies->super_planetesimal + nBodies->planetesimal;
+	int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
+	int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
+	dim3	grid(nBlock);
+	dim3	block(nThread);
+
+	calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, gasDisc, params, coor, velo, acce);
+	cudaStatus = HANDLE_ERROR(cudaGetLastError());
+	if (cudaSuccess != cudaStatus) {
+		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+	}
+
+	return cudaStatus;
+}
+
+
 void pp_disk::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy)
 {
 	switch (i)
@@ -541,7 +631,34 @@ void pp_disk::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::v
 		vec_t	*coor = (vec_t*)y[0].data().get();
 		vec_t	*velo = (vec_t*)y[1].data().get();
 		vec_t	*acce = (vec_t*)dy.data().get();
-		call_calculate_accel_kernel(params, coor, acce);
+		call_calculate_grav_accel_kernel(params, coor, acce);
+
+// Itt tartok
+		if (0 != gasDisc) {
+			vec_t	*aGD = (vec_t*)acceGasDrag.data().get();
+			if (0 == r) {
+			// Calculate accelerations originated from gas drag
+				call_calculate_drag_accel_kernel(t, d_gasDisc, params, coor, velo, aGD);
+			}
+			// Add acceGasDrag to dy
+			int_t offset = bodies.n_self_interacting() * 4;
+			int nBodyToCalculate = nBodies->super_planetesimal + nBodies->planetesimal;
+			int_t nData = (nBodyToCalculate) * 4;
+
+			var_t* a = (var_t*)(dy.data().get() + offset);
+			var_t* aGD = (var_t*)acceGasDrag.data().get();
+
+			int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
+			int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
+			dim3	grid(nBlock);
+			dim3	block(nThread);
+
+			add_two_vector<<<grid, block>>>(nData, a, aGD);
+			cudaError_t cudaStatus = cudaGetLastError();
+			if (cudaStatus != cudaSuccess) {
+				throw nbody_exception("add_two_vector kernel failed", cudaStatus);
+			}
+		}
 
 		break;
 	}

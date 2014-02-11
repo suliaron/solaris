@@ -672,7 +672,7 @@ int main(int argc, const char **argv)
 	
 
 	const string baseDir = "C:\\Work\\Solaris.Cuda.TestRuns";
-	const string subDir = "256_Body";
+	const string subDir = "2_Body";
 	string curDir = combine_path(baseDir, subDir);
 	
 	srand(time(NULL));
@@ -681,7 +681,7 @@ int main(int argc, const char **argv)
 	//retCode = generate_nbody_Rezso("E:\\Work\\VSSolutions\\solaris\\src\\Solaris.NBody.Cuda.Test\\TestRun\\Rezso\\Rezso.txt", n);
 	//retCode = generate_2_body(combine_path(curDir, "TwoBody.txt"), 2);
 
-	var2_t disk = {1.0, 10.0};	// AU
+	var2_t disk = {5.0, 6.0};	// AU
 	retCode = generate_pp_disk(combine_path(curDir, ("nBodies_" + nBodies_str + ".txt")), disk, nBodies);
 
 	return retCode;

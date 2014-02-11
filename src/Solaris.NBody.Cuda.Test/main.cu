@@ -145,25 +145,10 @@ int main(int argc, const char** argv)
 		else {
 			//collisionsf = new ofstream(combine_path(opt.printoutDir, "col.txt").c_str());
 			//positionsf = new ofstream(get_printout_file(opt, pcount++).c_str());
-			filename = "RKNa_" + get_filename_without_ext(opt.filename) + ".ppd.nBodies.";
-			int i = 1;
-			while (i < argc) {
-				string p = argv[i];
-				if (p == "-nBodies") {
-					i++;
-					string number;
-					for (int k = i; k < i + 6; k++ ) {
-						number = argv[k];
-						filename += number + '_';
-					}
-					number = argv[i+6];
-					filename += number;
-					break;
-				}
-			}
-			string filenameWithExt = filename + '.' + get_extension(opt.filename);
+			filename = get_filename_without_ext(opt.filename) + ".ppd.";
+			string filenameWithExt = filename + get_extension(opt.filename);
 			positionsf = new ofstream(combine_path(opt.printoutDir, filenameWithExt), std::ios::app);
-			filenameWithExt = filename + ".oe." + get_extension(opt.filename);
+			filenameWithExt = filename + "oe." + get_extension(opt.filename);
 			orbelemf = new ofstream(combine_path(opt.printoutDir, filenameWithExt), std::ios::app);
 		}
 

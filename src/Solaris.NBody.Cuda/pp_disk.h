@@ -53,7 +53,7 @@ public:
 	d_orbelem_t	d_orbelem;
 	h_orbelem_t	h_orbelem;
 	
-	pp_disk(number_of_bodies *nBodies);
+	pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc);
 	~pp_disk();
 
 	void calculate_orbelem(int_t refBodyId);
@@ -66,10 +66,30 @@ public:
 
 private:
 	number_of_bodies	*nBodies;
+	gas_disc			*gasDisc;
+	gas_disc			*d_gasDisc;
+	d_vec_t				acceGasDrag;
 
 	void allocate_vectors();
 
-	cudaError_t call_calculate_accel_kernel(const param_t* params, const vec_t* coor, vec_t* acce);
+	//! Calls the kernel that calculates the accelerations from gravitational
+	/*  interactions.
+		\param params Vector of parameters of the bodies
+		\param coor Vector of coordinates of the bodies
+		\param acce Will hold the accelerations for each body
+	*/
+	cudaError_t call_calculate_grav_accel_kernel(const param_t* params, const vec_t* coor, vec_t* acce);
+
+	//! Calls the kernel that calculates the acceleration due to drag force.
+	/*
+		\param time The actual time of the simulation
+		\param gasDisc The parameters describing the gas disk
+		\param params Vector of parameters of the bodies
+		\param coor Vector of coordinates of the bodies
+		\param velo Vector of velocities of the bodies
+		\param acce Will hold the accelerations for each body
+	*/
+	cudaError_t call_calculate_drag_accel_kernel(ttt_t time, const gas_disc* gasDisc, const param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
 
 };
 

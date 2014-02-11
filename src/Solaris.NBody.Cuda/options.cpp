@@ -87,10 +87,10 @@ void options::parse_options(int argc, const char** argv)
 		}
 		// Initialize a gas_disc object with default values
 		else if (p == "-gas") {
-			var2_t eta = {2.0e-3, 1.0/2.0	};
+			var2_t eta = {2.0e-3,   1.0/2.0	};
 			var2_t rho = {1.0e-9, -11.0/4.0	};		// g / cm^3
-			var2_t sch = {5.0e-2, 5.0/4.0	};
-			var2_t tau = {2.0/3.0, 2.0		};
+			var2_t sch = {5.0e-2,   5.0/4.0	};
+			var2_t tau = {2.0/3.0,  2.0		};
 			rho.x	*= Constants::GramPerCm3ToSolarPerAu3; // M_sun / AU^3
 			gasDisc = new gas_disc(rho, sch, eta, tau);
 		}
@@ -372,7 +372,7 @@ nbody*	options::create_nbody()
 
 pp_disk*	options::create_pp_disk()
 {
-	pp_disk *ppd = new pp_disk(nBodies);
+	pp_disk *ppd = new pp_disk(nBodies, gasDisc);
 
 	ppd->t = timeStart;
 
