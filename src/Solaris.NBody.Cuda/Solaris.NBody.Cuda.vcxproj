@@ -26,24 +26,14 @@
     <ClInclude Include="pp_disk.h" />
     <ClInclude Include="nbody.h" />
     <ClInclude Include="nbody_exception.h" />
-    <ClInclude Include="nbody_util.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="number_of_bodies.h" />
     <ClInclude Include="options.h" />
-    <ClInclude Include="planets.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="pp_disk.cu" />
     <CudaCompile Include="nbody.cu">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </CudaCompile>
-    <CudaCompile Include="nbody_util.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </CudaCompile>
-    <CudaCompile Include="planets.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gas_disc.cpp" />
