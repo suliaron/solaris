@@ -91,27 +91,12 @@ string get_extension(const string& path)
 	return result;
 }
 
-void split_filename(const std::string& path)
-{
-	std::cout << "Splitting: " << path << '\n';
-	unsigned found = path.find_last_of("/\\");
-	std::cout << " dir:  " << path.substr(0,found) << " get_directory(): " << get_directory(path) << '\n';
-	std::cout << " file: " << path.substr(found+1) << " get_filename(): " << get_filename(path) << '\n';
-	std::cout << " file: " << path.substr(found+1) << " get_filename_without_ext(): " << get_filename_without_ext(path) << '\n';
-	std::cout << " ext:  " << get_extension(path)  << " get_extension(): " << get_extension(path) << '\n';
-}
-
 string get_printout_file(options& opt, int pcount)
 {
 	char buffer[1024];
 	sprintf(buffer, "nBodies_1_127_0_0_0_0_0_RK_ppd2_pos-%.5d.txt", pcount);
 	return combine_path(opt.printoutDir, string(buffer));
 }
-
-// -nBodies 1 1 0 0 0 0 19998 -i RK -dt 200 -t 3652500 -p 36525 36525 36525 -o C:\Work\Cuda.Solaris.TestRuns\2MStar_5MJupiter_Disc65-270_01 -f C:\Work\Cuda.Solaris.TestRuns\2MStar_5MJupiter_Disc65-270_01\Rezso.txt
-// -nBodies 1 1 0 0 0 0 0 -i RKN -dt 200 -t 3652500 -p 36525 36525 36525 -o D:\Work\Projects\solaris\src\Solaris.NBody.Cuda.Test\TestRuns\2_Body -f D:\Work\Projects\solaris\src\Solaris.NBody.Cuda.Test\TestRuns\2_Body\TwoBody.txt
-// -nBodies 1 1 0 0 0 0 0 -i RK -dt 10 -t 365250 -p 3652.5 3652.5 3652.5 -o C:\Work\Solaris.Cuda.TestRuns\2_Body -f C:\Work\Solaris.Cuda.TestRuns\2_Body\TwoBody.txt
-// -nBodies 1 0 0 0 1 0 0 -i RK -dt 40 -t 365250 -p 3652.5 3652.5 3652.5 -o C:\Work\Solaris.Cuda.TestRuns\2_Body_Gas -f C:\Work\Solaris.Cuda.TestRuns\2_Body_Gas\TwoBody.txt
 
 int main(int argc, const char** argv)
 {
