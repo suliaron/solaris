@@ -14,6 +14,8 @@ public:
 	/*  rocky planets and protoplanets.
 	*/
 	int		n_self_interacting();
+	//! Calculates the number of bodies which feels the drag force, i.e. sum of the number of super-planetesimals and planetesimals.
+	int		n_gas_drag();
 
 	interaction_bound get_self_interacting();
 	interaction_bound get_nonself_interacting();

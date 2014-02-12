@@ -23,6 +23,11 @@ int	number_of_bodies::n_self_interacting()
 	return star + giant_planet + rocky_planet + proto_planet;
 }
 
+int	number_of_bodies::n_gas_drag()
+{
+	return super_planetesimal + planetesimal;
+}
+
 interaction_bound number_of_bodies::get_self_interacting()
 {
 	sink.x		= 0;

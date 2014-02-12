@@ -510,7 +510,7 @@ pp_disk::pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc) :
 	nBodies(nBodies),
 	gasDisc(gasDisc),
 	d_gasDisc(0),
-	acceGasDrag(d_vec_t())
+	acceGasDrag(d_var_t())
 {
 	allocate_vectors();
 }
@@ -534,7 +534,7 @@ void pp_disk::allocate_vectors()
 	h_y[1].resize(ndim * nBodies->total);
 
 	if (0 != gasDisc) {
-		acceGasDrag.resize(ndim * (nBodies->super_planetesimal + nBodies->planetesimal));
+		acceGasDrag.resize(ndim * nBodies->n_gas_drag());
 		// TODO:
 		// ask Laci, how to find out if there was an error during these 2 cuda function calls
 		cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc));
@@ -542,7 +542,7 @@ void pp_disk::allocate_vectors()
 	}
 }
 
-cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t* params, const vec_t* coor, vec_t* acce)
+cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, const vec_t *coor, vec_t *acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
 	
@@ -592,27 +592,28 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t* params, con
 	return cudaStatus;
 }
 
-cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc* gasDisc, const param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
+cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc *gasDisc, const param_t *params, 
+	const vec_t *coor, const vec_t *velo, vec_t *acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
 
 	// TODO: calculate it using the value of the time
 	var_t timeF = 1.0;
-	
-	interaction_bound iBound = nBodies->get_bodies_gasdrag();
 
-	int		nBodyToCalculate = nBodies->super_planetesimal + nBodies->planetesimal;
-	int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
-	int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
-	dim3	grid(nBlock);
-	dim3	block(nThread);
+	int	nBodyToCalculate = nBodies->n_gas_drag();
+	if (0 < nBodyToCalculate) {
+		interaction_bound iBound = nBodies->get_bodies_gasdrag();
+		int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
+		int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
+		dim3	grid(nBlock);
+		dim3	block(nThread);
 
-	calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, gasDisc, params, coor, velo, acce);
-	cudaStatus = HANDLE_ERROR(cudaGetLastError());
-	if (cudaSuccess != cudaStatus) {
-		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+		calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, gasDisc, params, coor, velo, acce);
+		cudaStatus = HANDLE_ERROR(cudaGetLastError());
+		if (cudaSuccess != cudaStatus) {
+			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+		}
 	}
-
 	return cudaStatus;
 }
 
@@ -633,27 +634,25 @@ void pp_disk::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::v
 		vec_t	*acce = (vec_t*)dy.data().get();
 		call_calculate_grav_accel_kernel(params, coor, acce);
 
-// Itt tartok
-		if (0 != gasDisc) {
+		if (0 != gasDisc && 0 < nBodies->n_gas_drag()) {
 			vec_t	*aGD = (vec_t*)acceGasDrag.data().get();
 			if (0 == r) {
 			// Calculate accelerations originated from gas drag
 				call_calculate_drag_accel_kernel(t, d_gasDisc, params, coor, velo, aGD);
 			}
 			// Add acceGasDrag to dy
-			int_t offset = bodies.n_self_interacting() * 4;
-			int nBodyToCalculate = nBodies->super_planetesimal + nBodies->planetesimal;
-			int_t nData = (nBodyToCalculate) * 4;
+			int_t offset = 4 * nBodies->n_self_interacting();
+			var_t* aSum = (var_t*)(dy.data().get()) + offset;
 
-			var_t* a = (var_t*)(dy.data().get() + offset);
-			var_t* aGD = (var_t*)acceGasDrag.data().get();
+			int nBodyToCalculate = nBodies->n_gas_drag();
+			int_t nData = 4 * nBodyToCalculate;
 
 			int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 			int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
 			dim3	grid(nBlock);
 			dim3	block(nThread);
 
-			add_two_vector<<<grid, block>>>(nData, a, aGD);
+			add_two_vector<<<grid, block>>>(nData, aSum, (var_t*)aGD);
 			cudaError_t cudaStatus = cudaGetLastError();
 			if (cudaStatus != cudaSuccess) {
 				throw nbody_exception("add_two_vector kernel failed", cudaStatus);

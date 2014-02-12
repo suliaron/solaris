@@ -68,7 +68,7 @@ private:
 	number_of_bodies	*nBodies;
 	gas_disc			*gasDisc;
 	gas_disc			*d_gasDisc;
-	d_vec_t				acceGasDrag;
+	d_var_t				acceGasDrag;
 
 	void allocate_vectors();
 
