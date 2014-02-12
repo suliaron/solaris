@@ -7,7 +7,6 @@
 #include "integrator.h"
 #include "nbody.h"
 #include "ode.h"
-#include "planets.h"
 #include "pp_disk.h"
 #include "rungekutta.h"
 #include "rungekuttanystrom.h"
@@ -62,7 +61,6 @@ public:
 	ode*		create_ode();
 	nbody*		create_nbody();
 	pp_disk*	create_pp_disk();
-	planets*	create_planets();
 	integrator* create_integrator(ode* f);
 
 private:
@@ -70,5 +68,4 @@ private:
 	void parse_options(int argc, const char** argv);
 
 	void initial_condition(nbody* nb);
-	void initial_condition(planets* pl);
 };
