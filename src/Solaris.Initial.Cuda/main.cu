@@ -50,16 +50,29 @@ typedef struct orbelem
 	var_t mean;
 } orbelem_t;
 
+typedef enum migration_type
+{
+	NO,
+	TYPE_I,
+	TYPE_II
+} migration_type_t;
+
 typedef struct param
 {
+	//! Unique number to identify the object
+	int_t	id;
 	//! Mass of body in M_sol
-	var_t mass;
+	var_t	mass;
 	//! Radius of body in AU
-	var_t radius;
+	var_t	radius;
 	//! Density of body in M_sol AU-3
-	var_t density;
+	var_t	density;
 	//! Drag coefficient, used to compute the stokes drag force
-	var_t cd;
+	var_t	cd;
+	//! Type of the migration
+	migration_type_t migType;
+	//! The migration stop at this distance measured from the star
+	var_t	migStopAt;
 } param_t;
 
 // Draw a number from a given distribution
@@ -393,6 +406,7 @@ void print_body_record(std::ofstream &output, int_t bodyId, var_t t, param_t *pa
 
 	output << bodyId << sep << t << sep;
 	output << param->mass << sep << param->radius << sep << param->density << sep << param->cd << sep;
+	output << param->migType << sep << param->migStopAt << sep;
 	output << r->x << sep << r->y << sep << r->z << sep;
 	output << v->x << sep << v->y << sep << v->z << sep;
 	output << endl;
@@ -414,10 +428,13 @@ int generate_pp_disk(string path, var2_t disk, number_of_bodies *nBodies)
 	// Output central mass
 	for (int i = 0; i < nBodies->star; i++, bodyId++)
 	{
+		param0.id = bodyId;
 		param0.mass = 1.0;
 		param0.radius = Constants::SolarRadiusToAu;
 		param0.density = calculate_density(param0.mass, param0.radius);
 		param0.cd = 0.0;
+		param0.migType = NO;
+		param0.migStopAt = 0.0;
 		print_body_record(output, bodyId, t, &param0, &rVec, &vVec);
 	}
 
@@ -433,10 +450,13 @@ int generate_pp_disk(string path, var2_t disk, number_of_bodies *nBodies)
 		oe.node = generate_random(0.0, 2.0*PI, pdf_const);
 		oe.mean = generate_random(0.0, 2.0*PI, pdf_const);
 
+		param.id = bodyId;
 		param.mass = generate_random(0.1, 10.0, pdf_const) * Constants::JupiterToSolar;
 		param.density = generate_random(1.0, 2.0, pdf_const) * Constants::GramPerCm3ToSolarPerAu3;
 		param.radius = calculate_radius(param.mass, param.density);
 		param.cd = 0.0;
+		param.migType = TYPE_II;
+		param.migStopAt = 1.0;
 
 		var_t mu = K2*(param0.mass + param.mass);
 		int_t ret_code = calculate_phase(mu, &oe, &rVec, &vVec);
@@ -457,10 +477,13 @@ int generate_pp_disk(string path, var2_t disk, number_of_bodies *nBodies)
 		oe.node = generate_random(0.0, 2.0*PI, pdf_const);
 		oe.mean = generate_random(0.0, 2.0*PI, pdf_const);
 
+		param.id = bodyId;
 		param.mass = generate_random(0.1, 10.0, pdf_const) * Constants::EarthToSolar;
 		param.density = generate_random(3.0, 5.5, pdf_const) * Constants::GramPerCm3ToSolarPerAu3;
 		param.radius = calculate_radius(param.mass, param.density);
 		param.cd = 0.0;
+		param.migType = TYPE_I;
+		param.migStopAt = 0.4;
 
 		var_t mu = K2*(param0.mass + param.mass);
 		int_t ret_code = calculate_phase(mu, &oe, &rVec, &vVec);
@@ -481,10 +504,13 @@ int generate_pp_disk(string path, var2_t disk, number_of_bodies *nBodies)
 		oe.node = generate_random(0.0, 2.0*PI, pdf_const);
 		oe.mean = generate_random(0.0, 2.0*PI, pdf_const);
 
+		param.id = bodyId;
 		param.mass = generate_random(0.001, 0.1, pdf_const) * Constants::EarthToSolar;
 		param.density = generate_random(1.5, 3.5, pdf_const) * Constants::GramPerCm3ToSolarPerAu3;
 		param.radius = calculate_radius(param.mass, param.density);
 		param.cd = 0.0;
+		param.migType = TYPE_I;
+		param.migStopAt = 0.4;
 
 		var_t mu = K2*(param0.mass + param.mass);
 		int_t ret_code = calculate_phase(mu, &oe, &rVec, &vVec);
@@ -505,10 +531,13 @@ int generate_pp_disk(string path, var2_t disk, number_of_bodies *nBodies)
 		oe.node = generate_random(0.0, 2.0*PI, pdf_const);
 		oe.mean = generate_random(0.0, 2.0*PI, pdf_const);
 
+		param.id = bodyId;
 		param.mass = generate_random(0.0001, 0.01, pdf_const) * Constants::EarthToSolar;
 		param.density = generate_random(1.0, 2.0, pdf_const) * Constants::GramPerCm3ToSolarPerAu3;
 		param.radius = generate_random(5.0, 15.0, pdf_const) * Constants::KilometerToAu;
 		param.cd = generate_random(0.5, 4.0, pdf_const);
+		param.migType = NO;
+		param.migStopAt = 0.0;
 
 		var_t mu = K2*(param0.mass + param.mass);
 		int_t ret_code = calculate_phase(mu, &oe, &rVec, &vVec);
@@ -529,10 +558,13 @@ int generate_pp_disk(string path, var2_t disk, number_of_bodies *nBodies)
 		oe.node = generate_random(0.0, 2.0*PI, pdf_const);
 		oe.mean = generate_random(0.0, 2.0*PI, pdf_const);
 
+		param.id = bodyId;
 		param.density = generate_random(1.0, 2.0, pdf_const) * Constants::GramPerCm3ToSolarPerAu3;
 		param.radius = generate_random(5.0, 15.0, pdf_const) * Constants::KilometerToAu;
 		param.mass = caclulate_mass(param.radius, param.density);
 		param.cd = generate_random(0.5, 4.0, pdf_const);
+		param.migType = NO;
+		param.migStopAt = 0.0;
 
 		var_t mu = K2*(param0.mass + param.mass);
 		int_t ret_code = calculate_phase(mu, &oe, &rVec, &vVec);
@@ -553,12 +585,15 @@ int generate_pp_disk(string path, var2_t disk, number_of_bodies *nBodies)
 		oe.node = generate_random(0.0, 2.0*PI, pdf_const);
 		oe.mean = generate_random(0.0, 2.0*PI, pdf_const);
 
+		param.id = bodyId;
 		param.density = 0.0;
 		param.radius = 0.0;
 		param.mass = 0.0;
 		param.cd = 0.0;
+		param.migType = NO;
+		param.migStopAt = 0.0;
 
-		var_t mu = K2*(param0.mass + param.mass);
+		var_t mu = K2*(param0.mass);
 		int_t ret_code = calculate_phase(mu, &oe, &rVec, &vVec);
 		if (ret_code == 1) {
 			cerr << "Could not calculate the phase." << endl;
@@ -670,7 +705,6 @@ int main(int argc, const char **argv)
 		exit(retCode);
 	}
 	
-
 	const string baseDir = "C:\\Work\\Solaris.Cuda.TestRuns";
 	const string subDir = "2_Body";
 	string curDir = combine_path(baseDir, subDir);

@@ -13,9 +13,18 @@ using namespace std;
 class pp_disk : public ode
 {
 public:
+	typedef enum migration_type
+	{
+		NO,
+		TYPE_I,
+		TYPE_II
+	} migration_type_t;
+
 	// Type for parameters
 	typedef struct param
 	{
+		//! Unique number to identify the object
+		int_t	id;
 		//! Mass of body in M_sol
 		var_t mass;
 		//! Radius of body in AU
@@ -26,6 +35,10 @@ public:
 		var_t gamma_stokes;
 		//! Used for the drag force  TODO
 		var_t gamma_epstein;
+		//! Type of the migration
+		migration_type_t migType;
+		//! The migration stop at this distance measured from the star
+		var_t	migStopAt;
 	} param_t;
 
 	typedef struct orbelem
@@ -50,8 +63,8 @@ public:
 	typedef thrust::host_vector<orbelem_t>		h_orbelem_t;
 	typedef thrust::device_vector<orbelem_t>	d_orbelem_t;
 
-	d_orbelem_t	d_orbelem;
-	h_orbelem_t	h_orbelem;
+	d_orbelem_t			d_orbelem;
+	h_orbelem_t			h_orbelem;
 	
 	pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc);
 	~pp_disk();
@@ -68,7 +81,10 @@ private:
 	number_of_bodies	*nBodies;
 	gas_disc			*gasDisc;
 	gas_disc			*d_gasDisc;
+
 	d_var_t				acceGasDrag;
+	d_var_t				acceMigrateI;
+	d_var_t				acceMigrateII;
 
 	void allocate_vectors();
 

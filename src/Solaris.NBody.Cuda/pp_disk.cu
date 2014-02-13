@@ -13,7 +13,7 @@
 #include "thrust\copy.h"
 #include "thrust\transform.h"
 
-// includes project's header
+// includes project
 #include "config.h"
 #include "interaction_bound.h"
 #include "gas_disc.h"
@@ -384,6 +384,16 @@ var_t	calculate_gamma_epstein(var_t density, var_t radius)
 	}
 }
 
+// a = a + b
+static __global__
+void add_two_vector(int_t n, var_t *a, const var_t *b)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (n > tid) {
+		a[tid] += b[tid];
+	}
+}
+
 // Calculate acceleration caused by particle j on particle i 
 static __host__ __device__ 
 vec_t calculate_grav_accel_pair(const vec_t ci, const vec_t cj, var_t mass, vec_t ai)
@@ -478,17 +488,6 @@ void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const ga
 	}
 }
 
-// a = a + b
-static __global__
-void add_two_vector(int_t n, var_t *a, const var_t *b)
-{
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	if (n > tid) {
-		a[tid] += b[tid];
-	}
-}
-
-
 static __global__
 void	calculate_orbelem_kernel(
 		int_t total, int_t refBodyId, 
@@ -505,12 +504,18 @@ void	calculate_orbelem_kernel(
 	}
 }
 
+
+
+
+
 pp_disk::pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc) :
 	ode(2),
 	nBodies(nBodies),
 	gasDisc(gasDisc),
 	d_gasDisc(0),
-	acceGasDrag(d_var_t())
+	acceGasDrag(d_var_t()),
+	acceMigrateI(d_var_t()),
+	acceMigrateII(d_var_t())
 {
 	allocate_vectors();
 }
@@ -539,6 +544,14 @@ void pp_disk::allocate_vectors()
 		// ask Laci, how to find out if there was an error during these 2 cuda function calls
 		cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc));
 		cudaMemcpy(d_gasDisc, gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice );
+
+		if (0 < (nBodies->rocky_planet + nBodies->proto_planet)) {
+			acceMigrateI.resize(ndim * (nBodies->rocky_planet + nBodies->proto_planet));
+		}
+
+		if (0 < nBodies->giant_planet) {
+			acceMigrateII.resize(ndim * nBodies->giant_planet);
+		}
 	}
 }
 
@@ -699,11 +712,12 @@ void pp_disk::load(string filename, int n)
 
 	var_t cd;
 	if (input) {
-        int		id;
+        int_t		id;
+		int_t		dummy = 0;
 		ttt_t	time;
         		
 		for (int i = 0; i < n; i++) { 
-            input >> id;
+			input >> param[i].id;
 			input >> time;
 
 			input >> param[i].mass;
@@ -712,6 +726,9 @@ void pp_disk::load(string filename, int n)
 			input >> cd;
 			param[i].gamma_stokes = calculate_gamma_stokes(cd, param[i].density, param[i].radius);
 			param[i].gamma_epstein = calculate_gamma_epstein(param[i].density, param[i].radius);
+			input >> dummy;
+			param[i].migType = static_cast<migration_type_t>(dummy);
+			input >> param[i].migStopAt;
 
 			input >> coor[i].x;
 			input >> coor[i].y;
@@ -737,23 +754,17 @@ int pp_disk::print_positions(ostream& sout)
 	
 	for (int i = 0; i < nBodies->total; i ++)
 	{
-		sout << i << '\t';
+		sout << h_param[i].id << '\t';
 		sout << t << '\t';
 		sout << h_param[i].mass << '\t';
 		sout << h_param[i].radius << '\t';
-		sout << h_coord[i].x - h_coord[0].x << '\t';
-		sout << h_coord[i].y - h_coord[0].y << '\t';
-		sout << h_coord[i].z - h_coord[0].z << '\t';
-		sout << h_veloc[i].x - h_veloc[0].x << '\t';
-		sout << h_veloc[i].y - h_veloc[0].y << '\t';
-		sout << h_veloc[i].z - h_veloc[0].z;
-
-		//sout << h_coord[i].x << '\t';
-		//sout << h_coord[i].y << '\t';
-		//sout << h_coord[i].z << '\t';
-		//sout << h_veloc[i].x << '\t';
-		//sout << h_veloc[i].y << '\t';
-		//sout << h_veloc[i].z;
+		sout << h_param[i].density << '\t';
+		sout << h_coord[i].x << '\t';
+		sout << h_coord[i].y << '\t';
+		sout << h_coord[i].z << '\t';
+		sout << h_veloc[i].x << '\t';
+		sout << h_veloc[i].y << '\t';
+		sout << h_veloc[i].z;
 
 		sout << endl;
 	}
@@ -769,10 +780,11 @@ int pp_disk::print_orbelem(ostream& sout)
 	
 	for (int i = 0; i < nBodies->total; i ++)
 	{
-		sout << i << '\t';
+		sout << h_param[i].id << '\t';
 		sout << t << '\t';
 		sout << h_param[i].mass << '\t';
 		sout << h_param[i].radius << '\t';
+		sout << h_param[i].density << '\t';
 		sout << oe[i].sma << '\t';
 		sout << oe[i].ecc << '\t';
 		sout << oe[i].inc << '\t';
