@@ -2059,9 +2059,9 @@ int XmlFileAdapter::DeserializeGasComponentAttributes(TiXmlAttribute *attribute,
 
 int XmlFileAdapter::SetGasDecreaseType(std::string type, GasComponent *gasComponent)
 {
-	if (     type == "constant")	{ gasComponent->type = Constant;	}
-	else if (type == "linear")		{ gasComponent->type = Linear;		}
-	else if (type == "exponential")	{ gasComponent->type = Exponential; }
+	if (     type == "constant")	{ gasComponent->type = CONSTANT;	}
+	else if (type == "linear")		{ gasComponent->type = LINEAR;		}
+	else if (type == "exponential")	{ gasComponent->type = EXPONENTIAL; }
 	else {
 		return 1;
 	}

@@ -3,9 +3,9 @@
 
 enum GasDecreaseType 
 {
-	Constant,
-	Linear,
-	Exponential
+	CONSTANT,
+	LINEAR,
+	EXPONENTIAL
 };
 
 #endif

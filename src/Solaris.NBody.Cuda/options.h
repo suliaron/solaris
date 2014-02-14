@@ -41,6 +41,9 @@ public:
 	string	printoutDir;			// Printout directory
 	string	filename;				// Input file name
 
+	number_of_bodies	*nBodies;
+	gas_disc			*gasDisc;
+
 private:
 	integrator_type_t inttype;		// Integrator type
 	bool_t adaptive;				// Adaptive step size
@@ -48,9 +51,6 @@ private:
 	bool_t file;					// Input file supplied
 	int filen;						// Number of entries in input file
 	bool_t random;					// Generate random data
-
-	number_of_bodies	*nBodies;
-	gas_disc			*gasDisc;
 
 public:
 	options(int argc, const char** argv);

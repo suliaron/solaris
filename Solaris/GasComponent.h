@@ -28,7 +28,7 @@ public:
     PowerLaw    meanFreePath;
     PowerLaw    temperature;
 
-	double	FactorAt(const double t);
+	double	ReductionFactor(const double t);
 	double	MidplaneDensity(const double r);
 	double	GasDensityAt(double r, double z);
 	Vector	GasVelocity(double mu, double r, double alpha);

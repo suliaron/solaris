@@ -149,7 +149,7 @@ int Acceleration::ComputeBaryCentric(double t, double *y, double *totalAccel)
 			totalAccel[i0 + 5] += accelMigrationTypeII[j0 + 2];
 		}
 		// TODO: check this threshold and delete statements
-		if (nebula->gasComponent.FactorAt(t) < 1.0e-5) {
+		if (nebula->gasComponent.ReductionFactor(t) < 1.0e-5) {
 			evaluateGasDrag			= false;
 			evaluateTypeIMigration	= false;
 			evaluateTypeIIMigration = false;
@@ -334,7 +334,7 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
     static bool _stokes = false;
     static bool _transition = false;
 
-	double factor = this->nebula->gasComponent.FactorAt(t);
+	double factor = this->nebula->gasComponent.ReductionFactor(t);
 
 	// Gas drag is experienced only by planetesimals and super-planetesimlas.
 	int lower = bodyData->nBodies.NOfMassive();
@@ -417,7 +417,7 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
 
 int Acceleration::MigrationTypeIAC(double t, double *y, double *accel)
 {
-	double factor = this->nebula->gasComponent.FactorAt(t);
+	double factor = this->nebula->gasComponent.ReductionFactor(t);
 
 	int lower = bodyData->nBodies.centralBody + bodyData->nBodies.giantPlanet;
 	int upper = bodyData->nBodies.NOfMassive();
@@ -480,7 +480,7 @@ int Acceleration::MigrationTypeIAC(double t, double *y, double *accel)
 
 int Acceleration::MigrationTypeIIAC(double t, double *y, double *accel)
 {
-	double factor = this->nebula->gasComponent.FactorAt(t);
+	double factor = this->nebula->gasComponent.ReductionFactor(t);
 
 	int lower = bodyData->nBodies.centralBody;
 	int upper = bodyData->nBodies.centralBody + bodyData->nBodies.giantPlanet;
@@ -638,7 +638,7 @@ int	Acceleration::GasDragBC(double t, double *y, double *a)
 // TODO: check
 int	Acceleration::MigrationTypeIBC(double t, double *y, double *accel)
 {
-	double factor = this->nebula->gasComponent.FactorAt(t);
+	double factor = this->nebula->gasComponent.ReductionFactor(t);
 
 	int lower = bodyData->nBodies.centralBody + bodyData->nBodies.giantPlanet;
 	int upper = bodyData->nBodies.NOfMassive();
@@ -709,7 +709,7 @@ int	Acceleration::MigrationTypeIBC(double t, double *y, double *accel)
 // TODO: check
 int	Acceleration::MigrationTypeIIBC(double t, double *y, double *accel)
 {
-	double factor = nebula->gasComponent.FactorAt(t);
+	double factor = nebula->gasComponent.ReductionFactor(t);
 
 	int lower = bodyData->nBodies.centralBody;
 	int upper = bodyData->nBodies.centralBody + bodyData->nBodies.giantPlanet;

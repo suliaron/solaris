@@ -48,6 +48,7 @@ void options::print_usage()
 	cout << "                          E : Euler" << endl;
 	cout << "                          RK : Runge-Kutta" << endl;
 	cout << "                          RKN : Runge-Kutta-Nystrom" << endl;
+	cout << "     -gas          : Embed the planets into a gas disk" << endl;
 	cout << "     -a <number>   : Use adaptive time step with <number> as tolerance" << endl;
 	cout << "     -t <number>   : Stop time " << endl;
 	cout << "     -dt <number>  : Initial time step" << endl;
@@ -92,7 +93,11 @@ void options::parse_options(int argc, const char** argv)
 			var2_t sch = {5.0e-2,   5.0/4.0	};
 			var2_t tau = {2.0/3.0,  2.0		};
 			rho.x	*= Constants::GramPerCm3ToSolarPerAu3; // M_sun / AU^3
-			gasDisc = new gas_disc(rho, sch, eta, tau);
+			ttt_t	t0 = 0.0;
+			ttt_t	t1 = 100.0 * Constants::YearToDay;
+			ttt_t	timeScale = 10.0 * Constants::YearToDay;
+			gas_disc::gas_decrease_t gasDecrease = gas_disc::gas_decrease_t::CONSTANT;
+			gasDisc = new gas_disc(rho, sch, eta, tau, gasDecrease, t0, t1, timeScale);
 		}
 		// Integrator type
 		else if (p == "-i") {
@@ -120,7 +125,7 @@ void options::parse_options(int argc, const char** argv)
 		// Time end
 		else if (p == "-t")	{
 			i++;
-			timeStop = (var_t)atof(argv[i]);
+			timeStop = (var_t)atof(argv[i]) * Constants::YearToDay;
 		}
 		// Time step
 		else if (p == "-dt") {
@@ -136,11 +141,11 @@ void options::parse_options(int argc, const char** argv)
 		else if (p == "-p")	{
 			printout = true;
 			i++;
-			printoutPeriod = (var_t)atof(argv[i]);
+			printoutPeriod = (var_t)atof(argv[i]) * Constants::YearToDay;
 			i++;
-			printoutLength = (var_t)atof(argv[i]);
+			printoutLength = (var_t)atof(argv[i]) * Constants::YearToDay;
 			i++;
-			printoutStep = (var_t)atof(argv[i]);
+			printoutStep = (var_t)atof(argv[i]) * Constants::YearToDay;
 		}
 		// Print-out location
 		else if (p == "-o")	{

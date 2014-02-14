@@ -19,7 +19,7 @@ GasComponent::GasComponent()
 	timeScale 	        = 0.0;
 	t0			        = 0.0;
 	t1			        = 0.0;
-	type		        = Constant;
+	type		        = CONSTANT;
 
 	eta					= PowerLaw(0.0019, 0.5); 
 	tau					= PowerLaw(2.0/3.0, 2.0);
@@ -33,14 +33,14 @@ GasComponent::GasComponent()
 
 }
 
-double GasComponent::FactorAt(const double t)
+double GasComponent::ReductionFactor(const double t)
 {
 	switch (type) 
 	{
-	case Constant:
+	case CONSTANT:
 		return 1.0;
 		break;
-	case Linear:
+	case LINEAR:
 		if (t <= t0) {
 			return 1.0;
 		}
@@ -51,7 +51,7 @@ double GasComponent::FactorAt(const double t)
 			return 0.0;
 		}
 		break;
-	case Exponential:
+	case EXPONENTIAL:
 		return exp(-t/timeScale);
 		break;
 	default:

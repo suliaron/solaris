@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <sstream>
 
 #include "Constants.h"
 #include "number_of_bodies.h"
@@ -648,25 +649,15 @@ int generate_2_body(string filename, int n)
 	return 0;
 }
 
-int parse_options(int argc, const char **argv, number_of_bodies **nBodies, int *n, string &nBodies_str)
+int parse_options(int argc, const char **argv, number_of_bodies **nBodies, string &outDir)
 {
 	int i = 1;
 
 	while (i < argc) {
 		string p = argv[i];
 
-		// Number of bodies
-		if (p == "-n") {
+		if (p == "-nBodies") {
 			i++;
-			*n = atoi(argv[i]);
-			if (2 > *n) {
-				cerr << "Number of bodies must exceed 2.";
-				return 1;
-			}
-		}
-		else if (p == "-nBodies") {
-			i++;
-			int iSav = i;
 			int	star				= atoi(argv[i++]);
 			int	giant_planet		= atoi(argv[i++]);
 			int	rocky_planet		= atoi(argv[i++]);
@@ -675,14 +666,10 @@ int parse_options(int argc, const char **argv, number_of_bodies **nBodies, int *
 			int	planetesimal		= atoi(argv[i++]);
 			int	test_particle		= atoi(argv[i]);
 			*nBodies = new number_of_bodies(star, giant_planet, rocky_planet, proto_planet, super_planetesimal, planetesimal, test_particle);
-
-			string number;
-			for (int k = iSav; k < iSav + 6; k++) {
-				number = argv[k];
-				nBodies_str += number + '_';
-			}
-			number = argv[iSav+6];
-			nBodies_str += number;
+		}
+		else if (p == "-o") {
+			i++;
+			outDir = argv[i];
 		}
 		else {
 			cerr << "Invalid switch on command-line.";
@@ -694,29 +681,36 @@ int parse_options(int argc, const char **argv, number_of_bodies **nBodies, int *
 	return 0;
 }
 
+string create_number_of_bodies_str(const number_of_bodies *nBodies)
+{
+	ostringstream converter;   // stream used for the conversion
+	
+	converter << nBodies->star << '_' 
+		<< nBodies->giant_planet << '_' 
+		<< nBodies->rocky_planet << '_' 
+		<< nBodies->proto_planet << '_' 
+		<< nBodies->super_planetesimal << '_' 
+		<< nBodies->planetesimal << '_' 
+		<< nBodies->test_particle;
+
+	return converter.str();
+}
+
 int main(int argc, const char **argv)
 {
-	int n = 0;
 	number_of_bodies *nBodies = 0;
-	string nBodies_str;
 
-	int retCode = parse_options(argc, argv, &nBodies, &n, nBodies_str);
+	string outDir;
+	int retCode = parse_options(argc, argv, &nBodies, outDir);
 	if (0 != retCode) {
 		exit(retCode);
 	}
-	
-	const string baseDir = "C:\\Work\\Solaris.Cuda.TestRuns";
-	const string subDir = "2_Body";
-	string curDir = combine_path(baseDir, subDir);
-	
+	string nbstr = create_number_of_bodies_str(nBodies);
+
 	srand(time(NULL));
 
-	//retCode = generate_nbody2(combine_path(curDir, "256_Body.txt"), 256);
-	//retCode = generate_nbody_Rezso("E:\\Work\\VSSolutions\\solaris\\src\\Solaris.NBody.Cuda.Test\\TestRun\\Rezso\\Rezso.txt", n);
-	//retCode = generate_2_body(combine_path(curDir, "TwoBody.txt"), 2);
-
 	var2_t disk = {5.0, 6.0};	// AU
-	retCode = generate_pp_disk(combine_path(curDir, ("nBodies_" + nBodies_str + ".txt")), disk, nBodies);
+	retCode = generate_pp_disk(combine_path(outDir, ("nBodies_" + nbstr + ".txt")), disk, nBodies);
 
 	return retCode;
 }

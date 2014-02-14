@@ -15,6 +15,7 @@
 
 // includes project
 #include "config.h"
+#include "Constants.h"
 #include "interaction_bound.h"
 #include "gas_disc.h"
 #include "nbody_exception.h"
@@ -384,6 +385,71 @@ var_t	calculate_gamma_epstein(var_t density, var_t radius)
 	}
 }
 
+static __host__ __device__
+var_t	reduction_factor(const gas_disc* gasDisc, ttt_t t)
+{
+	switch (gasDisc->gas_decrease) 
+	{
+	case gas_disc::CONSTANT:
+		return 1.0;
+	case gas_disc::LINEAR:
+		if (t <= gasDisc->t0) {
+			return 1.0;
+		}
+		else if (t > gasDisc->t0 && t <= gasDisc->t1) {
+			return 1.0 - (t - gasDisc->t0)/(gasDisc->t1 - gasDisc->t0);
+		}
+		else {
+			return 0.0;
+		}
+	case gas_disc::EXPONENTIAL:
+		return exp(-t/gasDisc->timeScale);
+	default:
+		return 1.0;
+	}
+}
+
+#define SQRT_TWO_PI	2.50663
+static __host__ __device__
+var_t midplane_density(const gas_disc* gasDisc, var_t r)
+{
+	var_t a1 = gasDisc->rho.x * pow(r, gasDisc->rho.y);
+	var_t a2 = gasDisc->sch.x * pow(r, gasDisc->sch.y);
+	var_t a3 = a1 * a2 * SQRT_TWO_PI;
+
+	return a3;
+}
+#undef SQRT_TWO_PI	
+
+static __host__ __device__
+var_t typeI_migration_time(const gas_disc* gasDisc, var_t C, var_t O, var_t ar, var_t er, var_t h)
+{
+	var_t result = 0.0;
+
+	var_t Cm = 2.0/(2.7 + 1.1 * abs(gasDisc->rho.y))/O;
+	var_t er1 = er / (1.3*h);
+	var_t er2 = er / (1.1*h);
+	var_t frac = (1.0 + FIFTH(er1)) / (1.0 - FORTH(er2));
+	result = Cm * C * SQR(ar) * frac;
+
+	return result;
+}
+
+#define Q	0.78
+static __host__ __device__
+var_t typeI_eccentricity_damping_time(var_t C, var_t O, var_t ar, var_t er, var_t h)
+{
+	var_t result = 0.0;
+
+	var_t Ce = 0.1 / (Q*O);
+	var_t frac = 1.0 + 0.25 * CUBE(er/h);
+	result = Ce * C * FORTH(ar) * frac;
+
+	return result;
+}
+#undef Q
+
+
 // a = a + b
 static __global__
 void add_two_vector(int_t n, var_t *a, const var_t *b)
@@ -440,26 +506,20 @@ void	calculate_grav_accel_kernel(interaction_bound iBound, const pp_disk::param_
 }
 
 static __global__
-void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const gas_disc* gasDisc, 
+void calculate_drag_accel_kernel(interaction_bound iBound, var_t rFactor, const gas_disc* gasDisc, 
 		const pp_disk::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
 {
 	int tid		= blockIdx.x * blockDim.x + threadIdx.x;
 	int	bodyIdx = iBound.sink.x + tid;
 
 	if (bodyIdx < iBound.sink.y) {
-		vec_t vGas	= gas_velocity(gasDisc->eta, K2*params[0].mass, (vec_t*)&coor[bodyIdx]);
-		var_t rhoGas= gas_density_at(gasDisc, (vec_t*)&coor[bodyIdx]) * timeF;
-		//printf("rhoGas: %.15lf\n", rhoGas);
-		//printf("vGas: %.15lf, %.15lf, %.15lf\n", vGas.x, vGas.y, vGas.z);
-		//printf("velo[%d]: %.15lf, %.15lf, %.15lf\n", bodyIdx, velo[bodyIdx].x, velo[bodyIdx].y, velo[bodyIdx].z);
+		vec_t vGas	 = gas_velocity(gasDisc->eta, K2*params[0].mass, (vec_t*)&coor[bodyIdx]);
+		var_t rhoGas = rFactor * gas_density_at(gasDisc, (vec_t*)&coor[bodyIdx]);
 
 		vec_t u;
 		u.x	= velo[bodyIdx].x - vGas.x;
 		u.y	= velo[bodyIdx].y - vGas.y;
 		u.z	= velo[bodyIdx].z - vGas.z;
-
-		//printf("u: %.15lf, %.15lf, %.15lf\n", u.x, u.y, u.z);
-
 		var_t C		= 0.0;
 		// TODO: implement the different regimes according to the mean free path of the gas molecules
 		// Epstein-regime:
@@ -468,11 +528,7 @@ void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const ga
 		}
 		// Stokes-regime:
 		{
-			//var_t uLength = norm(&u);
 			C = params[bodyIdx].gamma_stokes * norm(&u) * rhoGas;
-			//printf("params[bodyIdx].gamma_stokes: %.15lf\n", params[bodyIdx].gamma_stokes);
-			//printf("norm(&u): %.15lf\n", norm(&u));
-			//printf("C: %.15lf\n", C);
 		}
 		// Transition regime:
 		{
@@ -484,7 +540,57 @@ void calculate_drag_accel_kernel(interaction_bound iBound, var_t timeF, const ga
 		acce[tid].z = -C * u.z;
 		acce[tid].w = 0.0;
 
-		//printf("acce[%d]: %.15lf, %.15lf, %.15lf\n", tid, acce[tid].x, acce[tid].y, acce[tid].z);
+	}
+}
+
+static __global__
+void calculate_migrateI_accel_kernel(interaction_bound iBound, var_t rFactor, const gas_disc* gasDisc, 
+		pp_disk::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
+{
+	int tid		= blockIdx.x * blockDim.x + threadIdx.x;
+	int	bodyIdx = iBound.sink.x + tid;
+
+	var_t r = norm((vec_t*)&coor[bodyIdx]);
+	if (params[bodyIdx].migStopAt > r) {
+		acce[tid].x = acce[tid].y = acce[tid].z = acce[tid].w = 0.0;
+		params[bodyIdx].migType = pp_disk::migration_type::NO;
+	}
+
+	if (bodyIdx < iBound.sink.y && params[bodyIdx].migType == pp_disk::migration_type::TYPE_I) {
+		var_t a = 0.0, e = 0.0;
+		var_t mu = K2*(params[0].mass + params[bodyIdx].mass);
+		calculate_sma_ecc(mu, (vec_t*)(&coor[bodyIdx]), (vec_t*)(&velo[bodyIdx]), &a, &e);
+
+		// Orbital frequency: (note, that this differs from the formula of Fogg & Nelson 2005)
+		var_t O = orbital_frequency(mu, a); // K * sqrt((params[0]->mass + p->mass)/CUBE(a));
+		var_t C = SQR(params[0].mass)/(params[bodyIdx].mass * SQR(a) * midplane_density(gasDisc, r));
+		// Aspect ratio:
+		var_t h = gasDisc->sch.x * pow(r, gasDisc->sch.y);
+		var_t ar = h/r;
+		var_t er = e*r;
+
+		/*
+		 *  When e > 1.1 h/r, inward migration halts as $t_{\rm m}$ becomes negative and only
+		 *  resumes when eccentricity is damped to lower values. We note that under certain
+		 *  circumstances, such as there being a surface density jump, or an optically thick disk,
+		 *  or MHD turbulence, type I migration may be substantially modified or reversed
+		 *  (Papaloizou & Nelson 2005; Paardekooper & Mellema 2006; Nelson 2005; Masset et al. 2006).
+		 */
+		var_t tm = 0.0;
+		if (e < 1.1*ar) {
+			tm = typeI_migration_time(gasDisc, C, O, ar, er, h);
+			tm = 1.0/tm;
+		}
+		var_t te = typeI_eccentricity_damping_time(C, O, ar, er, h);
+		var_t ti = te;
+		var_t vr = dot_product((vec_t*)&coor[bodyIdx], (vec_t*)&velo[bodyIdx]);
+		te = 2.0*vr/(r*r*te);
+		ti = 2.0/ti;
+
+		acce[tid].x = -rFactor*(tm * velo[bodyIdx].x + te * coor[bodyIdx].x);
+		acce[tid].y = -rFactor*(tm * velo[bodyIdx].y + te * coor[bodyIdx].y);
+		acce[tid].z = -rFactor*(tm * velo[bodyIdx].z + te * coor[bodyIdx].z + ti * velo[bodyIdx].z);
+		acce[tid].w = 0.0;
 	}
 }
 
@@ -605,13 +711,13 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 	return cudaStatus;
 }
 
+// TODO: remove gasDisc, since it is defined in pp_disk. Mist be definitly mark if it is on the host or on the device
 cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc *gasDisc, const param_t *params, 
 	const vec_t *coor, const vec_t *velo, vec_t *acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
 
-	// TODO: calculate it using the value of the time
-	var_t timeF = 1.0;
+	var_t timeF = reduction_factor(this->gasDisc, time);
 
 	int	nBodyToCalculate = nBodies->n_gas_drag();
 	if (0 < nBodyToCalculate) {
@@ -630,6 +736,30 @@ cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc
 	return cudaStatus;
 }
 
+// TODO: remove gasDisc, since it is defined in pp_disk. Mist be definitly mark if it is on the host or on the device
+cudaError_t pp_disk::call_calculate_migrateI_accel_kernel(ttt_t time, const gas_disc* gasDisc, param_t* params, 
+	const vec_t* coor, const vec_t* velo, vec_t* acce)
+{
+	cudaError_t cudaStatus = cudaSuccess;
+
+	var_t timeF = reduction_factor(gasDisc, time);
+
+	int	nBodyToCalculate = nBodies->n_migrate_typeI();
+	if (0 < nBodyToCalculate) {
+		interaction_bound iBound = nBodies->get_bodies_migrate_typeI();
+		int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
+		int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
+		dim3	grid(nBlock);
+		dim3	block(nThread);
+
+		calculate_migrateI_accel_kernel<<<grid, block>>>(iBound, timeF, gasDisc, params, coor, velo, acce);
+		cudaStatus = HANDLE_ERROR(cudaGetLastError());
+		if (cudaSuccess != cudaStatus) {
+			throw nbody_exception("calculate_migrateI_accel_kernel launch failed", cudaStatus);
+		}
+	}
+	return cudaStatus;
+}
 
 void pp_disk::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy)
 {
@@ -710,11 +840,10 @@ void pp_disk::load(string filename, int n)
 
 	ifstream input(filename.c_str());
 
-	var_t cd;
 	if (input) {
-        int_t		id;
-		int_t		dummy = 0;
-		ttt_t	time;
+		int_t	migType = 0;
+		var_t	cd = 0.0;
+		ttt_t	time = 0.0;
         		
 		for (int i = 0; i < n; i++) { 
 			input >> param[i].id;
@@ -726,8 +855,8 @@ void pp_disk::load(string filename, int n)
 			input >> cd;
 			param[i].gamma_stokes = calculate_gamma_stokes(cd, param[i].density, param[i].radius);
 			param[i].gamma_epstein = calculate_gamma_epstein(param[i].density, param[i].radius);
-			input >> dummy;
-			param[i].migType = static_cast<migration_type_t>(dummy);
+			input >> migType;
+			param[i].migType = static_cast<migration_type_t>(migType);
 			input >> param[i].migStopAt;
 
 			input >> coor[i].x;

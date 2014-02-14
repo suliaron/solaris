@@ -79,7 +79,7 @@ public:
 
 private:
 	number_of_bodies	*nBodies;
-	gas_disc			*gasDisc;
+	gas_disc			*h_gasDisc;
 	gas_disc			*d_gasDisc;
 
 	d_var_t				acceGasDrag;
@@ -107,6 +107,16 @@ private:
 	*/
 	cudaError_t call_calculate_drag_accel_kernel(ttt_t time, const gas_disc* gasDisc, const param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
 
+	//! Calls the kernel that calculates the acceleration due to type I migration.
+	/*
+		\param time The actual time of the simulation
+		\param gasDisc The parameters describing the gas disk
+		\param params Vector of parameters of the bodies
+		\param coor Vector of coordinates of the bodies
+		\param velo Vector of velocities of the bodies
+		\param acce Will hold the accelerations for each body
+	*/
+	cudaError_t call_calculate_migrateI_accel_kernel(ttt_t time, const gas_disc* gasDisc, param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
 };
 
 static __host__ __device__ void		shift_into_range(var_t lower, var_t upper, var_t* value);
@@ -128,3 +138,10 @@ static __host__ __device__ var_t	orbital_period(var_t mu, var_t sma);
 static __host__ __device__ var_t	orbital_frequency(var_t mu, var_t sma);
 static __host__ __device__ var_t	calculate_gamma_stokes(var_t cd, var_t density, var_t radius);
 static __host__ __device__ var_t	calculate_gamma_epstein(var_t density, var_t radius);
+static __host__ __device__ var_t	reduction_factor(const gas_disc* gasDisc, ttt_t t);
+static __host__ __device__ var_t	midplane_density(const gas_disc* gasDisc, var_t r);
+static __host__ __device__ var_t	typeI_migration_time(const gas_disc* gasDisc, var_t C, var_t O, var_t ar, var_t er, var_t h);
+static __host__ __device__ var_t	typeI_eccentricity_damping_time(var_t C, var_t O, var_t ar, var_t er, var_t h);
+
+
+

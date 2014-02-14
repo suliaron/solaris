@@ -55,3 +55,5 @@ typedef thrust::device_vector<int2_t>	d_int2_t;
 // correct results in the case of a division i.e. 1/SQR(x) -> 1/((x)*(x))
 #define	SQR(x)		((x)*(x))
 #define	CUBE(x)		((x)*(x)*(x))
+#define FORTH(x)	((x)*(x)*(x)*(x))
+#define FIFTH(x)	((x)*(x)*(x)*(x)*(x))
