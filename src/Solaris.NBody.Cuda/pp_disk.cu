@@ -452,7 +452,7 @@ var_t typeI_eccentricity_damping_time(var_t C, var_t O, var_t ar, var_t er, var_
 
 // a = a + b
 static __global__
-void add_two_vector(int_t n, var_t *a, const var_t *b)
+void add_two_vector_kernel(int_t n, var_t *a, const var_t *b)
 {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	if (n > tid) {
@@ -617,7 +617,7 @@ void	calculate_orbelem_kernel(
 pp_disk::pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc) :
 	ode(2),
 	nBodies(nBodies),
-	gasDisc(gasDisc),
+	h_gasDisc(gasDisc),
 	d_gasDisc(0),
 	acceGasDrag(d_var_t()),
 	acceMigrateI(d_var_t()),
@@ -629,7 +629,7 @@ pp_disk::pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc) :
 pp_disk::~pp_disk()
 {
 	delete nBodies;
-	delete gasDisc;
+	delete h_gasDisc;
 	cudaFree(d_gasDisc);
 }
 
@@ -644,12 +644,12 @@ void pp_disk::allocate_vectors()
 	h_y[0].resize(ndim * nBodies->total);
 	h_y[1].resize(ndim * nBodies->total);
 
-	if (0 != gasDisc) {
+	if (0 != h_gasDisc) {
 		acceGasDrag.resize(ndim * nBodies->n_gas_drag());
 		// TODO:
 		// ask Laci, how to find out if there was an error during these 2 cuda function calls
 		cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc));
-		cudaMemcpy(d_gasDisc, gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice );
+		cudaMemcpy(d_gasDisc, h_gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice );
 
 		if (0 < (nBodies->rocky_planet + nBodies->proto_planet)) {
 			acceMigrateI.resize(ndim * (nBodies->rocky_planet + nBodies->proto_planet));
@@ -675,7 +675,7 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 	calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
 	cudaStatus = HANDLE_ERROR(cudaGetLastError());
 	if (cudaSuccess != cudaStatus) {
-		throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+		throw nbody_exception("calculate_grav_accel_kernel failed", cudaStatus);
 	}
 
 	iBound = nBodies->get_nonself_interacting();
@@ -689,7 +689,7 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
 		cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
-			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+			throw nbody_exception("calculate_grav_accel_kernel failed", cudaStatus);
 		}
 	}
 
@@ -704,7 +704,7 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
 		cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
-			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+			throw nbody_exception("calculate_grav_accel_kernel failed", cudaStatus);
 		}
 	}
 
@@ -712,12 +712,12 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 }
 
 // TODO: remove gasDisc, since it is defined in pp_disk. Mist be definitly mark if it is on the host or on the device
-cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc *gasDisc, const param_t *params, 
+cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const param_t *params, 
 	const vec_t *coor, const vec_t *velo, vec_t *acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
 
-	var_t timeF = reduction_factor(this->gasDisc, time);
+	var_t timeF = reduction_factor(h_gasDisc, time);
 
 	int	nBodyToCalculate = nBodies->n_gas_drag();
 	if (0 < nBodyToCalculate) {
@@ -727,22 +727,22 @@ cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const gas_disc
 		dim3	grid(nBlock);
 		dim3	block(nThread);
 
-		calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, gasDisc, params, coor, velo, acce);
+		calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, d_gasDisc, params, coor, velo, acce);
 		cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
-			throw nbody_exception("calculate_grav_accel_kernel launch failed", cudaStatus);
+			throw nbody_exception("calculate_grav_accel_kernel failed", cudaStatus);
 		}
 	}
 	return cudaStatus;
 }
 
 // TODO: remove gasDisc, since it is defined in pp_disk. Mist be definitly mark if it is on the host or on the device
-cudaError_t pp_disk::call_calculate_migrateI_accel_kernel(ttt_t time, const gas_disc* gasDisc, param_t* params, 
+cudaError_t pp_disk::call_calculate_migrateI_accel_kernel(ttt_t time, param_t* params, 
 	const vec_t* coor, const vec_t* velo, vec_t* acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
 
-	var_t timeF = reduction_factor(gasDisc, time);
+	var_t timeF = reduction_factor(h_gasDisc, time);
 
 	int	nBodyToCalculate = nBodies->n_migrate_typeI();
 	if (0 < nBodyToCalculate) {
@@ -752,10 +752,10 @@ cudaError_t pp_disk::call_calculate_migrateI_accel_kernel(ttt_t time, const gas_
 		dim3	grid(nBlock);
 		dim3	block(nThread);
 
-		calculate_migrateI_accel_kernel<<<grid, block>>>(iBound, timeF, gasDisc, params, coor, velo, acce);
+		calculate_migrateI_accel_kernel<<<grid, block>>>(iBound, timeF, d_gasDisc, params, coor, velo, acce);
 		cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
-			throw nbody_exception("calculate_migrateI_accel_kernel launch failed", cudaStatus);
+			throw nbody_exception("calculate_migrateI_accel_kernel failed", cudaStatus);
 		}
 	}
 	return cudaStatus;
@@ -763,50 +763,63 @@ cudaError_t pp_disk::call_calculate_migrateI_accel_kernel(ttt_t time, const gas_
 
 void pp_disk::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy)
 {
+	cudaError_t cudaStatus = cudaSuccess;
+
 	switch (i)
 	{
 	case 0:
 		// Copy velocities from previous step
 		thrust::copy(y[1].begin(), y[1].end(), dy.begin());
+		cudaStatus = HANDLE_ERROR(cudaGetLastError());
+		if (cudaSuccess != cudaStatus) {
+			throw nbody_exception("thrust::copy kernel failed", cudaStatus);
+		}
 		break;
 	case 1:
-		// Calculate accelerations
-		param_t	*params = (param_t*)p.data().get();
-		vec_t	*coor = (vec_t*)y[0].data().get();
-		vec_t	*velo = (vec_t*)y[1].data().get();
-		vec_t	*acce = (vec_t*)dy.data().get();
+		// Make some shortcuts / aliases
+		param_t* params = (param_t*)p.data().get();
+		vec_t* coor		= (vec_t*)y[0].data().get();
+		vec_t* velo		= (vec_t*)y[1].data().get();
+		vec_t* acce		= (vec_t*)dy.data().get();
+		// Calculate accelerations origanted from the gravitatinal force
 		call_calculate_grav_accel_kernel(params, coor, acce);
 
-		if (0 != gasDisc && 0 < nBodies->n_gas_drag()) {
-			vec_t	*aGD = (vec_t*)acceGasDrag.data().get();
+		if (0 != h_gasDisc && 0 < nBodies->n_gas_drag()) {
+			vec_t *aGD = (vec_t*)acceGasDrag.data().get();
 			if (0 == r) {
-			// Calculate accelerations originated from gas drag
-				call_calculate_drag_accel_kernel(t, d_gasDisc, params, coor, velo, aGD);
+				// Calculate accelerations originated from gas drag
+				call_calculate_drag_accel_kernel(t, params, coor, velo, aGD);
+				cudaStatus = HANDLE_ERROR(cudaGetLastError());
+				if (cudaSuccess != cudaStatus) {
+					throw nbody_exception("call_calculate_drag_accel_kernel failed", cudaStatus);
+				}
 			}
 			// Add acceGasDrag to dy
-			int_t offset = 4 * nBodies->n_self_interacting();
-			var_t* aSum = (var_t*)(dy.data().get()) + offset;
+			int_t	offset = 4 * nBodies->n_self_interacting();
+			var_t*	aSum = (var_t*)acce + offset;
 
-			int nBodyToCalculate = nBodies->n_gas_drag();
-			int_t nData = 4 * nBodyToCalculate;
+			int	nData	= 4 * nBodies->n_gas_drag();
+			int	nThread	= std::min(THREADS_PER_BLOCK, nData);
+			int	nBlock	= (nData + nThread - 1)/nThread;
+			dim3 grid(nBlock);
+			dim3 block(nThread);
 
-			int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
-			int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
-			dim3	grid(nBlock);
-			dim3	block(nThread);
-
-			add_two_vector<<<grid, block>>>(nData, aSum, (var_t*)aGD);
-			cudaError_t cudaStatus = cudaGetLastError();
+			add_two_vector_kernel<<<grid, block>>>(nData, aSum, (var_t*)aGD);
+			// The RKN stops with an error, while the RK4 not. Why? Should I synchronize C and G?
+			// It did not help.
+			//cudaDeviceSynchronize();
+			cudaStatus = HANDLE_ERROR(cudaGetLastError());
 			if (cudaStatus != cudaSuccess) {
-				throw nbody_exception("add_two_vector kernel failed", cudaStatus);
+				throw nbody_exception("add_two_vector_kernel failed", cudaStatus);
 			}
+
 		}
 
 		break;
 	}
 }
 
-void pp_disk::calculate_orbelem(int_t refBodyId)
+pp_disk::h_orbelem_t pp_disk::calculate_orbelem(int_t refBodyId)
 {
 	static const int noe = sizeof(orbelem_t)/sizeof(var_t);
 
@@ -828,8 +841,12 @@ void pp_disk::calculate_orbelem(int_t refBodyId)
 	calculate_orbelem_kernel<<<grid, block>>>(nBodies->total, refBodyId, params, coor, velo, d_orbelem.data().get());
 	cudaStatus = HANDLE_ERROR(cudaGetLastError());
 	if (cudaSuccess != cudaStatus) {
-		throw nbody_exception("calculate_orbelem_kernel launch failed", cudaStatus);
+		throw nbody_exception("calculate_orbelem_kernel failed", cudaStatus);
 	}
+	// Download the result from the device
+	h_orbelem = d_orbelem;
+
+	return h_orbelem;
 }
 
 void pp_disk::load(string filename, int n)

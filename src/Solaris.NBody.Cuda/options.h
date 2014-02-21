@@ -7,6 +7,7 @@
 #include "integrator.h"
 #include "nbody.h"
 #include "ode.h"
+#include "opt_midpoint_method.h"
 #include "pp_disk.h"
 #include "rungekutta.h"
 #include "rungekuttanystrom.h"
@@ -22,7 +23,9 @@ public:
 	typedef enum integrator_type
 			{ 
 				INTEGRATOR_EULER,
-				INTEGRATOR_RUNGEKUTTA,
+				INTEGRATOR_RUNGEKUTTA2,
+				INTEGRATOR_OPT_RUNGEKUTTA2,
+				INTEGRATOR_RUNGEKUTTA4,
 				INTEGRATOR_RUNGEKUTTANYSTROM
 			} integrator_type_t;
 

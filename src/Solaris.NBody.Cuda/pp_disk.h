@@ -18,7 +18,7 @@ public:
 		NO,
 		TYPE_I,
 		TYPE_II
-	} migration_type_t;
+	}	    migration_type_t;
 
 	// Type for parameters
 	typedef struct param
@@ -39,7 +39,7 @@ public:
 		migration_type_t migType;
 		//! The migration stop at this distance measured from the star
 		var_t	migStopAt;
-	} param_t;
+	}				param_t;
 
 	typedef struct orbelem
 	{
@@ -55,7 +55,7 @@ public:
 		var_t node;
 		//! Mean anomaly
 		var_t mean;
-	} orbelem_t;
+	}				orbelem_t;
 
 	typedef thrust::host_vector<param_t>		h_param_t;
 	typedef thrust::device_vector<param_t>		d_param_t;
@@ -69,7 +69,7 @@ public:
 	pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc);
 	~pp_disk();
 
-	void calculate_orbelem(int_t refBodyId);
+	h_orbelem_t calculate_orbelem(int_t refBodyId);
 
 	void calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy);
 
@@ -99,24 +99,22 @@ private:
 	//! Calls the kernel that calculates the acceleration due to drag force.
 	/*
 		\param time The actual time of the simulation
-		\param gasDisc The parameters describing the gas disk
 		\param params Vector of parameters of the bodies
 		\param coor Vector of coordinates of the bodies
 		\param velo Vector of velocities of the bodies
 		\param acce Will hold the accelerations for each body
 	*/
-	cudaError_t call_calculate_drag_accel_kernel(ttt_t time, const gas_disc* gasDisc, const param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
+	cudaError_t call_calculate_drag_accel_kernel(ttt_t time, const param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
 
 	//! Calls the kernel that calculates the acceleration due to type I migration.
 	/*
 		\param time The actual time of the simulation
-		\param gasDisc The parameters describing the gas disk
 		\param params Vector of parameters of the bodies
 		\param coor Vector of coordinates of the bodies
 		\param velo Vector of velocities of the bodies
 		\param acce Will hold the accelerations for each body
 	*/
-	cudaError_t call_calculate_migrateI_accel_kernel(ttt_t time, const gas_disc* gasDisc, param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
+	cudaError_t call_calculate_migrateI_accel_kernel(ttt_t time, param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce);
 };
 
 static __host__ __device__ void		shift_into_range(var_t lower, var_t upper, var_t* value);

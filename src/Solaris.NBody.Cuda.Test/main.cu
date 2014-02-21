@@ -130,7 +130,7 @@ int main(int argc, const char** argv)
 		else {
 			//collisionsf = new ofstream(combine_path(opt.printoutDir, "col.txt").c_str());
 			//positionsf = new ofstream(get_printout_file(opt, pcount++).c_str());
-			filename = get_filename_without_ext(opt.filename) + ".ppd." + (opt.gasDisc == 0 ? "" : "gas.CONSTANT.");
+			filename = get_filename_without_ext(opt.filename) + ".foRK2.ppd." + (opt.gasDisc == 0 ? "" : "gas.CONSTANT.");
 			string filenameWithExt = filename + get_extension(opt.filename);
 			positionsf = new ofstream(combine_path(opt.printoutDir, filenameWithExt), std::ios::app);
 			filenameWithExt = filename + "oe." + get_extension(opt.filename);
@@ -159,8 +159,7 @@ int main(int argc, const char** argv)
 						// Print out positions
 						ppd->copy_to_host();
 						ppd->print_positions(*positionsf);
-						ppd->calculate_orbelem(0);
-						ppd->h_orbelem = ppd->d_orbelem;
+						pp_disk::h_orbelem_t orbelem = ppd->calculate_orbelem(0);
 						ppd->print_orbelem(*orbelemf);
 					}
 				}

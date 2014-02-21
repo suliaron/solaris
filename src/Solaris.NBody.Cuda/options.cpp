@@ -46,8 +46,10 @@ void options::print_usage()
 	cout << "     -nBodies <nStar> <nGP> <nRP> <nPP> <nSP> <nPl> <nTP> : Number of bodies" << endl;
 	cout << "     -i <type>          : Integrator type" << endl;
 	cout << "                          E : Euler" << endl;
-	cout << "                          RK : Runge-Kutta" << endl;
-	cout << "                          RKN : Runge-Kutta-Nystrom" << endl;
+	cout << "                          oRK2 : optimized 2nd order Runge-Kutta" << endl;
+	cout << "                          RK2  : 2nd order Runge-Kutta" << endl;
+	cout << "                          RK4  : 4th order Runge-Kutta" << endl;
+	cout << "                          RKN  : Runge-Kutta-Nystrom" << endl;
 	cout << "     -gas          : Embed the planets into a gas disk" << endl;
 	cout << "     -a <number>   : Use adaptive time step with <number> as tolerance" << endl;
 	cout << "     -t <number>   : Stop time " << endl;
@@ -106,8 +108,14 @@ void options::parse_options(int argc, const char** argv)
 			if (p == "E") {
 				inttype = INTEGRATOR_EULER;
 			}
-			else if (p == "RK")	{
-				inttype = INTEGRATOR_RUNGEKUTTA;
+			else if (p == "RK2")	{
+				inttype = INTEGRATOR_RUNGEKUTTA2;
+			}
+			else if (p == "oRK2")	{
+				inttype = INTEGRATOR_OPT_RUNGEKUTTA2;
+			}
+			else if (p == "RK4")	{
+				inttype = INTEGRATOR_RUNGEKUTTA4;
 			}
 			else if (p == "RKN") {
 				inttype = INTEGRATOR_RUNGEKUTTANYSTROM;
@@ -314,7 +322,13 @@ integrator* options::create_integrator(ode* f)
 	case INTEGRATOR_EULER:
 		intgr = new euler(*f, dt);
 		break;
-	case INTEGRATOR_RUNGEKUTTA:
+	case INTEGRATOR_RUNGEKUTTA2:
+		intgr = new rungekutta<2>(*f, dt, adaptive, tolerance);
+		break;
+	case INTEGRATOR_OPT_RUNGEKUTTA2:
+		intgr = new opt_midpoint_method(*f, dt, adaptive, tolerance);
+		break;
+	case INTEGRATOR_RUNGEKUTTA4:
 		intgr = new rungekutta<4>(*f, dt, adaptive, tolerance);
 		break;
 	case INTEGRATOR_RUNGEKUTTANYSTROM:

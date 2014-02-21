@@ -16,8 +16,8 @@ private:
 	bool_t adaptive;
 	var_t tolerance;
 	
+	std::vector< std::vector< d_var_t> > d_k;	// Differentials on the device
 	std::vector<d_var_t> d_ytemp;				// Values on the device
-	std::vector< std::vector< d_var_t> > d_k;		// Differentials on the device
 
 public:
 	rungekutta(ode& f, ttt_t dt, bool adaptive, var_t tolerance);
