@@ -23,8 +23,8 @@ private:
 	dim3	block;
 
 	void calculate_grid(int nData, int threads_per_block);
-	void call_calc_2nd_arg_of_k2_kernel();
-	void call_calc_final_dependent_variables_kernel();
+	void calc_ytemp_for_k2();
+	void calc_y_np1();
 
 public:
 	opt_midpoint_method(ode& f, ttt_t dt, bool adaptive, var_t tolerance);

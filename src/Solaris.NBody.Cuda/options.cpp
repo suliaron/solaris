@@ -4,6 +4,12 @@
 #include "nbody_exception.h"
 #include "number_of_bodies.h"
 
+#include "euler.h"
+#include "opt_midpoint_method.h"
+#include "opt_rungekutta4.h"
+#include "rungekutta.h"
+#include "rungekuttanystrom.h"
+
 options::options(int argc, const char** argv)
 {
 	create_default_options();
@@ -47,6 +53,7 @@ void options::print_usage()
 	cout << "     -i <type>          : Integrator type" << endl;
 	cout << "                          E : Euler" << endl;
 	cout << "                          oRK2 : optimized 2nd order Runge-Kutta" << endl;
+	cout << "                          oRK4 : optimized 4th order Runge-Kutta" << endl;
 	cout << "                          RK2  : 2nd order Runge-Kutta" << endl;
 	cout << "                          RK4  : 4th order Runge-Kutta" << endl;
 	cout << "                          RKN  : Runge-Kutta-Nystrom" << endl;
@@ -116,6 +123,9 @@ void options::parse_options(int argc, const char** argv)
 			}
 			else if (p == "RK4")	{
 				inttype = INTEGRATOR_RUNGEKUTTA4;
+			}
+			else if (p == "oRK4")	{
+				inttype = INTEGRATOR_OPT_RUNGEKUTTA4;
 			}
 			else if (p == "RKN") {
 				inttype = INTEGRATOR_RUNGEKUTTANYSTROM;
@@ -331,11 +341,14 @@ integrator* options::create_integrator(ode* f)
 	case INTEGRATOR_RUNGEKUTTA4:
 		intgr = new rungekutta<4>(*f, dt, adaptive, tolerance);
 		break;
+	case INTEGRATOR_OPT_RUNGEKUTTA4:
+		intgr = new opt_rungekutta4(*f, dt, adaptive, tolerance);
+		break;
 	case INTEGRATOR_RUNGEKUTTANYSTROM:
 		intgr = new rungekuttanystrom<9>(*f, dt, adaptive, tolerance);
 		break;
 	default:
-		throw nbody_exception("Not implemented.");
+		throw nbody_exception("Requested integrator is not implemented.");
 	}
 
 	return intgr;

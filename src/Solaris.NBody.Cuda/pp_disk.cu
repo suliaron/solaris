@@ -455,6 +455,7 @@ static __global__
 void add_two_vector_kernel(int_t n, var_t *a, const var_t *b)
 {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
 	if (n > tid) {
 		a[tid] += b[tid];
 	}
@@ -805,9 +806,6 @@ void pp_disk::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::v
 			dim3 block(nThread);
 
 			add_two_vector_kernel<<<grid, block>>>(nData, aSum, (var_t*)aGD);
-			// The RKN stops with an error, while the RK4 not. Why? Should I synchronize C and G?
-			// It did not help.
-			//cudaDeviceSynchronize();
 			cudaStatus = HANDLE_ERROR(cudaGetLastError());
 			if (cudaStatus != cudaSuccess) {
 				throw nbody_exception("add_two_vector_kernel failed", cudaStatus);

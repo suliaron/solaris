@@ -36,6 +36,9 @@
     <ClInclude Include="opt_midpoint_method.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="opt_rungekutta4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="euler.cu">
@@ -54,6 +57,9 @@
       <Filter>Source Files</Filter>
     </CudaCompile>
     <CudaCompile Include="opt_midpoint_method.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="opt_rungekutta4.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>

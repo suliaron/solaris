@@ -2,6 +2,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
+// include project
 #include "integrator_exception.h"
 #include "opt_midpoint_method.h"
 
@@ -17,33 +18,22 @@ static cudaError_t HandleError(cudaError_t cudaStatus, const char *file, int lin
 }
 #define HANDLE_ERROR(cudaStatus) (HandleError(cudaStatus, __FILE__, __LINE__))
 
-
-// ytemp = y0 + a21 * k1
-static __global__
-void calc_2nd_arg_of_k2_kernel(int_t n, var_t *ytemp, const var_t *y0, const var_t *k1, var_t a21)
-{
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-
-	if (n > tid) {
-		ytemp[tid] = y0[tid] + a21 * k1[tid];
-	}
-}
-
-// y_n+1 = y_n + k2
-static __global__
-void calc_final_dependent_variables_kernel(int_t n, var_t *y, const var_t *y0, const var_t *k2)
-{
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-
-	if (n > tid) {
-		y[tid] = y0[tid] + k2[tid];
-	}
-}
-
 var_t opt_midpoint_method::a[] = {1.0/2.0};
 var_t opt_midpoint_method::b[] = {0.0, 1.0};
 ttt_t opt_midpoint_method::c[] = {0.0, 1.0/2.0};
 
+// result = a + b_factor * b
+static __global__
+void sum_vector_kernel(int_t n, var_t* result, const var_t* a, const var_t* b, var_t b_factor)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	int stride = gridDim.x * blockDim.x;
+
+	while (n > tid) {
+		result[tid] = a[tid] + b_factor * b[tid];
+		tid += stride;
+	}
+}
 
 void opt_midpoint_method::calculate_grid(int nData, int threads_per_block)
 {
@@ -53,32 +43,36 @@ void opt_midpoint_method::calculate_grid(int nData, int threads_per_block)
 	block.x = nThread;
 }
 
-void opt_midpoint_method::call_calc_2nd_arg_of_k2_kernel()
+void opt_midpoint_method::calc_ytemp_for_k2()
 {
-	for (int i = 0; f.get_order(); i++) {
-		var_t *y0 = f.d_y[i].data().get();
-		var_t *k1 = d_k[i][0].data().get();
+	for (int i = 0; i < f.get_order(); i++) {
+		int n		= f.d_y[i].size();
+		var_t *y_n	= f.d_y[i].data().get();
+		var_t *ytemp= d_ytemp[i].data().get();
+		var_t *k1	= d_k[i][0].data().get();
 
-		calculate_grid(f.d_y[i].size(), THREADS_PER_BLOCK);
-		calc_2nd_arg_of_k2_kernel<<<grid, block>>>(f.d_y[i].size(), d_ytemp[i].data().get(), y0, k1, a[0] * dt);
+		calculate_grid(n, THREADS_PER_BLOCK);
+		sum_vector_kernel<<<grid, block>>>(n, ytemp, y_n, k1, a[0] * dt);
 		cudaError cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
-			throw integrator_exception("calc_2nd_arg_of_k2_kernel failed");
+			throw integrator_exception("calc_ytemp_for_k2_kernel failed");
 		}
 	}
 }
 
-void opt_midpoint_method::call_calc_final_dependent_variables_kernel()
+void opt_midpoint_method::calc_y_np1()
 {
-	for (int i = 0; f.get_order(); i++) {
-		var_t *y0 = f.d_yout[i].data().get();
-		var_t *k2 = d_k[i][1].data().get();
+	for (int i = 0; i < f.get_order(); i++) {
+		int n		= f.d_y[i].size();
+		var_t *y_n	= f.d_y[i].data().get();
+		var_t *y_np1= f.d_yout[i].data().get();
+		var_t *k2	= d_k[i][1].data().get();
 
-		calculate_grid(f.d_y[i].size(), THREADS_PER_BLOCK);
-		calc_final_dependent_variables_kernel<<<grid, block>>>(f.d_y[i].size(), f.d_yout[i].data().get(), y0, k2);
+		calculate_grid(n, THREADS_PER_BLOCK);
+		sum_vector_kernel<<<grid, block>>>(n, y_np1, y_n, k2, b[1] * dt);
 		cudaError cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
-			throw integrator_exception("calc_2nd_arg_of_k2_kernel failed");
+			throw integrator_exception("calc_final_y_kernel failed");
 		}
 	}
 }
@@ -107,21 +101,24 @@ ttt_t	opt_midpoint_method::step()
 	cudaError cudaStatus = cudaSuccess;
 
 	int	forder = f.get_order();
+
 	int r = 0;
 
+	// Calculate k1 = f(tn, yn) = d_k[][0]
 	ttt_t ttemp = f.t + c[r] * dt;
 	for (int i = 0; i < forder; i++) {
 		f.calculate_dy(i, r, ttemp, f.d_p, f.d_y, d_k[i][r]);
 	}
 
-	r++;
-	call_calc_2nd_arg_of_k2_kernel();
+	r = 1;
+	// Calculate k2 = f(tn + c1 * dt, yn + a21 * dt * k1) = d_k[][1]
+	calc_ytemp_for_k2();
 	ttemp = f.t + c[r] * dt;
 	for (int i = 0; i < forder; i++) {
 		f.calculate_dy(i, r, ttemp, f.d_p, d_ytemp, d_k[i][r]); 
 	}
 
-	call_calc_final_dependent_variables_kernel();
+	calc_y_np1();
 	f.tout = f.t + dt;
 	f.swap_in_out();
 

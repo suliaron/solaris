@@ -3,14 +3,10 @@
 #include <cstdlib>
 
 #include "config.h"
-#include "euler.h"
 #include "integrator.h"
 #include "nbody.h"
 #include "ode.h"
-#include "opt_midpoint_method.h"
 #include "pp_disk.h"
-#include "rungekutta.h"
-#include "rungekuttanystrom.h"
 
 class gas_disc;
 class number_of_bodies;
@@ -26,6 +22,7 @@ public:
 				INTEGRATOR_RUNGEKUTTA2,
 				INTEGRATOR_OPT_RUNGEKUTTA2,
 				INTEGRATOR_RUNGEKUTTA4,
+				INTEGRATOR_OPT_RUNGEKUTTA4,
 				INTEGRATOR_RUNGEKUTTANYSTROM
 			} integrator_type_t;
 
