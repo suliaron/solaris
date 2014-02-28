@@ -1,7 +1,7 @@
 #include "ode.h"
 
-ode::ode(int order) :
-	t(0),
+ode::ode(int order, ttt_t t) :
+	t(t),
 	h_y(order, h_var_t()),
 	d_y(order, d_var_t()),
 	d_yout(order, d_var_t())

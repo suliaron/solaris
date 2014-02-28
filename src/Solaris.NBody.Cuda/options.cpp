@@ -59,6 +59,7 @@ void options::print_usage()
 	cout << "                          RKN  : Runge-Kutta-Nystrom" << endl;
 	cout << "     -gas          : Embed the planets into a gas disk" << endl;
 	cout << "     -a <number>   : Use adaptive time step with <number> as tolerance" << endl;
+	cout << "     -t0 <number>  : Start time " << endl;
 	cout << "     -t <number>   : Stop time " << endl;
 	cout << "     -dt <number>  : Initial time step" << endl;
 	cout << "     -b <number>   : Buffer factor for collisions" << endl;
@@ -139,6 +140,11 @@ void options::parse_options(int argc, const char** argv)
 			adaptive = true;
 			i++;
 			tolerance = (var_t)atof(argv[i]);
+		}
+		// Time start
+		else if (p == "-t0")	{
+			i++;
+			timeStart = (var_t)atof(argv[i]) * Constants::YearToDay;
 		}
 		// Time end
 		else if (p == "-t")	{
@@ -276,7 +282,7 @@ void options::initial_condition(nbody* nb)
 
 ode* options::create_ode()
 {
-	nbody* nb = new nbody(n);
+	nbody* nb = new nbody(n, timeStart);
 
 	nb->t = timeStart;
 	
@@ -291,7 +297,7 @@ ode* options::create_ode()
 
 nbody*	options::create_nbody()
 {
-	nbody*	nb = new nbody(n);
+	nbody*	nb = new nbody(n, timeStart);
 
 	nb->t = timeStart;
 
@@ -308,7 +314,7 @@ nbody*	options::create_nbody()
 
 pp_disk*	options::create_pp_disk()
 {
-	pp_disk *ppd = new pp_disk(nBodies, gasDisc);
+	pp_disk *ppd = new pp_disk(nBodies, gasDisc, timeStart);
 
 	ppd->t = timeStart;
 

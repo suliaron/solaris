@@ -293,8 +293,8 @@ __global__
 }
 
 
-nbody::nbody(int n) :
-	ode(2),
+nbody::nbody(int n, ttt_t t0) :
+	ode(2, t0),
 	n(n),
 	d_accelerations(d_vec_t()),
 	d_interactions(d_int2_t()),

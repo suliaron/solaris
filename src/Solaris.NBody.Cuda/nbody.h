@@ -32,7 +32,7 @@ public:
 
 	var_t buffer_radius;
 
-	nbody(int n);
+	nbody(int n, ttt_t t0);
 	~nbody();
 
 	void calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::vector<d_var_t>& y, d_var_t& dy);

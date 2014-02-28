@@ -25,6 +25,7 @@
     <ClInclude Include="integrator_exception.h" />
     <ClInclude Include="ode.h" />
     <ClInclude Include="opt_midpoint_method.h" />
+    <ClInclude Include="opt_rkn76.h" />
     <ClInclude Include="opt_rungekutta4.h" />
     <ClInclude Include="rungekutta.h" />
     <ClInclude Include="rungekuttanystrom.h" />
@@ -34,6 +35,7 @@
     <CudaCompile Include="euler.cu" />
     <CudaCompile Include="ode.cu" />
     <CudaCompile Include="opt_midpoint_method.cu" />
+    <CudaCompile Include="opt_rkn76.cu" />
     <CudaCompile Include="opt_rungekutta4.cu" />
     <CudaCompile Include="rungekutta.cu" />
     <CudaCompile Include="rungekuttanystrom.cu" />

@@ -8,7 +8,6 @@
 class ode
 {
 public:
-	
 	//! Current time
 	ttt_t t;
 	//! Time at the end of step
@@ -28,7 +27,7 @@ public:
 	/*!
 		\param order The order of the ODE.
 	*/
-	ode(int order);
+	ode(int order, ttt_t t);
 
 	//! Frees up resources used by the ODE
 	~ode();

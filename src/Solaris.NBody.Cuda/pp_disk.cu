@@ -615,8 +615,8 @@ void	calculate_orbelem_kernel(
 
 
 
-pp_disk::pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc) :
-	ode(2),
+pp_disk::pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc, ttt_t t0) :
+	ode(2, t0),
 	nBodies(nBodies),
 	h_gasDisc(gasDisc),
 	d_gasDisc(0),

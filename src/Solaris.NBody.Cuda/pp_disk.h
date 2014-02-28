@@ -18,7 +18,7 @@ public:
 		NO,
 		TYPE_I,
 		TYPE_II
-	}	    migration_type_t;
+	} migration_type_t;
 
 	// Type for parameters
 	typedef struct param
@@ -39,7 +39,7 @@ public:
 		migration_type_t migType;
 		//! The migration stop at this distance measured from the star
 		var_t	migStopAt;
-	}				param_t;
+	} param_t;
 
 	typedef struct orbelem
 	{
@@ -55,7 +55,7 @@ public:
 		var_t node;
 		//! Mean anomaly
 		var_t mean;
-	}				orbelem_t;
+	} orbelem_t;
 
 	typedef thrust::host_vector<param_t>		h_param_t;
 	typedef thrust::device_vector<param_t>		d_param_t;
@@ -66,7 +66,7 @@ public:
 	d_orbelem_t			d_orbelem;
 	h_orbelem_t			h_orbelem;
 	
-	pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc);
+	pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc, ttt_t t0);
 	~pp_disk();
 
 	h_orbelem_t calculate_orbelem(int_t refBodyId);

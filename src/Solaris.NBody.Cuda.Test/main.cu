@@ -100,6 +100,8 @@ string get_printout_file(options& opt, int pcount)
 
 int main(int argc, const char** argv)
 {
+	cudaDeviceReset();
+
 	cout << "Solaris.NBody.Cuda.Test main.cu started" << endl;
 
 	time_t start = time(NULL);
@@ -130,7 +132,7 @@ int main(int argc, const char** argv)
 		else {
 			//collisionsf = new ofstream(combine_path(opt.printoutDir, "col.txt").c_str());
 			//positionsf = new ofstream(get_printout_file(opt, pcount++).c_str());
-			filename = get_filename_without_ext(opt.filename) + "._foRK4.ppd." + (opt.gasDisc == 0 ? "" : "gas.CONSTANT.");
+			filename = get_filename_without_ext(opt.filename) + "._adapt_RK4.ppd." + (opt.gasDisc == 0 ? "" : "gas.CONSTANT.");
 			string filenameWithExt = filename + get_extension(opt.filename);
 			positionsf = new ofstream(combine_path(opt.printoutDir, filenameWithExt), std::ios::app);
 			filenameWithExt = filename + "oe." + get_extension(opt.filename);
@@ -146,8 +148,10 @@ int main(int argc, const char** argv)
 
 				// Start of a print-out period, create new file if necessary
 				if (pp == 0) {
+					var_t avg_dt = (ppd->t - opt.timeStart) / intgr->get_n_step();
+					cout << intgr->get_n_failed_step() << " step(s) failed until time: " << ppd->t << " average dt: " << setprecision(10) << setw(16) << avg_dt << " [d]" << endl;
 					cerr << setprecision(10) << setw(16) << dt << " [d], ";
-					cerr << setprecision(5) << setw(6) << (ppd->t / opt.timeStop * 100) << " %" << endl;
+					cerr << setprecision(5) << setw(6) << ((ppd->t - opt.timeStart)/opt.timeStop*100) << " %" << endl;
 				}
 
 				if (0 <= pp && pp <= opt.printoutLength) {
