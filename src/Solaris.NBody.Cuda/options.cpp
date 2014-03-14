@@ -7,6 +7,7 @@
 #include "euler.h"
 #include "opt_midpoint_method.h"
 #include "opt_rungekutta4.h"
+#include "opt_rkn76.h"
 #include "rungekutta.h"
 #include "rungekuttanystrom.h"
 
@@ -54,6 +55,7 @@ void options::print_usage()
 	cout << "                          E : Euler" << endl;
 	cout << "                          oRK2 : optimized 2nd order Runge-Kutta" << endl;
 	cout << "                          oRK4 : optimized 4th order Runge-Kutta" << endl;
+	cout << "                          oRKN : optimized 7(6) Runge-Kutta-Nystrom" << endl;
 	cout << "                          RK2  : 2nd order Runge-Kutta" << endl;
 	cout << "                          RK4  : 4th order Runge-Kutta" << endl;
 	cout << "                          RKN  : Runge-Kutta-Nystrom" << endl;
@@ -130,6 +132,9 @@ void options::parse_options(int argc, const char** argv)
 			}
 			else if (p == "RKN") {
 				inttype = INTEGRATOR_RUNGEKUTTANYSTROM;
+			}
+			else if (p == "oRKN") {
+				inttype = INTEGRATOR_OPT_RUNGEKUTTANYSTROM;
 			}
 			else {
 				throw nbody_exception("Invalid integrator type.");
@@ -352,6 +357,9 @@ integrator* options::create_integrator(ode* f)
 		break;
 	case INTEGRATOR_RUNGEKUTTANYSTROM:
 		intgr = new rungekuttanystrom<9>(*f, dt, adaptive, tolerance);
+		break;
+	case INTEGRATOR_OPT_RUNGEKUTTANYSTROM:
+		intgr = new opt_rkn76(*f, dt, adaptive, tolerance);
 		break;
 	default:
 		throw nbody_exception("Requested integrator is not implemented.");

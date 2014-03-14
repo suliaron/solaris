@@ -16,7 +16,6 @@
 // includes project
 #include "config.h"
 #include "Constants.h"
-#include "interaction_bound.h"
 #include "gas_disc.h"
 #include "nbody_exception.h"
 #include "number_of_bodies.h"
@@ -662,26 +661,52 @@ void pp_disk::allocate_vectors()
 	}
 }
 
+void pp_disk::calculate_grav_accel(interaction_bound iBound, const param_t* params, const vec_t* coor, vec_t* acce)
+{
+	for (int bodyIdx = iBound.sink.x; bodyIdx < iBound.sink.y; bodyIdx++) {
+		acce[bodyIdx].x = 0.0;
+		acce[bodyIdx].y = 0.0;
+		acce[bodyIdx].z = 0.0;
+		acce[bodyIdx].w = 0.0;
+		for (int j = iBound.source.x; j < iBound.source.y; j++) {
+			if (j == bodyIdx) 
+			{
+				continue;
+			}
+			acce[bodyIdx] = calculate_grav_accel_pair(coor[bodyIdx], coor[j], params[j].mass, acce[bodyIdx]);
+		}
+		acce[bodyIdx].x *= K2;
+		acce[bodyIdx].y *= K2;
+		acce[bodyIdx].z *= K2;
+	}
+}
+
 cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, const vec_t *coor, vec_t *acce)
 {
 	cudaError_t cudaStatus = cudaSuccess;
-	
-	interaction_bound iBound = nBodies->get_self_interacting();
-	int		nBodyToCalculate = nBodies->n_self_interacting();
-	int		nThread = std::min(THREADS_PER_BLOCK, nBodyToCalculate);
-	int		nBlock = (nBodyToCalculate + nThread - 1)/nThread;
-	dim3	grid(nBlock);
-	dim3	block(nThread);
 
-	calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
-	cudaStatus = HANDLE_ERROR(cudaGetLastError());
-	if (cudaSuccess != cudaStatus) {
-		throw nbody_exception("calculate_grav_accel_kernel failed", cudaStatus);
+	int		nBodyToCalculate;
+	int		nThread;
+	int		nBlock;
+	
+	nBodyToCalculate = nBodies->n_self_interacting();
+	if (0 < nBodyToCalculate) {
+		interaction_bound iBound = nBodies->get_self_interacting();
+		std::min(THREADS_PER_BLOCK, nBodyToCalculate);
+		(nBodyToCalculate + nThread - 1)/nThread;
+		dim3	grid(nBlock);
+		dim3	block(nThread);
+
+		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
+		cudaStatus = HANDLE_ERROR(cudaGetLastError());
+		if (cudaSuccess != cudaStatus) {
+			throw nbody_exception("calculate_grav_accel_kernel failed", cudaStatus);
+		}
 	}
 
-	iBound = nBodies->get_nonself_interacting();
 	nBodyToCalculate = nBodies->super_planetesimal + nBodies->planetesimal;
 	if (0 < nBodyToCalculate) {
+		iBound		= nBodies->get_nonself_interacting();
 		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
 		grid.x		= nBlock;
@@ -694,9 +719,9 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 		}
 	}
 
-	iBound = nBodies->get_non_interacting();
 	nBodyToCalculate = nBodies->test_particle;
 	if (0 < nBodyToCalculate) {
+		iBound		= nBodies->get_non_interacting();
 		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
 		grid.x		= nBlock;
@@ -712,7 +737,6 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 	return cudaStatus;
 }
 
-// TODO: remove gasDisc, since it is defined in pp_disk. Mist be definitly mark if it is on the host or on the device
 cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const param_t *params, 
 	const vec_t *coor, const vec_t *velo, vec_t *acce)
 {
@@ -737,7 +761,6 @@ cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const param_t 
 	return cudaStatus;
 }
 
-// TODO: remove gasDisc, since it is defined in pp_disk. Mist be definitly mark if it is on the host or on the device
 cudaError_t pp_disk::call_calculate_migrateI_accel_kernel(ttt_t time, param_t* params, 
 	const vec_t* coor, const vec_t* velo, vec_t* acce)
 {

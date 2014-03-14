@@ -330,11 +330,11 @@ int	Acceleration::GravityAC(double t, double *y, double *accel)
 
 int	Acceleration::GasDragAC(double t, double *y, double *accel)
 {
-    static bool _epstein = false;
+	static bool _epstein = false;
     static bool _stokes = false;
     static bool _transition = false;
 
-	double factor = this->nebula->gasComponent.ReductionFactor(t);
+	double factor = nebula->gasComponent.ReductionFactor(t);
 
 	// Gas drag is experienced only by planetesimals and super-planetesimlas.
 	int lower = bodyData->nBodies.NOfMassive();
@@ -346,27 +346,31 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
 
         double C = 0.0;
         {
-	        // Calculate the relative velocity of the solid with respect to the gas
-			Vector vGas = nebula->gasComponent.GasVelocity(Constants::Gauss2*bodyData->mass[0], r, atan2(y[i0 + 1], y[i0 + 0]));
+			Vector rVec(y[i0 + 0], y[i0 + 1], y[i0 + 2]);
+			Vector vVec(y[i0 + 3], y[i0 + 4], y[i0 + 5]);
+	        // Calculate the gas velocity at rVec
+			Vector vGas = nebula->gasComponent.gas_velocity(Constants::Gauss2*bodyData->mass[0], &rVec);
+			// Vector vGas = nebula->gasComponent.GasVelocity(Constants::Gauss2*bodyData->mass[0], r, atan2(y[i0 + 1], y[i0 + 0]));
 		    // The relative velocity
-		    Vector u(y[i0 + 3] - vGas.x, y[i0 + 4] - vGas.y, y[i0 + 5] - vGas.z);
-			double rhoGas = factor * nebula->gasComponent.GasDensityAt(r, y[i0 + 2]);
+			Vector u(vVec.x - vGas.x, vVec.y - vGas.y, vVec.z - vGas.z);
+			double rhoGas = factor * nebula->gasComponent.gas_density_at(&rVec);
+			//double rhoGas = factor * nebula->gasComponent.GasDensityAt(r, y[i0 + 2]);
 
             double lambda = this->nebula->gasComponent.meanFreePath.Evaluate(r);
             // Epstein regime
             if (     bodyData->radius[i] <= 0.1 * lambda) {
                 if (!_epstein) {
-                    std::cout << "Epstein regime\n";
+					std::cout << "t: " << t*Constants::DayToYear << "[yr] " << "Epstein regime\n";
                     _epstein = true;
                 }
 	            // Calculate the mean thermal velocity of the gas molecules
-                double vth = this->nebula->gasComponent.MeanThermalSpeed_CMU(bodyData->mass[0], r);
+                double vth = nebula->gasComponent.MeanThermalSpeed_CMU(bodyData->mass[0], r);
                 C = bodyData->gammaEpstein[i] * vth  * rhoGas;
             }
             // Stokes regime
             else if (bodyData->radius[i] >= 10.0 * lambda) {
                 if (!_stokes) {
-                    std::cout << "Stokes regime\n";
+                    std::cout << "t: " << t*Constants::DayToYear << "[yr] " << "Stokes regime\n";
                     _stokes = true;
                 }
                 // magnitude of the relative velocity
@@ -376,7 +380,7 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
             // Transition regime
             else {
                 if (!_transition) {
-                    std::cout << "Transition regime\n";
+                    std::cout << "t: " << t*Constants::DayToYear << "[yr] " << "Transition regime\n";
                     _transition = true;
                 }
                 double lambda1 = 0.1 * lambda;
@@ -384,7 +388,7 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
                 double gammaE = 1.0/(bodyData->density[i] * lambda1);
                 double gammaS = 3.0/8.0 * bodyData->cD[i] / (bodyData->density[i] * lambda2);
 
-                double vth = this->nebula->gasComponent.MeanThermalSpeed_CMU(bodyData->mass[0], r);
+                double vth = nebula->gasComponent.MeanThermalSpeed_CMU(bodyData->mass[0], r);
                 double K = gammaS * u.Length() / (gammaE * vth);
                 double eta = lambda2 / lambda1;
                 double kappa = log10(K) / log10(eta);
@@ -396,19 +400,21 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
 		    accel[j0 + 2] = -C * u.z;
         }
 #if 0
-        Vector vGas = GasVelocity(Constants::Gauss2*bodyData->mass[0], r, atan2(y[i0 + 1], y[i0 + 0]));
+		Vector rVec(y[i0 + 0], y[i0 + 1], y[i0 + 2]);
+		Vector vGas = nebula->gasComponent.gas_velocity(Constants::Gauss2*bodyData->mass[0], &rVec);
 		// The relative velocity
 		Vector u(y[i0 + 3] - vGas.x, y[i0 + 4] - vGas.y, y[i0 + 5] - vGas.z);
 		double uLength = sqrt(u.x*u.x + u.y*u.y + u.z*u.z); 
 	
-		double rhoGas = factor * GasDensityAt(r, y[i0 + 2]);
-		double C = bodyData->gammaStokes[i] * rhoGas * uLength;
+		double rhoGas = factor * nebula->gasComponent.gas_density_at(&rVec);
+		C = bodyData->gammaStokes[i] * rhoGas * uLength;
 
 		// TODO: implement the Epstein acceleration form!
-
 		accel[j0 + 0] = -C * u.x;
 		accel[j0 + 1] = -C * u.y;
 		accel[j0 + 2] = -C * u.z;
+
+		//printf("gasAccel[%d]: (%le, %le, %le)\n", i, accel[j0 + 0], accel[j0 + 1], accel[j0 + 2]);
 #endif
 	}
 

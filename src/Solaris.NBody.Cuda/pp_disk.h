@@ -2,8 +2,9 @@
 
 #include <string>
 
-#include "ode.h"
 #include "config.h"
+#include "interaction_bound.h"
+#include "ode.h"
 
 class number_of_bodies;
 class gas_disc;
@@ -24,7 +25,7 @@ public:
 	typedef struct param
 	{
 		//! Unique number to identify the object
-		int_t	id;
+		int_t id;
 		//! Mass of body in M_sol
 		var_t mass;
 		//! Radius of body in AU
@@ -77,6 +78,15 @@ public:
 	int print_positions(ostream& sout);
 	int print_orbelem(ostream& sout);
 
+	//! Calls the cpu function that calculates the accelerations from gravitational
+	/*  interactions.
+		\param iBound containes the staring and ending indicies of the sink and source bodies
+		\param params Vector of parameters of the bodies
+		\param coor Vector of coordinates of the bodies
+		\param acce Will hold the accelerations for each body
+	*/
+	void calculate_grav_accel(interaction_bound iBound, const param_t* params, const vec_t* coor, vec_t* acce);
+
 private:
 	number_of_bodies	*nBodies;
 	gas_disc			*h_gasDisc;
@@ -95,7 +105,6 @@ private:
 		\param acce Will hold the accelerations for each body
 	*/
 	cudaError_t call_calculate_grav_accel_kernel(const param_t* params, const vec_t* coor, vec_t* acce);
-
 	//! Calls the kernel that calculates the acceleration due to drag force.
 	/*
 		\param time The actual time of the simulation
@@ -140,6 +149,3 @@ static __host__ __device__ var_t	reduction_factor(const gas_disc* gasDisc, ttt_t
 static __host__ __device__ var_t	midplane_density(const gas_disc* gasDisc, var_t r);
 static __host__ __device__ var_t	typeI_migration_time(const gas_disc* gasDisc, var_t C, var_t O, var_t ar, var_t er, var_t h);
 static __host__ __device__ var_t	typeI_eccentricity_damping_time(var_t C, var_t O, var_t ar, var_t er, var_t h);
-
-
-

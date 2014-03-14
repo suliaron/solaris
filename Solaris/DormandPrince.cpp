@@ -134,9 +134,9 @@ int DormandPrince::Driver(BodyData *bodyData, Acceleration *acceleration, TimeLi
 
 	// NOTE: Kikapcsolom a GasDrag erők kiszámítását, gyorsítva ezzel az integrálást.
 	// Készíteni összehasonlításokat, és értékelni az eredményeket, abbol a szempontbol, hogy így mennyire pontos az integralas.
-	//acceleration->evaluateGasDrag			= false;
-	//acceleration->evaluateTypeIMigration	= false;
-	//acceleration->evaluateTypeIIMigration	= false;
+	acceleration->evaluateGasDrag			= false;
+	acceleration->evaluateTypeIMigration	= false;
+	acceleration->evaluateTypeIIMigration	= false;
 
 	int		iter = 0;
 	double	errorMax = 0.0;
@@ -150,7 +150,7 @@ int DormandPrince::Driver(BodyData *bodyData, Acceleration *acceleration, TimeLi
 		}
 		errorMax = GetErrorMax(bodyData->nBodies.NOfVar(), bodyData->error);
 		timeLine->hDid = bodyData->h;
-		timeLine->hNext = 0.9*bodyData->h*pow(epsilon / errorMax, 1.0/7.0);
+		timeLine->hNext = errorMax < 1.0e-20 ? 2.0*bodyData->h : 0.9*bodyData->h*pow(epsilon / errorMax, 1.0/7.0);
 	} while (errorMax > epsilon && iter <= maxIter);
 	if (iter > maxIter) {
 		Error::_errMsg = "An error occurred during Prince-Dormand driver: iteration number exceeded maxIter!";
@@ -195,12 +195,18 @@ int DormandPrince::Step(BodyData *bodyData, Acceleration *acceleration)
 			for (int j = 0; j < 3; j++) {
 				double	xi = bodyData->y0[i0 + j];
 				double	vi = bodyData->y0[i0 + j + 3];
+				// Compute the coordinates
 				yTemp[i0 + j] = xi + D4[k]*h*vi;
-				double sum = 0.0;
+				// Copy the velocities
+				yTemp[i0 + j + 3] = vi;
+				double sum_a = 0.0;
 				for (int l = 0; l < k; l++) {
-					sum += D[k][l]*fMatrix[l][i0 + j + 3];
+					sum_a += D[k][l]*fMatrix[l][i0 + j + 3];
 				}
-				yTemp[i0 + j] += h2*sum;
+				// Compute the coordinates
+				yTemp[i0 + j] += h2*sum_a;
+				// Compute the velocities
+				yTemp[i0 + j + 3] += h*sum_a;
 			}
 		}
 		acceleration->Compute(t, yTemp, fMatrix[k]);
@@ -210,8 +216,10 @@ int DormandPrince::Step(BodyData *bodyData, Acceleration *acceleration)
 		int i0 = 6*i;
 		for (int j = 0; j<3; j++) {
 			int n = i0 + j;
+			// Compute the coordinates after the set
 			bodyData->y[n]			 = bodyData->y0[n] + h*bodyData->y0[n + 3];
 			bodyData->yBetterEst[n]  = bodyData->y[n];
+			// Compute the velocities after the set
 			bodyData->y[n + 3]		 = bodyData->y0[n + 3];
 			for (int k = 0; k < sizeHeightRKD; k++)
 			{

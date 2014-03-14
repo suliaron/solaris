@@ -34,6 +34,10 @@ public:
 	Vector	GasVelocity(double mu, double r, double alpha);
 	Vector	CircularVelocity(double mu, double r, double alpha);
 
+	Vector	circular_velocity(double mu, const Vector* rVec);
+	Vector	gas_velocity(double mu, const Vector* rVec);
+	double	gas_density_at(const Vector* rVec);
+
     double  MeanFreePath_SI(const double rho);
     double  MeanFreePath_CMU(const double rho);
     

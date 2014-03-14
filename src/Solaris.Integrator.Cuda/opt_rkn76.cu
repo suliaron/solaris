@@ -199,7 +199,10 @@ void opt_rkn76::call_calc_ytemp_for_kr_kernel(int r)
 		var_t* k5 = d_k[i][4].data().get();
 		var_t* k6 = d_k[i][5].data().get();
 		var_t* k7 = d_k[i][6].data().get();
-		var_t* k8 = d_k[i][7].data().get();
+		var_t* k8;
+		if (adaptive) {
+			k8 = d_k[i][7].data().get();
+		}
 		switch (r) {
 		case 1:
 			idx = 0;		

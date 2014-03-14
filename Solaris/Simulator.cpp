@@ -48,7 +48,7 @@ Simulator::Simulator(Simulation *simulation)
 
 	integratorType		= RUNGE_KUTTA_FEHLBERG78;
 
-	outputType			= BinaryFileAdapter::OutputType::TEXT;
+	outputType			= BinaryFileAdapter::OutputType::BINARY;
 }
 
 int Simulator::Continue()
@@ -184,13 +184,13 @@ int	Simulator::DecisionMaking(TimeLine* timeLine, bool& stop)
 	timeLine->lastNSteps	+= timeLine->hDid;
 
 #ifdef _DEBUG
-	if ((counter.succededStep) % NSTEP == 0) {
-		int tmp = NSTEP;
-		std::cout << (*timeLine);
-		std::cout << "Average step-size of the last " << tmp << " steps:" << timeLine->lastNSteps/NSTEP << " [day]" << std::endl;
-		std::cout << "Average step-size:" << timeLine->elapsedTime/counter.succededStep << " [day]" << std::endl;
-		timeLine->lastNSteps = 0.0;
-	}
+	//if ((counter.succededStep) % NSTEP == 0) {
+	//	int tmp = NSTEP;
+	//	std::cout << (*timeLine);
+	//	std::cout << "Average step-size of the last " << tmp << " steps:" << timeLine->lastNSteps/NSTEP << " [day]" << std::endl;
+	//	std::cout << "Average step-size:" << timeLine->elapsedTime/counter.succededStep << " [day]" << std::endl;
+	//	timeLine->lastNSteps = 0.0;
+	//}
 #endif
 
 	double actualTime = 1000.0*Constants::YearToDay*timeLine->millenium + timeLine->time;
@@ -233,11 +233,9 @@ int	Simulator::DecisionMaking(TimeLine* timeLine, bool& stop)
 	}
 
 	if (fabs(timeLine->lastSave) >= fabs(timeLine->output)) {
-
 		_simulation->binary->SavePhases(timeLine->time, bodyData.nBodies.total, bodyData.y0, bodyData.id, outputType);
 		Calculate::Integrals(&bodyData);
 		_simulation->binary->SaveIntegrals(timeLine->time, 16, bodyData.integrals);
-
 		timeLine->lastSave = 0.0;
 	}
 

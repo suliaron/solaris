@@ -1,8 +1,10 @@
 // includes, system 
 #include <ctime>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
+
 
 // includes CUDA
 #include "cuda_runtime.h"
@@ -21,6 +23,8 @@
 #include "options.h"
 
 using namespace std;
+
+
 
 string combine_path(string dir, string filename)
 {
@@ -132,7 +136,7 @@ int main(int argc, const char** argv)
 		else {
 			//collisionsf = new ofstream(combine_path(opt.printoutDir, "col.txt").c_str());
 			//positionsf = new ofstream(get_printout_file(opt, pcount++).c_str());
-			filename = get_filename_without_ext(opt.filename) + "._adapt_RK4.ppd." + (opt.gasDisc == 0 ? "" : "gas.CONSTANT.");
+			filename = get_filename_without_ext(opt.filename) + ".oRKN.ppd." + (opt.gasDisc == 0 ? "" : "gas.CONSTANT.");
 			string filenameWithExt = filename + get_extension(opt.filename);
 			positionsf = new ofstream(combine_path(opt.printoutDir, filenameWithExt), std::ios::app);
 			filenameWithExt = filename + "oe." + get_extension(opt.filename);

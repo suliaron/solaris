@@ -94,6 +94,69 @@ Vector GasComponent::GasVelocity(double mu, double r, double alpha)
 	//return v;
 }
 
+Vector	GasComponent::circular_velocity(double mu, const Vector* rVec)
+{
+	Vector result;
+
+	double r	= sqrt(SQR(rVec->x) + SQR(rVec->y));
+	double vc	= sqrt(mu/r);
+
+	double p;
+	if (rVec->x == 0.0 && rVec->y == 0.0) {
+		return result;
+	}
+	else if (rVec->y == 0.0) {
+		result.y = rVec->x > 0.0 ? vc : -vc;
+	}
+	else if (rVec->x == 0.0) {
+		result.x = rVec->y > 0.0 ? -vc : vc;
+	}
+	else if (rVec->x >= rVec->y) {
+		p = rVec->y / rVec->x;
+		result.y = rVec->x >= 0 ? vc/sqrt(1.0 + SQR(p)) : -vc/sqrt(1.0 + SQR(p));
+		result.x = -result.y*p;
+	}
+	else {
+		p = rVec->x / rVec->y;
+		result.x = rVec->y >= 0 ? -vc/sqrt(1.0 + SQR(p)) : vc/sqrt(1.0 + SQR(p));
+		result.y = -result.x*p;
+	}
+
+	return result;
+}
+
+Vector	GasComponent::gas_velocity(double mu, const Vector* rVec)
+{
+	Vector result = circular_velocity(mu, rVec);
+	double r	= sqrt(SQR(rVec->x) + SQR(rVec->y));
+
+	double v	 = sqrt(1.0 - 2.0*eta.Evaluate(r));
+	result.x	*= v;
+	result.y	*= v;
+	
+	return result;
+}
+
+// TODO: implemet INNER_EDGE to get it from the input
+double	GasComponent::gas_density_at(const Vector* rVec)
+{
+	double result = 0.0;
+
+	double r = sqrt(SQR(rVec->x) + SQR(rVec->y));
+	double h = scaleHeight.Evaluate(r);
+	double arg	= SQR(rVec->z/h);
+	if (innerEdge < r) {
+		result	= density.Evaluate(r) * exp(-arg);
+	}
+	else {
+		double a = density.c * pow(innerEdge, density.index - 4.0);
+		result	= a * SQR(SQR(r)) * exp(-arg);
+	}
+
+	return result;
+}
+
+
 Vector GasComponent::CircularVelocity(double mu, double r, double alpha)
 {
 	double v = sqrt( mu/r );

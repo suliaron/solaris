@@ -153,7 +153,7 @@ void BinaryFileAdapter::SavePhases(double time, int n, double *y, int *id, Outpu
 		break;
 	}
 
-    cout << "At " << setw(10) << time * Constants::DayToYear << " [yr] phases were saved" << endl;
+    //cout << "At " << setw(10) << time * Constants::DayToYear << " [yr] phases were saved" << endl;
 }
 
 void BinaryFileAdapter::SavePhase(ofstream& writer, double *y, int *id, OutputType type)
