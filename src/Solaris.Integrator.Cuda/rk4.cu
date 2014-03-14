@@ -4,7 +4,7 @@
 
 // include project
 #include "integrator_exception.h"
-#include "opt_rungekutta4.h"
+#include "rk4.h"
 #include "util.h"
 
 #define THREADS_PER_BLOCK	256
@@ -21,10 +21,10 @@ static cudaError_t HandleError(cudaError_t cudaStatus, const char *file, int lin
 
 #define	LAMBDA	1.0/10.0
 
-ttt_t opt_rungekutta4::c[] =  {0.0, 1.0/2.0, 1.0/2.0, 1.0, 1.0};
-var_t opt_rungekutta4::a[] =  {0.0, 1.0/2.0, 1.0/2.0, 1.0, 1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0};
-var_t opt_rungekutta4::bh[] = {1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0, 0.0};
-var_t opt_rungekutta4::b[] =  {1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0 - LAMBDA, LAMBDA};
+ttt_t rk4::c[] =  {0.0, 1.0/2.0, 1.0/2.0, 1.0, 1.0};
+var_t rk4::a[] =  {0.0, 1.0/2.0, 1.0/2.0, 1.0, 1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0};
+var_t rk4::bh[] = {1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0, 0.0};
+var_t rk4::b[] =  {1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0 - LAMBDA, LAMBDA};
 
 
 // ytemp = y_n + a*kr, r = 2, 3, 4
@@ -64,7 +64,7 @@ void calc_k4_sub_k5_kernel(int_t n, var_t *result, const var_t *k4, const var_t*
 	}
 }
 
-void opt_rungekutta4::calculate_grid(int nData, int threads_per_block)
+void rk4::calculate_grid(int nData, int threads_per_block)
 {
 	int	nThread = std::min(threads_per_block, nData);
 	int	nBlock = (nData + nThread - 1)/nThread;
@@ -72,7 +72,7 @@ void opt_rungekutta4::calculate_grid(int nData, int threads_per_block)
 	block.x = nThread;
 }
 
-void opt_rungekutta4::call_calc_ytemp_for_kr_kernel(int r)
+void rk4::call_calc_ytemp_for_kr_kernel(int r)
 {
 	for (int i = 0; i < f.get_order(); i++) {
 		int n		= f.d_y[i].size();
@@ -88,7 +88,7 @@ void opt_rungekutta4::call_calc_ytemp_for_kr_kernel(int r)
 	}
 }
 
-void opt_rungekutta4::call_calc_yHat_kernel()
+void rk4::call_calc_yHat_kernel()
 {
 	for (int i = 0; i < f.get_order(); i++) {
 		int n = f.d_y[i].size();
@@ -108,7 +108,7 @@ void opt_rungekutta4::call_calc_yHat_kernel()
 	}
 }
 
-void opt_rungekutta4::call_calc_k4_sub_k5_kernel()
+void rk4::call_calc_k4_sub_k5_kernel()
 {
 	for (int i = 0; i < f.get_order(); i++) {
 		int n = f.d_y[i].size();
@@ -125,7 +125,7 @@ void opt_rungekutta4::call_calc_k4_sub_k5_kernel()
 	}
 }
 
-opt_rungekutta4::opt_rungekutta4(ode& f, ttt_t dt, bool adaptive, var_t tolerance) :
+rk4::rk4(ode& f, ttt_t dt, bool adaptive, var_t tolerance) :
 		integrator(f, dt),
 		adaptive(adaptive),
 		tolerance(tolerance),
@@ -149,7 +149,7 @@ opt_rungekutta4::opt_rungekutta4(ode& f, ttt_t dt, bool adaptive, var_t toleranc
 	}
 }
 
-ttt_t opt_rungekutta4::step()
+ttt_t rk4::step()
 {
 	int	forder = f.get_order();
 

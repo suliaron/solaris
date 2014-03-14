@@ -7,7 +7,7 @@
 
 // include project
 #include "integrator_exception.h"
-#include "opt_rkn76.h"
+#include "rkn76.h"
 #include "util.h"
 
 #define THREADS_PER_BLOCK	256
@@ -24,8 +24,8 @@ static cudaError_t HandleError(cudaError_t cudaStatus, const char *file, int lin
 
 #define	LAMBDA	1.0/20.0
 #define sQ sqrt(21.0)
-ttt_t opt_rkn76::c[] = { 0.0, 1.0/10.0, 1.0/5.0, 3.0/8.0, 1.0/2.0, (7.0-sQ)/14.0, (7.0+sQ)/14.0, 1.0, 1.0 };
-var_t opt_rkn76::a[] = { 1.0/200.0,
+ttt_t rkn76::c[] = { 0.0, 1.0/10.0, 1.0/5.0, 3.0/8.0, 1.0/2.0, (7.0-sQ)/14.0, (7.0+sQ)/14.0, 1.0, 1.0 };
+var_t rkn76::a[] = { 1.0/200.0,
 						 1.0/150.0,                  1.0/75.0,
 						 171.0/8192.0,              45.0/4096.0,                  315.0/8192.0,
 						 5.0/288.0,                 25.0/528.0,                    25.0/672.0,                       16.0/693.0,
@@ -33,8 +33,8 @@ var_t opt_rkn76::a[] = { 1.0/200.0,
 						 (793.0+187.0*sQ)/12348.0, -25.0*(331.0+113.0*sQ)/90552.0, 25.0*(1044.0+247.0*sQ)/43218.0, -128.0*(14885.0+3779.0*sQ)/9745659.0, (3327.0+797.0*sQ)/24696.0,   -(581.0+127.0*sQ)/1722.0,
 						-(157.0-3.0*sQ)/378.0,      25.0*(143.0-10.0*sQ)/2772.0,  -25.0*(876.0+55.0*sQ)/3969.0,    1280.0*(913.0+18.0*sQ)/596673.0,     -(1353.0+26.0*sQ)/2268.0,  7.0*(1777.0+377.0*sQ)/4428.0, 7.0*(5.0-sQ)/36.0,
 						 1.0/20.0,                   0.0,                           0.0,                              0.0,                               8.0/45.0,                 7.0*(7.0+sQ)/360.0,           7.0*(7.0-sQ)/360.0, 0.0 };
-var_t opt_rkn76::bh[]= { 1.0/20.0, 0.0, 0.0, 0.0, 8.0/45.0, 7.0*(7.0+sQ)/360.0, 7.0*(7.0-sQ)/360.0,     0.0,    0.0 };
-var_t opt_rkn76::b[] = { 1.0/20.0, 0.0, 0.0, 0.0, 8.0/45.0, 7.0*(7.0+sQ)/360.0, 7.0*(7.0-sQ)/360.0, -LAMBDA, LAMBDA };
+var_t rkn76::bh[]= { 1.0/20.0, 0.0, 0.0, 0.0, 8.0/45.0, 7.0*(7.0+sQ)/360.0, 7.0*(7.0-sQ)/360.0,     0.0,    0.0 };
+var_t rkn76::b[] = { 1.0/20.0, 0.0, 0.0, 0.0, 8.0/45.0, 7.0*(7.0+sQ)/360.0, 7.0*(7.0-sQ)/360.0, -LAMBDA, LAMBDA };
 #undef sQ
 
 // ytemp = y_n + dt*(a21*k1)
@@ -166,7 +166,7 @@ void calc_f8_sub_f9_kernel(int_t n, var_t* result, const var_t* f8, const var_t*
 	}
 }
 
-void opt_rkn76::call_calc_k8_sub_k9_kernel()
+void rkn76::call_calc_k8_sub_k9_kernel()
 {
 	for (int i = 0; i < f.get_order(); i++) {
 		int n		= f.d_y[i].size();
@@ -183,7 +183,7 @@ void opt_rkn76::call_calc_k8_sub_k9_kernel()
 	}
 }
 
-void opt_rkn76::call_calc_ytemp_for_kr_kernel(int r)
+void rkn76::call_calc_ytemp_for_kr_kernel(int r)
 {
 	int idx = 0;
 
@@ -250,7 +250,7 @@ void opt_rkn76::call_calc_ytemp_for_kr_kernel(int r)
 	}
 }
 
-void opt_rkn76::call_calc_y_kernel()
+void rkn76::call_calc_y_kernel()
 {
 	for (int i = 0; i < f.get_order(); i++) {
 		int n		= f.d_y[i].size();
@@ -270,7 +270,7 @@ void opt_rkn76::call_calc_y_kernel()
 	}
 }
 
-opt_rkn76::opt_rkn76(ode& f, ttt_t dt, bool adaptive, var_t tolerance) :
+rkn76::rkn76(ode& f, ttt_t dt, bool adaptive, var_t tolerance) :
 		integrator(f, dt),
 		adaptive(adaptive),
 		tolerance(tolerance),
@@ -295,7 +295,7 @@ opt_rkn76::opt_rkn76(ode& f, ttt_t dt, bool adaptive, var_t tolerance) :
 	}
 }
 
-void opt_rkn76::calculate_grid(int nData, int threads_per_block)
+void rkn76::calculate_grid(int nData, int threads_per_block)
 {
 	int	nThread = std::min(threads_per_block, nData);
 	int	nBlock = (nData + nThread - 1)/nThread;
@@ -303,7 +303,7 @@ void opt_rkn76::calculate_grid(int nData, int threads_per_block)
 	block.x = nThread;
 }
 
-ttt_t opt_rkn76::step()
+ttt_t rkn76::step()
 {
 	int	forder = f.get_order();
 

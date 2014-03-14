@@ -23,20 +23,20 @@
     <ClInclude Include="euler.h" />
     <ClInclude Include="integrator.h" />
     <ClInclude Include="integrator_exception.h" />
+    <ClInclude Include="midpoint.h" />
     <ClInclude Include="ode.h" />
-    <ClInclude Include="opt_midpoint_method.h" />
-    <ClInclude Include="opt_rkn76.h" />
-    <ClInclude Include="opt_rungekutta4.h" />
+    <ClInclude Include="rk4.h" />
+    <ClInclude Include="rkn76.h" />
     <ClInclude Include="rungekutta.h" />
     <ClInclude Include="rungekuttanystrom.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="euler.cu" />
+    <CudaCompile Include="midpoint.cu" />
     <CudaCompile Include="ode.cu" />
-    <CudaCompile Include="opt_midpoint_method.cu" />
-    <CudaCompile Include="opt_rkn76.cu" />
-    <CudaCompile Include="opt_rungekutta4.cu" />
+    <CudaCompile Include="rk4.cu" />
+    <CudaCompile Include="rkn76.cu" />
     <CudaCompile Include="rungekutta.cu" />
     <CudaCompile Include="rungekuttanystrom.cu" />
     <CudaCompile Include="util.cu" />
