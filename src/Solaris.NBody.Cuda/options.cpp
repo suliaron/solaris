@@ -5,9 +5,9 @@
 #include "number_of_bodies.h"
 
 #include "euler.h"
-#include "opt_midpoint_method.h"
-#include "opt_rungekutta4.h"
-#include "opt_rkn76.h"
+#include "midpoint.h"
+#include "rk4.h"
+#include "rkn76.h"
 #include "rungekutta.h"
 #include "rungekuttanystrom.h"
 
@@ -347,19 +347,19 @@ integrator* options::create_integrator(ode* f)
 		intgr = new rungekutta<2>(*f, dt, adaptive, tolerance);
 		break;
 	case INTEGRATOR_OPT_RUNGEKUTTA2:
-		intgr = new opt_midpoint_method(*f, dt, adaptive, tolerance);
+		intgr = new midpoint(*f, dt, adaptive, tolerance);
 		break;
 	case INTEGRATOR_RUNGEKUTTA4:
 		intgr = new rungekutta<4>(*f, dt, adaptive, tolerance);
 		break;
 	case INTEGRATOR_OPT_RUNGEKUTTA4:
-		intgr = new opt_rungekutta4(*f, dt, adaptive, tolerance);
+		intgr = new rk4(*f, dt, adaptive, tolerance);
 		break;
 	case INTEGRATOR_RUNGEKUTTANYSTROM:
 		intgr = new rungekuttanystrom<9>(*f, dt, adaptive, tolerance);
 		break;
 	case INTEGRATOR_OPT_RUNGEKUTTANYSTROM:
-		intgr = new opt_rkn76(*f, dt, adaptive, tolerance);
+		intgr = new rkn76(*f, dt, adaptive, tolerance);
 		break;
 	default:
 		throw nbody_exception("Requested integrator is not implemented.");

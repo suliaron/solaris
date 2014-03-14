@@ -4,7 +4,7 @@
 
 // include project
 #include "integrator_exception.h"
-#include "opt_midpoint_method.h"
+#include "midpoint.h"
 
 #define THREADS_PER_BLOCK	256
 
@@ -18,9 +18,9 @@ static cudaError_t HandleError(cudaError_t cudaStatus, const char *file, int lin
 }
 #define HANDLE_ERROR(cudaStatus) (HandleError(cudaStatus, __FILE__, __LINE__))
 
-var_t opt_midpoint_method::a[] = {1.0/2.0};
-var_t opt_midpoint_method::b[] = {0.0, 1.0};
-ttt_t opt_midpoint_method::c[] = {0.0, 1.0/2.0};
+var_t midpoint::a[] = {1.0/2.0};
+var_t midpoint::b[] = {0.0, 1.0};
+ttt_t midpoint::c[] = {0.0, 1.0/2.0};
 
 // result = a + b_factor * b
 static __global__
@@ -35,7 +35,7 @@ void sum_vector_kernel(int_t n, var_t* result, const var_t* a, const var_t* b, v
 	}
 }
 
-void opt_midpoint_method::calculate_grid(int nData, int threads_per_block)
+void midpoint::calculate_grid(int nData, int threads_per_block)
 {
 	int	nThread = std::min(threads_per_block, nData);
 	int	nBlock = (nData + nThread - 1)/nThread;
@@ -43,7 +43,7 @@ void opt_midpoint_method::calculate_grid(int nData, int threads_per_block)
 	block.x = nThread;
 }
 
-void opt_midpoint_method::calc_ytemp_for_k2()
+void midpoint::calc_ytemp_for_k2()
 {
 	for (int i = 0; i < f.get_order(); i++) {
 		int n		= f.d_y[i].size();
@@ -60,7 +60,7 @@ void opt_midpoint_method::calc_ytemp_for_k2()
 	}
 }
 
-void opt_midpoint_method::calc_y_np1()
+void midpoint::calc_y_np1()
 {
 	for (int i = 0; i < f.get_order(); i++) {
 		int n		= f.d_y[i].size();
@@ -77,7 +77,7 @@ void opt_midpoint_method::calc_y_np1()
 	}
 }
 
-opt_midpoint_method::opt_midpoint_method(ode& f, ttt_t dt, bool adaptive, var_t tolerance) :
+midpoint::midpoint(ode& f, ttt_t dt, bool adaptive, var_t tolerance) :
 		integrator(f, dt),
 		adaptive(adaptive),
 		tolerance(tolerance),
@@ -96,7 +96,7 @@ opt_midpoint_method::opt_midpoint_method(ode& f, ttt_t dt, bool adaptive, var_t 
 	}
 }
 
-ttt_t	opt_midpoint_method::step()
+ttt_t	midpoint::step()
 {
 	cudaError cudaStatus = cudaSuccess;
 

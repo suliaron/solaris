@@ -33,13 +33,13 @@
     <ClInclude Include="..\..\config\config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="opt_midpoint_method.h">
+    <ClInclude Include="midpoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="opt_rungekutta4.h">
+    <ClInclude Include="rkn76.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="opt_rkn76.h">
+    <ClInclude Include="rk4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -59,13 +59,13 @@
     <CudaCompile Include="util.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
-    <CudaCompile Include="opt_midpoint_method.cu">
+    <CudaCompile Include="midpoint.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
-    <CudaCompile Include="opt_rungekutta4.cu">
+    <CudaCompile Include="rkn76.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
-    <CudaCompile Include="opt_rkn76.cu">
+    <CudaCompile Include="rk4.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>

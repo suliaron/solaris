@@ -4,7 +4,7 @@
 #include "integrator.h"
 #include "ode.h"
 
-class opt_midpoint_method : public integrator
+class midpoint : public integrator
 {
 public:
 	static var_t a[];
@@ -27,8 +27,8 @@ private:
 	void calc_y_np1();
 
 public:
-	opt_midpoint_method(ode& f, ttt_t dt, bool adaptive, var_t tolerance);
-	~opt_midpoint_method();
+	midpoint(ode& f, ttt_t dt, bool adaptive, var_t tolerance);
+	~midpoint();
 
 	ttt_t	step();
 };
