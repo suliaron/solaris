@@ -7,7 +7,7 @@
 #include "ode.h"
 
 class number_of_bodies;
-class gas_disc;
+class gas_disk;
 
 using namespace std;
 
@@ -67,7 +67,7 @@ public:
 	d_orbelem_t			d_orbelem;
 	h_orbelem_t			h_orbelem;
 	
-	pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc, ttt_t t0);
+	pp_disk(number_of_bodies *nBodies, gas_disk *gasDisk, ttt_t t0);
 	~pp_disk();
 
 	h_orbelem_t calculate_orbelem(int_t refBodyId);
@@ -88,9 +88,12 @@ public:
 	void calculate_grav_accel(interaction_bound iBound, const param_t* params, const vec_t* coor, vec_t* acce);
 
 private:
+	dim3	grid;
+	dim3	block;
+
 	number_of_bodies	*nBodies;
-	gas_disc			*h_gasDisc;
-	gas_disc			*d_gasDisc;
+	gas_disk			*h_gasDisk;
+	gas_disk			*d_gasDisk;
 
 	d_var_t				acceGasDrag;
 	d_var_t				acceMigrateI;
@@ -133,7 +136,7 @@ static __host__ __device__ var_t	norm2(const vec_t* v);
 static __host__ __device__ var_t	norm(const vec_t* v);
 static __host__ __device__ vec_t	circular_velocity(var_t mu, const vec_t* rVec);
 static __host__ __device__ vec_t	gas_velocity(var2_t eta, var_t mu, const vec_t* rVec);
-static __host__ __device__ var_t	gas_density_at(const gas_disc* gasDisc, const vec_t* rVec);
+static __host__ __device__ var_t	gas_density_at(const gas_disk* gasDisk, const vec_t* rVec);
 static __host__ __device__ var_t	calculate_kinetic_energy(const vec_t* vVec);
 static __host__ __device__ var_t	calculate_potential_energy(var_t mu, const vec_t* rVec);
 static __host__ __device__ var_t	calculate_energy(var_t mu, const vec_t* rVec, const vec_t* vVec);
@@ -145,7 +148,7 @@ static __host__ __device__ var_t	orbital_period(var_t mu, var_t sma);
 static __host__ __device__ var_t	orbital_frequency(var_t mu, var_t sma);
 static __host__ __device__ var_t	calculate_gamma_stokes(var_t cd, var_t density, var_t radius);
 static __host__ __device__ var_t	calculate_gamma_epstein(var_t density, var_t radius);
-static __host__ __device__ var_t	reduction_factor(const gas_disc* gasDisc, ttt_t t);
-static __host__ __device__ var_t	midplane_density(const gas_disc* gasDisc, var_t r);
-static __host__ __device__ var_t	typeI_migration_time(const gas_disc* gasDisc, var_t C, var_t O, var_t ar, var_t er, var_t h);
+static __host__ __device__ var_t	reduction_factor(const gas_disk* gasDisk, ttt_t t);
+static __host__ __device__ var_t	midplane_density(const gas_disk* gasDisk, var_t r);
+static __host__ __device__ var_t	typeI_migration_time(const gas_disk* gasDisk, var_t C, var_t O, var_t ar, var_t er, var_t h);
 static __host__ __device__ var_t	typeI_eccentricity_damping_time(var_t C, var_t O, var_t ar, var_t er, var_t h);

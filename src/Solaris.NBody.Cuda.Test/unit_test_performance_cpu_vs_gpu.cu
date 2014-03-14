@@ -25,7 +25,7 @@
 
 #include "config.h"
 #include "Constants.h" 
-#include "gas_disc.h"
+#include "gas_disk.h"
 #include "nbody.h"
 #include "nbody_exception.h"
 #include "number_of_bodies.h"

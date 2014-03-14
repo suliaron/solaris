@@ -27,13 +27,13 @@
     <ClInclude Include="interaction_bound.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\config\Constants.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pp_disk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gas_disc.h">
+    <ClInclude Include="gas_disk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\config\constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -55,7 +55,7 @@
     <ClCompile Include="number_of_bodies.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gas_disc.cpp">
+    <ClCompile Include="gas_disk.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -16,7 +16,7 @@
 // includes project
 #include "config.h"
 #include "Constants.h"
-#include "gas_disc.h"
+#include "gas_disk.h"
 #include "nbody_exception.h"
 #include "number_of_bodies.h"
 #include "pp_disk.h"
@@ -137,18 +137,18 @@ vec_t	gas_velocity(var2_t eta, var_t mu, const vec_t* rVec)
 // TODO: implemet INNER_EDGE to get it from the input
 #define INNER_EDGE 0.1 // AU
 static __host__ __device__
-var_t	gas_density_at(const gas_disc* gasDisc, const vec_t* rVec)
+var_t	gas_density_at(const gas_disk* gasDisk, const vec_t* rVec)
 {
 	var_t result = 0.0;
 
 	var_t r		= sqrt(SQR(rVec->x) + SQR(rVec->y));
-	var_t h		= gasDisc->sch.x * pow(r, gasDisc->sch.y);
+	var_t h		= gasDisk->sch.x * pow(r, gasDisk->sch.y);
 	var_t arg	= SQR(rVec->z/h);
 	if (INNER_EDGE < r) {
-		result	= gasDisc->rho.x * pow(r, gasDisc->rho.y) * exp(-arg);
+		result	= gasDisk->rho.x * pow(r, gasDisk->rho.y) * exp(-arg);
 	}
 	else {
-		var_t a	= gasDisc->rho.x * pow(INNER_EDGE, gasDisc->rho.y - 4.0);
+		var_t a	= gasDisk->rho.x * pow(INNER_EDGE, gasDisk->rho.y - 4.0);
 		result	= a * SQR(SQR(r)) * exp(-arg);
 	}
 
@@ -385,24 +385,24 @@ var_t	calculate_gamma_epstein(var_t density, var_t radius)
 }
 
 static __host__ __device__
-var_t	reduction_factor(const gas_disc* gasDisc, ttt_t t)
+var_t	reduction_factor(const gas_disk* gasDisk, ttt_t t)
 {
-	switch (gasDisc->gas_decrease) 
+	switch (gasDisk->gas_decrease) 
 	{
-	case gas_disc::CONSTANT:
+	case gas_disk::CONSTANT:
 		return 1.0;
-	case gas_disc::LINEAR:
-		if (t <= gasDisc->t0) {
+	case gas_disk::LINEAR:
+		if (t <= gasDisk->t0) {
 			return 1.0;
 		}
-		else if (t > gasDisc->t0 && t <= gasDisc->t1) {
-			return 1.0 - (t - gasDisc->t0)/(gasDisc->t1 - gasDisc->t0);
+		else if (t > gasDisk->t0 && t <= gasDisk->t1) {
+			return 1.0 - (t - gasDisk->t0)/(gasDisk->t1 - gasDisk->t0);
 		}
 		else {
 			return 0.0;
 		}
-	case gas_disc::EXPONENTIAL:
-		return exp(-t/gasDisc->timeScale);
+	case gas_disk::EXPONENTIAL:
+		return exp(-t/gasDisk->timeScale);
 	default:
 		return 1.0;
 	}
@@ -410,10 +410,10 @@ var_t	reduction_factor(const gas_disc* gasDisc, ttt_t t)
 
 #define SQRT_TWO_PI	2.50663
 static __host__ __device__
-var_t midplane_density(const gas_disc* gasDisc, var_t r)
+var_t midplane_density(const gas_disk* gasDisk, var_t r)
 {
-	var_t a1 = gasDisc->rho.x * pow(r, gasDisc->rho.y);
-	var_t a2 = gasDisc->sch.x * pow(r, gasDisc->sch.y);
+	var_t a1 = gasDisk->rho.x * pow(r, gasDisk->rho.y);
+	var_t a2 = gasDisk->sch.x * pow(r, gasDisk->sch.y);
 	var_t a3 = a1 * a2 * SQRT_TWO_PI;
 
 	return a3;
@@ -421,11 +421,11 @@ var_t midplane_density(const gas_disc* gasDisc, var_t r)
 #undef SQRT_TWO_PI	
 
 static __host__ __device__
-var_t typeI_migration_time(const gas_disc* gasDisc, var_t C, var_t O, var_t ar, var_t er, var_t h)
+var_t typeI_migration_time(const gas_disk* gasDisk, var_t C, var_t O, var_t ar, var_t er, var_t h)
 {
 	var_t result = 0.0;
 
-	var_t Cm = 2.0/(2.7 + 1.1 * abs(gasDisc->rho.y))/O;
+	var_t Cm = 2.0/(2.7 + 1.1 * abs(gasDisk->rho.y))/O;
 	var_t er1 = er / (1.3*h);
 	var_t er2 = er / (1.1*h);
 	var_t frac = (1.0 + FIFTH(er1)) / (1.0 - FORTH(er2));
@@ -506,15 +506,15 @@ void	calculate_grav_accel_kernel(interaction_bound iBound, const pp_disk::param_
 }
 
 static __global__
-void calculate_drag_accel_kernel(interaction_bound iBound, var_t rFactor, const gas_disc* gasDisc, 
+void calculate_drag_accel_kernel(interaction_bound iBound, var_t rFactor, const gas_disk* gasDisk, 
 		const pp_disk::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
 {
 	int tid		= blockIdx.x * blockDim.x + threadIdx.x;
 	int	bodyIdx = iBound.sink.x + tid;
 
 	if (bodyIdx < iBound.sink.y) {
-		vec_t vGas	 = gas_velocity(gasDisc->eta, K2*params[0].mass, (vec_t*)&coor[bodyIdx]);
-		var_t rhoGas = rFactor * gas_density_at(gasDisc, (vec_t*)&coor[bodyIdx]);
+		vec_t vGas	 = gas_velocity(gasDisk->eta, K2*params[0].mass, (vec_t*)&coor[bodyIdx]);
+		var_t rhoGas = rFactor * gas_density_at(gasDisk, (vec_t*)&coor[bodyIdx]);
 
 		vec_t u;
 		u.x	= velo[bodyIdx].x - vGas.x;
@@ -544,7 +544,7 @@ void calculate_drag_accel_kernel(interaction_bound iBound, var_t rFactor, const 
 }
 
 static __global__
-void calculate_migrateI_accel_kernel(interaction_bound iBound, var_t rFactor, const gas_disc* gasDisc, 
+void calculate_migrateI_accel_kernel(interaction_bound iBound, var_t rFactor, const gas_disk* gasDisk, 
 		pp_disk::param_t* params, const vec_t* coor, const vec_t* velo, vec_t* acce)
 {
 	int tid		= blockIdx.x * blockDim.x + threadIdx.x;
@@ -563,9 +563,9 @@ void calculate_migrateI_accel_kernel(interaction_bound iBound, var_t rFactor, co
 
 		// Orbital frequency: (note, that this differs from the formula of Fogg & Nelson 2005)
 		var_t O = orbital_frequency(mu, a); // K * sqrt((params[0]->mass + p->mass)/CUBE(a));
-		var_t C = SQR(params[0].mass)/(params[bodyIdx].mass * SQR(a) * midplane_density(gasDisc, r));
+		var_t C = SQR(params[0].mass)/(params[bodyIdx].mass * SQR(a) * midplane_density(gasDisk, r));
 		// Aspect ratio:
-		var_t h = gasDisc->sch.x * pow(r, gasDisc->sch.y);
+		var_t h = gasDisk->sch.x * pow(r, gasDisk->sch.y);
 		var_t ar = h/r;
 		var_t er = e*r;
 
@@ -578,7 +578,7 @@ void calculate_migrateI_accel_kernel(interaction_bound iBound, var_t rFactor, co
 		 */
 		var_t tm = 0.0;
 		if (e < 1.1*ar) {
-			tm = typeI_migration_time(gasDisc, C, O, ar, er, h);
+			tm = typeI_migration_time(gasDisk, C, O, ar, er, h);
 			tm = 1.0/tm;
 		}
 		var_t te = typeI_eccentricity_damping_time(C, O, ar, er, h);
@@ -614,11 +614,11 @@ void	calculate_orbelem_kernel(
 
 
 
-pp_disk::pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc, ttt_t t0) :
+pp_disk::pp_disk(number_of_bodies *nBodies, gas_disk *gasDisk, ttt_t t0) :
 	ode(2, t0),
 	nBodies(nBodies),
-	h_gasDisc(gasDisc),
-	d_gasDisc(0),
+	h_gasDisk(gasDisk),
+	d_gasDisk(0),
 	acceGasDrag(d_var_t()),
 	acceMigrateI(d_var_t()),
 	acceMigrateII(d_var_t())
@@ -629,8 +629,8 @@ pp_disk::pp_disk(number_of_bodies *nBodies, gas_disc *gasDisc, ttt_t t0) :
 pp_disk::~pp_disk()
 {
 	delete nBodies;
-	delete h_gasDisc;
-	cudaFree(d_gasDisc);
+	delete h_gasDisk;
+	cudaFree(d_gasDisk);
 }
 
 void pp_disk::allocate_vectors()
@@ -644,12 +644,12 @@ void pp_disk::allocate_vectors()
 	h_y[0].resize(ndim * nBodies->total);
 	h_y[1].resize(ndim * nBodies->total);
 
-	if (0 != h_gasDisc) {
+	if (0 != h_gasDisk) {
 		acceGasDrag.resize(ndim * nBodies->n_gas_drag());
 		// TODO:
 		// ask Laci, how to find out if there was an error during these 2 cuda function calls
-		cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc));
-		cudaMemcpy(d_gasDisc, h_gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice );
+		cudaMalloc((void**)&d_gasDisk, sizeof(gas_disk));
+		cudaMemcpy(d_gasDisk, h_gasDisk, sizeof(gas_disk), cudaMemcpyHostToDevice );
 
 		if (0 < (nBodies->rocky_planet + nBodies->proto_planet)) {
 			acceMigrateI.resize(ndim * (nBodies->rocky_planet + nBodies->proto_planet));
@@ -692,10 +692,10 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 	nBodyToCalculate = nBodies->n_self_interacting();
 	if (0 < nBodyToCalculate) {
 		interaction_bound iBound = nBodies->get_self_interacting();
-		std::min(THREADS_PER_BLOCK, nBodyToCalculate);
-		(nBodyToCalculate + nThread - 1)/nThread;
-		dim3	grid(nBlock);
-		dim3	block(nThread);
+		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
+		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
+		grid.x		= nBlock;
+		block.x		= nThread;
 
 		calculate_grav_accel_kernel<<<grid, block>>>(iBound, params, coor, acce);
 		cudaStatus = HANDLE_ERROR(cudaGetLastError());
@@ -706,7 +706,7 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 
 	nBodyToCalculate = nBodies->super_planetesimal + nBodies->planetesimal;
 	if (0 < nBodyToCalculate) {
-		iBound		= nBodies->get_nonself_interacting();
+		interaction_bound iBound = nBodies->get_nonself_interacting();
 		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
 		grid.x		= nBlock;
@@ -721,7 +721,7 @@ cudaError_t pp_disk::call_calculate_grav_accel_kernel(const param_t *params, con
 
 	nBodyToCalculate = nBodies->test_particle;
 	if (0 < nBodyToCalculate) {
-		iBound		= nBodies->get_non_interacting();
+		interaction_bound iBound = nBodies->get_non_interacting();
 		nThread		= std::min(THREADS_PER_BLOCK, nBodyToCalculate);
 		nBlock		= (nBodyToCalculate + nThread - 1)/nThread;
 		grid.x		= nBlock;
@@ -742,7 +742,7 @@ cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const param_t 
 {
 	cudaError_t cudaStatus = cudaSuccess;
 
-	var_t timeF = reduction_factor(h_gasDisc, time);
+	var_t timeF = reduction_factor(h_gasDisk, time);
 
 	int	nBodyToCalculate = nBodies->n_gas_drag();
 	if (0 < nBodyToCalculate) {
@@ -752,7 +752,7 @@ cudaError_t pp_disk::call_calculate_drag_accel_kernel(ttt_t time, const param_t 
 		dim3	grid(nBlock);
 		dim3	block(nThread);
 
-		calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, d_gasDisc, params, coor, velo, acce);
+		calculate_drag_accel_kernel<<<grid, block>>>(iBound, timeF, d_gasDisk, params, coor, velo, acce);
 		cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
 			throw nbody_exception("calculate_grav_accel_kernel failed", cudaStatus);
@@ -766,7 +766,7 @@ cudaError_t pp_disk::call_calculate_migrateI_accel_kernel(ttt_t time, param_t* p
 {
 	cudaError_t cudaStatus = cudaSuccess;
 
-	var_t timeF = reduction_factor(h_gasDisc, time);
+	var_t timeF = reduction_factor(h_gasDisk, time);
 
 	int	nBodyToCalculate = nBodies->n_migrate_typeI();
 	if (0 < nBodyToCalculate) {
@@ -776,7 +776,7 @@ cudaError_t pp_disk::call_calculate_migrateI_accel_kernel(ttt_t time, param_t* p
 		dim3	grid(nBlock);
 		dim3	block(nThread);
 
-		calculate_migrateI_accel_kernel<<<grid, block>>>(iBound, timeF, d_gasDisc, params, coor, velo, acce);
+		calculate_migrateI_accel_kernel<<<grid, block>>>(iBound, timeF, d_gasDisk, params, coor, velo, acce);
 		cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaSuccess != cudaStatus) {
 			throw nbody_exception("calculate_migrateI_accel_kernel failed", cudaStatus);
@@ -808,7 +808,7 @@ void pp_disk::calculate_dy(int i, int r, ttt_t t, const d_var_t& p, const std::v
 		// Calculate accelerations origanted from the gravitatinal force
 		call_calculate_grav_accel_kernel(params, coor, acce);
 
-		if (0 != h_gasDisc && 0 < nBodies->n_gas_drag()) {
+		if (0 != h_gasDisk && 0 < nBodies->n_gas_drag()) {
 			vec_t *aGD = (vec_t*)acceGasDrag.data().get();
 			if (0 == r) {
 				// Calculate accelerations originated from gas drag

@@ -305,8 +305,6 @@ void opt_rkn76::calculate_grid(int nData, int threads_per_block)
 
 ttt_t opt_rkn76::step()
 {
-	cudaError cudaStatus = cudaSuccess;
-
 	int	forder = f.get_order();
 
 	int r = 0;

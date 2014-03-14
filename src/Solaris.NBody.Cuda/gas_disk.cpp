@@ -1,6 +1,6 @@
-#include "gas_disc.h"
+#include "gas_disk.h"
 
-gas_disc::gas_disc() 
+gas_disk::gas_disk() 
 {
 
 	rho.x = rho.y = 0.0;
@@ -12,7 +12,7 @@ gas_disc::gas_disc()
 	t0 = t1 = timeScale = 0.0;
 }
 
-gas_disc::gas_disc(var2_t rho, var2_t sch, var2_t eta, var2_t tau, gas_decrease_t gas_decrease, ttt_t t0, ttt_t t1, ttt_t timeScale) :
+gas_disk::gas_disk(var2_t rho, var2_t sch, var2_t eta, var2_t tau, gas_decrease_t gas_decrease, ttt_t t0, ttt_t t1, ttt_t timeScale) :
 	rho(rho),
 	sch(sch),
 	eta(eta),
@@ -24,7 +24,7 @@ gas_disc::gas_disc(var2_t rho, var2_t sch, var2_t eta, var2_t tau, gas_decrease_
 {}
 
 __host__ __device__
-var_t	gas_disc::reduction_factor(ttt_t t)
+var_t	gas_disk::reduction_factor(ttt_t t)
 {
 	switch (gas_decrease) 
 	{
@@ -51,16 +51,16 @@ var_t	gas_disc::reduction_factor(ttt_t t)
 	}
 }
 
-std::ostream& operator<<(std::ostream& output, gas_disc gasDisc)
+std::ostream& operator<<(std::ostream& output, gas_disk gasDisk)
 {
-	output << "eta: " << gasDisc.eta.x << ", " << gasDisc.eta.y << std::endl;
-	output << "rho: " << gasDisc.rho.x << ", " << gasDisc.rho.y << std::endl;
-	output << "sch: " << gasDisc.sch.x << ", " << gasDisc.sch.y << std::endl;
-	output << "tau: " << gasDisc.tau.x << ", " << gasDisc.tau.y << std::endl;
-	output << "gas_decrease: " << gasDisc.gas_decrease << std::endl;
-	output << "          t0: " << gasDisc.t0 << " [d]" << std::endl;
-	output << "          t1: " << gasDisc.t1 << " [d]" << std::endl;
-	output << "   timeScale: " << gasDisc.timeScale << " [d]" << std::endl;
+	output << "eta: " << gasDisk.eta.x << ", " << gasDisk.eta.y << std::endl;
+	output << "rho: " << gasDisk.rho.x << ", " << gasDisk.rho.y << std::endl;
+	output << "sch: " << gasDisk.sch.x << ", " << gasDisk.sch.y << std::endl;
+	output << "tau: " << gasDisk.tau.x << ", " << gasDisk.tau.y << std::endl;
+	output << "gas_decrease: " << gasDisk.gas_decrease << std::endl;
+	output << "          t0: " << gasDisk.t0 << " [d]" << std::endl;
+	output << "          t1: " << gasDisk.t1 << " [d]" << std::endl;
+	output << "   timeScale: " << gasDisk.timeScale << " [d]" << std::endl;
 
 	return output;
 }

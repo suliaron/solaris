@@ -15,7 +15,7 @@
 //#include "config.h"
 //#include "planets.h"
 #include "Constants.h"
-#include "gas_disc.h"
+#include "gas_disk.h"
 
 
 using namespace std;
@@ -169,18 +169,18 @@ vec_t	gas_velocity(var2_t eta, var_t mu, const vec_t* rVec)
 
 // TODO: implemet INNER_EDGE to get it from the input
 #define INNER_EDGE 0.1 // AU
-var_t	gas_density_at(const gas_disc* gasDisc, const vec_t* rVec)
+var_t	gas_density_at(const gas_disk* gasDisk, const vec_t* rVec)
 {
 	var_t result = 0.0;
 
 	var_t r		= sqrt(SQR(rVec->x) + SQR(rVec->y));
-	var_t h		= gasDisc->sch.x * pow(r, gasDisc->sch.y);
+	var_t h		= gasDisk->sch.x * pow(r, gasDisk->sch.y);
 	var_t arg	= SQR(rVec->z/h);
 	if (INNER_EDGE < r) {
-		result	= gasDisc->rho.x * pow(r, gasDisc->rho.y) * exp(-arg);
+		result	= gasDisk->rho.x * pow(r, gasDisk->rho.y) * exp(-arg);
 	}
 	else {
-		var_t a	= gasDisc->rho.x * pow(INNER_EDGE, gasDisc->rho.y - 4.0);
+		var_t a	= gasDisk->rho.x * pow(INNER_EDGE, gasDisk->rho.y - 4.0);
 		result	= a * SQR(SQR(r)) * exp(-arg);
 	}
 
@@ -644,13 +644,13 @@ int	unit_test_of_nbody_util()
 		var_t result;
 
 		var_t mu = 1.0;
-		gas_disc gasDisc;
-		gasDisc.rho.x = 1.0e-10; // g/cm3
-		gasDisc.rho.y = -3.0;
-		gasDisc.sch.x = 5.0e-2;	// AU
-		gasDisc.sch.y = 3.0/2.0;
+		gas_disk gasDisk;
+		gasDisk.rho.x = 1.0e-10; // g/cm3
+		gasDisk.rho.y = -3.0;
+		gasDisk.sch.x = 5.0e-2;	// AU
+		gasDisk.sch.y = 3.0/2.0;
 		vec_t rVec = {0.1, 0.0, 0.0, 0.0};
-		result = gas_density_at(&gasDisc, &rVec);
+		result = gas_density_at(&gasDisk, &rVec);
 		if (fabs(1.0e-7 - result) > 1.0e-15) {
 			sprintf(err_msg, "\t%30s() function failed at line %d.", func_name, __LINE__);
 			cerr << err_msg << endl;
@@ -658,7 +658,7 @@ int	unit_test_of_nbody_util()
 		}
 
 		rVec.x = 0.05; rVec.y = 0.0; rVec.z = 0.0; rVec.w = 0.0;
-		result = gas_density_at(&gasDisc, &rVec);
+		result = gas_density_at(&gasDisk, &rVec);
 		if (fabs(6.25e-9 - result) > 1.0e-15) {
 			sprintf(err_msg, "\t%30s() function failed at line %d.", func_name, __LINE__);
 			cerr << err_msg << endl;
@@ -666,7 +666,7 @@ int	unit_test_of_nbody_util()
 		}
 
 		rVec.x = 1.0; rVec.y = 0.0; rVec.z = 0.0; rVec.w = 0.0;
-		result = gas_density_at(&gasDisc, &rVec);
+		result = gas_density_at(&gasDisk, &rVec);
 		if (1.0e-10 != result) {
 			sprintf(err_msg, "\t%30s() function failed at line %d.", func_name, __LINE__);
 			cerr << err_msg << endl;
@@ -674,7 +674,7 @@ int	unit_test_of_nbody_util()
 		}
 
 		rVec.x = 0.0; rVec.y = 1.0; rVec.z = 0.0; rVec.w = 0.0;
-		result = gas_density_at(&gasDisc, &rVec);
+		result = gas_density_at(&gasDisk, &rVec);
 		if (1.0e-10 != result) {
 			sprintf(err_msg, "\t%30s() function failed at line %d.", func_name, __LINE__);
 			cerr << err_msg << endl;
@@ -682,7 +682,7 @@ int	unit_test_of_nbody_util()
 		}
 
 		rVec.x = 1.0; rVec.y = 0.0; rVec.z = 5.0e-2; rVec.w = 0.0;
-		result = gas_density_at(&gasDisc, &rVec);
+		result = gas_density_at(&gasDisk, &rVec);
 		if (fabs(3.6787944117144232159552377016146e-11 - result) > 1.0e-16) {
 			sprintf(err_msg, "\t%30s() function failed at line %d.", func_name, __LINE__);
 			cerr << err_msg << endl;

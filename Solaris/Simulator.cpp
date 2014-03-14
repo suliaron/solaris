@@ -48,6 +48,7 @@ Simulator::Simulator(Simulation *simulation)
 
 	integratorType		= RUNGE_KUTTA_FEHLBERG78;
 
+	// TODO: ask Laci
 	outputType			= BinaryFileAdapter::OutputType::BINARY;
 }
 

@@ -151,8 +151,6 @@ opt_rungekutta4::opt_rungekutta4(ode& f, ttt_t dt, bool adaptive, var_t toleranc
 
 ttt_t opt_rungekutta4::step()
 {
-	cudaError cudaStatus = cudaSuccess;
-
 	int	forder = f.get_order();
 
 	int r = 0;

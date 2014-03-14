@@ -20,8 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\config\config.h" />
-    <ClInclude Include="..\..\config\Constants.h" />
-    <ClInclude Include="gas_disc.h" />
+    <ClInclude Include="..\..\config\constants.h" />
+    <ClInclude Include="gas_disk.h" />
     <ClInclude Include="interaction_bound.h" />
     <ClInclude Include="pp_disk.h" />
     <ClInclude Include="nbody.h" />
@@ -36,7 +36,7 @@
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gas_disc.cpp" />
+    <ClCompile Include="gas_disk.cpp" />
     <ClCompile Include="nbody_exception.cpp" />
     <ClCompile Include="number_of_bodies.cpp" />
     <ClCompile Include="options.cpp" />

@@ -8,7 +8,7 @@
 #include "ode.h"
 #include "pp_disk.h"
 
-class gas_disc;
+class gas_disk;
 class number_of_bodies;
 
 using namespace std;
@@ -43,7 +43,7 @@ public:
 	string	filename;				// Input file name
 
 	number_of_bodies	*nBodies;
-	gas_disc			*gasDisc;
+	gas_disk			*gasDisk;
 
 private:
 	integrator_type_t inttype;		// Integrator type

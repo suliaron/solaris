@@ -16,7 +16,7 @@
 
 #include "config.h"
 #include "Constants.h" 
-#include "gas_disc.h"
+#include "gas_disk.h"
 #include "nbody.h"
 #include "nbody_exception.h"
 #include "ode.h"
@@ -36,12 +36,12 @@ static cudaError_t HandleError(cudaError_t cudaStatus, const char *file, int lin
 
 
 __global__
-void print_gas_disc(gas_disc *gasDisc)
+void print_gas_disc(gas_disk *gasDisk)
 {
-	printf("eta: %10lf, %10lf\n", gasDisc->eta.x, gasDisc->eta.y);
-	printf("rho: %10lf, %10lf\n", gasDisc->rho.x, gasDisc->rho.y);
-	printf("sch: %10lf, %10lf\n", gasDisc->sch.x, gasDisc->sch.y);
-	printf("tau: %10lf, %10lf\n", gasDisc->tau.x, gasDisc->tau.y);
+	printf("eta: %10lf, %10lf\n", gasDisk->eta.x, gasDisk->eta.y);
+	printf("rho: %10lf, %10lf\n", gasDisk->rho.x, gasDisk->rho.y);
+	printf("sch: %10lf, %10lf\n", gasDisk->sch.x, gasDisk->sch.y);
+	printf("tau: %10lf, %10lf\n", gasDisk->tau.x, gasDisk->tau.y);
 }
 
 cudaError_t unit_test_cpy_gas_disc_to_dev()
@@ -62,28 +62,28 @@ cudaError_t unit_test_cpy_gas_disc_to_dev()
 		var2_t tau = {2.0/3.0, 2.0		};
 		rho.x	*= Constants::GramPerCm3ToSolarPerAu3; // M_sun / AU^3
 
-		gas_disc*	gasDisc;
-		gas_disc*	d_gasDisc;
-		gasDisc = new gas_disc(rho, sch, eta, tau);
+		gas_disk*	gasDisk;
+		gas_disk*	d_gasDisk;
+		gasDisk = new gas_disk(rho, sch, eta, tau);
 
-		cout << "gasDisc: " << endl;
-		cout << *gasDisc;
+		cout << "gasDisk: " << endl;
+		cout << *gasDisk;
 
-		cudaStatus = HANDLE_ERROR(cudaMalloc((void**)&d_gasDisc, sizeof(gas_disc)));
+		cudaStatus = HANDLE_ERROR(cudaMalloc((void**)&d_gasDisk, sizeof(gas_disk)));
 		if (cudaStatus != cudaSuccess) {
 			sprintf(err_msg, "\t%30s() function failed at line %d.", func_name, __LINE__);
 			cerr << err_msg << endl;
 			failed = true;
 		}
 
-		cudaStatus = HANDLE_ERROR(cudaMemcpy(d_gasDisc, gasDisc, sizeof(gas_disc), cudaMemcpyHostToDevice ));
+		cudaStatus = HANDLE_ERROR(cudaMemcpy(d_gasDisk, gasDisk, sizeof(gas_disk), cudaMemcpyHostToDevice ));
 		if (cudaStatus != cudaSuccess) {
 			sprintf(err_msg, "\t%30s() function failed at line %d.", func_name, __LINE__);
 			cerr << err_msg << endl;
 			failed = true;
 		}
 
-		print_gas_disc<<<1,1>>>(d_gasDisc);
+		print_gas_disc<<<1,1>>>(d_gasDisk);
 		cudaStatus = HANDLE_ERROR(cudaGetLastError());
 		if (cudaStatus != cudaSuccess) {
 			sprintf(err_msg, "\t%30s() function failed at line %d.", func_name, __LINE__);
@@ -91,8 +91,8 @@ cudaError_t unit_test_cpy_gas_disc_to_dev()
 			failed = true;
 		}
 
-		cudaFree(d_gasDisc);
-		delete gasDisc;
+		cudaFree(d_gasDisk);
+		delete gasDisk;
 	}
 
 	return cudaStatus;

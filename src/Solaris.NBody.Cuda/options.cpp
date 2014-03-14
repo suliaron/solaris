@@ -1,5 +1,5 @@
 #include "Constants.h"
-#include "gas_disc.h"
+#include "gas_disk.h"
 #include "options.h"
 #include "nbody_exception.h"
 #include "number_of_bodies.h"
@@ -42,7 +42,7 @@ void options::create_default_options()
 	filen			= 0;
 	filename		= "";
 	random			= true;
-	gasDisc			= 0;
+	gasDisk			= 0;
 }
 
 void options::print_usage()
@@ -98,7 +98,7 @@ void options::parse_options(int argc, const char** argv)
 			int	test_particle		= atoi(argv[i]);
 			this->nBodies = new number_of_bodies(star, giant_planet, rocky_planet, proto_planet, super_planetesimal, planetesimal, test_particle);
 		}
-		// Initialize a gas_disc object with default values
+		// Initialize a gas_disk object with default values
 		else if (p == "-gas") {
 			var2_t eta = {2.0e-3,   1.0/2.0	};
 			var2_t rho = {1.0e-9, -11.0/4.0	};		// g / cm^3
@@ -108,8 +108,8 @@ void options::parse_options(int argc, const char** argv)
 			ttt_t	t0 = 0.0;
 			ttt_t	t1 = 100.0 * Constants::YearToDay;
 			ttt_t	timeScale = 10.0 * Constants::YearToDay;
-			gas_disc::gas_decrease_t gasDecrease = gas_disc::gas_decrease_t::CONSTANT;
-			gasDisc = new gas_disc(rho, sch, eta, tau, gasDecrease, t0, t1, timeScale);
+			gas_disk::gas_decrease_t gasDecrease = gas_disk::gas_decrease_t::CONSTANT;
+			gasDisk = new gas_disk(rho, sch, eta, tau, gasDecrease, t0, t1, timeScale);
 		}
 		// Integrator type
 		else if (p == "-i") {
@@ -319,7 +319,7 @@ nbody*	options::create_nbody()
 
 pp_disk*	options::create_pp_disk()
 {
-	pp_disk *ppd = new pp_disk(nBodies, gasDisc, timeStart);
+	pp_disk *ppd = new pp_disk(nBodies, gasDisk, timeStart);
 
 	ppd->t = timeStart;
 
