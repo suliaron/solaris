@@ -90,7 +90,7 @@ int RungeKuttaFehlberg78::Driver(BodyData *bodyData, Acceleration *acceleration,
 
 	// NOTE: Kikapcsolom a GasDrag erők kiszámítását, gyorsítva ezzel az integrálást.
 	// Készíteni összehasonlításokat, és értékelni az eredményeket, abbol a szempontbol, hogy így mennyire pontos az integralas.
-	acceleration->evaluateGasDrag			= false;
+	//acceleration->evaluateGasDrag			= false;
 	acceleration->evaluateTypeIMigration	= false;
 	acceleration->evaluateTypeIIMigration	= false;
 
@@ -143,118 +143,6 @@ int RungeKuttaFehlberg78::Driver(BodyData *bodyData, Acceleration *acceleration,
 #undef PSHRNK
 #undef ERRCON
 #undef TINY
-
-//int RungeKuttaFehlberg78::Step(BodyData *bodyData, Acceleration *acceleration, double *accel, double t, double h, double *yout, double *yerr)
-//{
-//	// These arrays will contain the accelerations computed along the trajectory of the current step
-//	double	*fk[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-//	// Contains the approximation of the solution
-//	double	*ft = 0;
-//	int		nVar = bodyData->nBodies.NOfVar();
-//
-//	// i=0 changed to i=1
-//	for (int i=1; i<13; i++) {
-//		fk[i] = new double[nVar];
-//		if (fk[i] == 0) {
-//			Error::_errMsg = "host memory allocation";
-//			Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-//			return 1;
-//		}
-//	}
-//	ft = new double[nVar];
-//	if (ft == 0) {
-//		Error::_errMsg = "host memory allocation";
-//		Error::PushLocation(__FILE__, __FUNCTION__, __LINE__);
-//		return 1;
-//	}
-//
-//	// Copy the initial acceleration into fk[0]
-//	// NOTE: this copy can be avoided if a is used instead of fk[0], than we do not need to allocate/free fk[0]
-//	//memcpy(fk[0], accel, nVar*sizeof(double));
-//	fk[0] = accel;
-////1. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_1_0*fk[0][i]);
-//
-//	acceleration->Compute(t, ft, fk[1]);
-////2. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_2_0*fk[0][i] + D_2_1*fk[1][i]);
-//
-//	acceleration->Compute(t, ft, fk[2]);
-////3. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_3_0*fk[0][i] + D_3_2*fk[2][i]);
-//
-//	acceleration->Compute(t, ft, fk[3]);
-////4. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_4_0*fk[0][i] + D_4_2*fk[2][i] + D_4_3*fk[3][i]);
-//
-//	acceleration->Compute(t, ft, fk[4]);
-////5. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_5_0*fk[0][i] + D_5_3*fk[3][i] + D_5_4*fk[4][i]);
-//
-//	acceleration->Compute(t, ft, fk[5]);
-////6. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_6_0*fk[0][i] + D_6_3*fk[3][i] + D_6_4*fk[4][i] + D_6_5*fk[5][i]);
-//
-//	acceleration->Compute(t, ft, fk[6]);
-////7. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_7_0*fk[0][i] + D_7_4*fk[4][i] + D_7_5*fk[5][i] + D_7_6*fk[6][i]);
-//
-//	acceleration->Compute(t, ft, fk[7]);
-////8. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_8_0*fk[0][i] + D_8_3*fk[3][i] + D_8_4*fk[4][i] +
-//						  D_8_5*fk[5][i] + D_8_6*fk[6][i] + D_8_7*fk[7][i]);
-//
-//	acceleration->Compute(t, ft, fk[8]);
-////9. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_9_0*fk[0][i] + D_9_3*fk[3][i] + D_9_4*fk[4][i] +
-//						  D_9_5*fk[5][i] + D_9_6*fk[6][i] + D_9_7*fk[7][i] + D_9_8*fk[8][i]);
-//
-//	acceleration->Compute(t, ft, fk[9]);
-////10. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_10_0*fk[0][i] + D_10_3*fk[3][i] + D_10_4*fk[4][i] + D_10_5*fk[5][i] +
-//						  D_10_6*fk[6][i] + D_10_7*fk[7][i] + D_10_8*fk[8][i] + D_10_9*fk[9][i]);
-//
-//	acceleration->Compute(t, ft, fk[10]);
-////11. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_11_0*fk[0][i] + D_11_5*fk[5][i] + D_11_6*fk[6][i] +
-//						  D_11_7*fk[7][i] + D_11_8*fk[8][i] + D_11_9*fk[9][i]);
-//
-//	acceleration->Compute(t, ft, fk[11]);
-////12. substep
-//	for (int i=0; i<nVar; i++)
-//		ft[i] = bodyData->y0[i] + h*(D_12_0*fk[0][i] + D_12_3*fk[3][i] + D_12_4*fk[4][i] + D_12_5*fk[5][i] +
-//						  D_12_6*fk[6][i] + D_12_7*fk[7][i] + D_12_8*fk[8][i] + D_12_9*fk[9][i] +
-//						  D_12_11*fk[11][i]);
-//
-//	acceleration->Compute(t, ft, fk[12]);
-//	// The result of the step is stored in yout
-////13. substep
-//	for (int i=0; i<nVar; i++)
-//		yout[i] = bodyData->y0[i] + h*(D1_0*fk[0][i] + D1_5*fk[5][i] + D1_6*(fk[6][i] + fk[7][i]) +
-//							D1_8*(fk[8][i] + fk[9][i]) + D1_10*fk[10][i]);
-//
-//	// Error estimation
-//	for (int i=0; i<nVar; i++)
-//		yerr[i] = h*fabs(fk[0][i] + fk[10][i]-fk[11][i]-fk[12][i])*41.0/840.0;
-//
-//	// i=0 changed to i=1
-//	for (int i=1; i<13; i++)
-//		delete[] fk[i];
-//	delete[] ft;
-//
-//	return 0;
-//}
 
 int RungeKuttaFehlberg78::Step(BodyData *bodyData, Acceleration *acceleration)
 {

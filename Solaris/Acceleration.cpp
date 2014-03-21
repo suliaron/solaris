@@ -360,7 +360,7 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
             // Epstein regime
             if (     bodyData->radius[i] <= 0.1 * lambda) {
                 if (!_epstein) {
-					std::cout << "t: " << t*Constants::DayToYear << "[yr] " << "Epstein regime\n";
+					std::cout << "t: " << t*Constants::DayToYear << " [yr] " << "Epstein regime\n";
                     _epstein = true;
                 }
 	            // Calculate the mean thermal velocity of the gas molecules
@@ -370,7 +370,7 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
             // Stokes regime
             else if (bodyData->radius[i] >= 10.0 * lambda) {
                 if (!_stokes) {
-                    std::cout << "t: " << t*Constants::DayToYear << "[yr] " << "Stokes regime\n";
+                    std::cout << "t: " << t*Constants::DayToYear << " [yr] " << "Stokes regime\n";
                     _stokes = true;
                 }
                 // magnitude of the relative velocity
@@ -380,7 +380,7 @@ int	Acceleration::GasDragAC(double t, double *y, double *accel)
             // Transition regime
             else {
                 if (!_transition) {
-                    std::cout << "t: " << t*Constants::DayToYear << "[yr] " << "Transition regime\n";
+                    std::cout << "t: " << t*Constants::DayToYear << " [yr] " << "Transition regime\n";
                     _transition = true;
                 }
                 double lambda1 = 0.1 * lambda;

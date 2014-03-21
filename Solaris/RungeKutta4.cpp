@@ -32,7 +32,7 @@ int RungeKutta4::Driver(BodyData *bodyData, Acceleration *acceleration, TimeLine
 	// Calculate the acceleration in the initial point
 	acceleration->Compute(timeLine->time, bodyData->y0, bodyData->accel);
 
-	acceleration->evaluateGasDrag			= false;
+	//acceleration->evaluateGasDrag			= false;
 	acceleration->evaluateTypeIMigration	= false;
 	acceleration->evaluateTypeIIMigration	= false;
 
@@ -76,7 +76,7 @@ int RungeKutta4::Step(BodyData *bodyData, Acceleration *acceleration)
 	int		nVar = bodyData->nBodies.NOfVar();
 
 	// i=0 changed to i=1
-	for (int i=1; i<4; i++) {
+	for (int i = 1; i < 4; i++) {
 		fk[i] = new double[nVar];
 		if (fk[i] == 0) {
 			Error::_errMsg = "host memory allocation";
@@ -98,27 +98,32 @@ int RungeKutta4::Step(BodyData *bodyData, Acceleration *acceleration)
 	fk[0] = bodyData->accel;
 
 	// k2:
-	for (int i=0; i<nVar; i++)
+	for (int i = 0; i < nVar; i++) {
 		yTemp[i] = bodyData->y0[i] + h*(a21*fk[0][i]);
+	}
 	acceleration->Compute(t + c2*h, yTemp, fk[1]);
 
 	// k3:
-	for (int i=0; i<nVar; i++)
+	for (int i = 0; i < nVar; i++) {
 		yTemp[i] = bodyData->y0[i] + h*(a32*fk[1][i]);
+	}
 	acceleration->Compute(t + c3*h, yTemp, fk[2]);
 
 	// k4:
-	for (int i=0; i<nVar; i++)
+	for (int i = 0; i < nVar; i++) {
 		yTemp[i] = bodyData->y0[i] + h*(a43*fk[2][i]);
+	}
 	acceleration->Compute(t + c4*h, yTemp, fk[3]);
 
 	// The result of the step
-	for (int i=0; i<nVar; i++)
+	for (int i = 0; i < nVar; i++) {
 		bodyData->y[i] = bodyData->y0[i] + h*(b1*fk[0][i] + b2*fk[1][i] + b3*fk[2][i] + b4*fk[3][i]);
+	}
 
 	// i=0 changed to i=1
-	for (int i=1; i<4; i++)
+	for (int i = 1; i < 4; i++) {
 		delete[] fk[i];
+	}
 	delete[] yTemp;
 
 	return 0;
